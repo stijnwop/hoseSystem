@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<i3D name="manureHose3m" version="1.6" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://i3d.giants.ch/schema/i3d-1.6.xsd">
+
+  <Files>
+    <File fileId="1" filename="../hose_diffuse.dds" relativePath="true"/>
+    <File fileId="2" filename="../hose_normal.dds" relativePath="true"/>
+    <File fileId="4" filename="../hose_specular.dds" relativePath="true"/>
+    <File fileId="3" filename="../../shared/rough_cube.dds" relativePath="true"/>
+    <File fileId="6" filename="../../shared/default_normal.dds" relativePath="true"/>
+    <File fileId="5" filename="../../shared/vehicleShader.xml" relativePath="true"/>
+  </Files>
+
+  <Materials>
+    <Material name="lambert1" materialId="1" diffuseColor="0.5 0.5 0.5 1" specularColor="0 0 0" ambientColor="1 1 1">
+    </Material>
+    <Material name="lmh_mat" materialId="2" cosPower="20" specularColor="1 1 1" ambientColor="1 1 1" customShaderId="5">
+      <Texture fileId="1"/>
+      <Normalmap fileId="2"/>
+      <Reflectionmap fileId="3" type="cube" wrap="false" refractiveIndex="1" bumpScale="0.1"/>
+      <Glossmap fileId="4"/>
+    </Material>
+    <Material name="effect_mat" materialId="3" diffuseColor="0.5 0.5 0.5 1" cosPower="20" specularColor="0 0 0" ambientColor="1 1 1">
+      <Normalmap fileId="6"/>
+    </Material>
+  </Materials>
+
+
+  <Shapes externalShapesFile="liquidManureHose3m.i3d.shapes">
+  </Shapes>
+
+  <Dynamics>
+  </Dynamics>
+
+  <Scene>
+    <Shape name="component1" translation="8.32002e-31 0 2.22045e-16" shapeId="1" dynamic="true" compound="true" density="0.5" collisionMask="8194" castsShadows="true" receiveShadows="true" nonRenderable="true" materialIds="1" clipDistance="300" nodeId="1">
+      <TransformGroup name="lmh3m" collision="false" nodeId="2">
+        <TransformGroup name="joints" visibility="false" collision="false" clipDistance="300" nodeId="3">
+          <TransformGroup name="joint1" nodeId="4">
+            <TransformGroup name="joint2" translation="0 0 0.5" visibility="false" nodeId="5">
+              <TransformGroup name="joint3" translation="0 0 0.5" nodeId="6">
+                <TransformGroup name="joint4" translation="0 0 0.5" nodeId="7">
+                  <TransformGroup name="joint5" translation="0 0 0.5" nodeId="8">
+                    <TransformGroup name="joint6" translation="0 0 0.5" nodeId="9">
+                      <TransformGroup name="joint7" translation="-8.32002e-31 0 0.5" nodeId="10"/>
+                    </TransformGroup>
+                  </TransformGroup>
+                </TransformGroup>
+              </TransformGroup>
+            </TransformGroup>
+            <TransformGroup name="joint8" translation="-8.32002e-31 0 -2.22045e-16" nodeId="11">
+              <TransformGroup name="joint9" translation="0 0.117774 0" nodeId="12"/>
+              <TransformGroup name="joint10" translation="0 -0.113402 0" nodeId="13">
+                <TransformGroup name="joint11" translation="0 0.00534832 0.0187389" nodeId="14"/>
+              </TransformGroup>
+            </TransformGroup>
+          </TransformGroup>
+        </TransformGroup>
+        <Shape name="mesh" visibility="false" shapeId="2" castsShadows="true" receiveShadows="true" materialIds="2" skinBindNodeIds="4 5 6 7 8 9 10" clipDistance="300" nodeId="15"/>
+        <Shape name="meshExt" translation="-8.32002e-31 0 -2.22045e-16" shapeId="3" castsShadows="true" receiveShadows="true" materialIds="2" skinBindNodeIds="4 5 6 7 8 9 10 11 12 13 14" clipDistance="300" nodeId="16"/>
+      </TransformGroup>
+      <TransformGroup name="grabPointNode" translation="0 0 -2.22045e-16" collision="false" clipDistance="300" nodeId="17"/>
+      <TransformGroup name="effects" translation="0 0 -2.22045e-16" collision="false" clipDistance="300" nodeId="18">
+        <Shape name="effectNode" translation="0 1.38778e-17 4.44089e-16" rotation="0 180 0" visibility="false" shapeId="4" castsShadows="true" receiveShadows="true" materialIds="3" clipDistance="300" nodeId="19"/>
+        <Shape name="effectNode1" translation="0 1.38778e-17 4.44089e-16" shapeId="5" castsShadows="true" receiveShadows="true" materialIds="3" clipDistance="300" nodeId="20"/>
+      </TransformGroup>
+      <Shape name="componentChild" translation="0 0 0.75" shapeId="6" compoundChild="true" density="0.001" collisionMask="8194" castsShadows="true" receiveShadows="true" nonRenderable="true" materialIds="1" nodeId="21"/>
+      <TransformGroup name="componentJoint2" translation="0 0 1.5" collision="false" clipDistance="300" nodeId="22"/>
+    </Shape>
+    <Shape name="component2" translation="0 0 1.5" shapeId="7" dynamic="true" compound="true" density="0.5" collisionMask="8194" castsShadows="true" receiveShadows="true" nonRenderable="true" materialIds="1" clipDistance="300" nodeId="23">
+      <TransformGroup name="attachComponentNode" translation="0 1.2857e-38 0" collision="false" clipDistance="300" nodeId="24"/>
+      <TransformGroup name="componentJoint3" translation="0 1.2857e-38 1.5" collision="false" clipDistance="300" nodeId="25"/>
+      <TransformGroup name="componentJoint1" translation="0 1.2857e-38 -1.5" collision="false" clipDistance="300" nodeId="26"/>
+    </Shape>
+    <Shape name="component3" translation="2.09541e-31 0 3" shapeId="8" dynamic="true" compound="true" density="0.5" collisionMask="8194" castsShadows="true" receiveShadows="true" nonRenderable="true" materialIds="1" clipDistance="300" nodeId="27">
+      <TransformGroup name="grabPointNode" collision="false" clipDistance="300" nodeId="28"/>
+      <Shape name="componentChild" translation="0 0 -0.75" shapeId="9" compoundChild="true" density="0.001" collisionMask="8194" castsShadows="true" receiveShadows="true" nonRenderable="true" materialIds="1" nodeId="29"/>
+      <TransformGroup name="componentJoint2" translation="6.22461e-31 0 -1.5" collision="false" clipDistance="300" nodeId="30"/>
+    </Shape>
+  </Scene>
+
+  <UserAttributes>
+    <UserAttribute nodeId="4">
+      <Attribute name="liw" type="boolean" value="false"/>
+    </UserAttribute>
+    <UserAttribute nodeId="5">
+      <Attribute name="liw" type="boolean" value="false"/>
+    </UserAttribute>
+    <UserAttribute nodeId="6">
+      <Attribute name="liw" type="boolean" value="false"/>
+    </UserAttribute>
+    <UserAttribute nodeId="7">
+      <Attribute name="liw" type="boolean" value="false"/>
+    </UserAttribute>
+    <UserAttribute nodeId="8">
+      <Attribute name="liw" type="boolean" value="false"/>
+    </UserAttribute>
+    <UserAttribute nodeId="9">
+      <Attribute name="liw" type="boolean" value="false"/>
+    </UserAttribute>
+    <UserAttribute nodeId="10">
+      <Attribute name="liw" type="boolean" value="false"/>
+    </UserAttribute>
+    <UserAttribute nodeId="11">
+      <Attribute name="liw" type="boolean" value="true"/>
+    </UserAttribute>
+    <UserAttribute nodeId="12">
+      <Attribute name="liw" type="boolean" value="true"/>
+    </UserAttribute>
+    <UserAttribute nodeId="13">
+      <Attribute name="liw" type="boolean" value="true"/>
+    </UserAttribute>
+    <UserAttribute nodeId="14">
+      <Attribute name="liw" type="boolean" value="true"/>
+    </UserAttribute>
+    <UserAttribute nodeId="15">
+      <Attribute name="currentUVSet" type="string" value="map1"/>
+    </UserAttribute>
+  </UserAttributes>
+</i3D>

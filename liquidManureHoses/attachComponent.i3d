@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<i3D name="compCube" version="1.6" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://i3d.giants.ch/schema/i3d-1.6.xsd">
+
+  <Files>
+  </Files>
+
+  <Materials>
+    <Material name="lambert1" materialId="1" diffuseColor="0.5 0.5 0.5 1" specularColor="0 0 0" ambientColor="1 1 1">
+    </Material>
+  </Materials>
+
+
+  <Shapes externalShapesFile="attachComponent.i3d.shapes">
+  </Shapes>
+
+  <Dynamics>
+  </Dynamics>
+
+  <Scene>
+    <Shape name="componentCube" shapeId="1" kinematic="true" compound="true" trigger="true" collisionMask="1056768" castsShadows="true" receiveShadows="true" nonRenderable="true" materialIds="1" nodeId="1">
+      <TransformGroup name="componentCubeJoint" nodeId="2">
+        <TransformGroup name="playerRightArm" translation="0.1 0 0.0451981" nodeId="3"/>
+        <TransformGroup name="playerLeftArm" translation="-0.1 0 0.045" nodeId="4"/>
+      </TransformGroup>
+    </Shape>
+  </Scene>
+
+  <UserAttributes>
+  </UserAttributes>
+</i3D>

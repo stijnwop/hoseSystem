@@ -1,0 +1,204 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<CustomShader version="3">
+    <Parameters>
+        <Parameter name="fadeProgress" target="fadeProgress" type="float4" defaultValue = "1.0 1.0 0.0 0.0" minValue = "-1.0 -1.0 0.0 0.0" maxValue = "1.0 1.0 1.0 1.0"/>
+    </Parameters>
+    <Textures>
+        <Texture name="fadeMask"  defaultColorProfile = "linearRGB" defaultFilename = "../particleSystems/fx_mask01_diffuse.png" defaultWrap="false"/>
+        <Texture name="slurryRGB" defaultColorProfile = "linearRGB" defaultFilename = "../particleSystems/slurryTanker01_diffuse.png"/>
+    </Textures>
+    <Variations>
+        <Variation name = "VS_HORIZONTAL">
+<![CDATA[
+    #define VS_HORIZONTAL
+]]>
+        </Variation>
+        <Variation name = "VS_SIDETOSIDE">
+<![CDATA[
+    #define VS_SIDETOSIDE
+]]>
+        </Variation>
+    </Variations>
+    <LodLevel startDistance = "0" alphaForceMode = "use">
+        <CodeInjections>
+            <CodeInjection position="SAMPLERS">
+<![CDATA[
+    // <Custommap name="fadeMask" wrap="false"/> "wrap" must be FALSE
+    sampler2D fadeMask;
+    sampler2D slurryRGB;
+]]>
+            </CodeInjection>
+            <CodeInjection position="MATERIALINFO">
+<![CDATA[
+    /*
+    fadeProgress.x - FadeIN:    start = -1.0 end = 1.0
+    fadeProgress.y - FadeOUT:   start = 1.0 end = -1.0
+
+    Fully Visible       fadeProgress.x = 1.0        "1.0 1.0 0.0 0.0"
+                        fadeProgress.y = 1.0
+    Fully Invisible     fadeProgress.x = -1.0       "-1.0 -1.0 0.0 0.0"
+                        fadeProgress.y = -1.0
+    */
+    uniform float4 fadeProgress;
+]]>
+            </CodeInjection>
+            <CodeInjection position="LIB_FUNCTION_FS">
+<![CDATA[
+float getDepthFade(FS_INPUT In, FS_GLOBALS globals, float fadeDistance)
+{
+    float screenDepth = In.vs.screenPosZ / In.vs.screenPosW * 0.5 + 0.5;
+    float screenDepthLinear = convertDepthToEyeZ(screenDepth);
+    float sceneDepthLinear = convertDepthToEyeZ(getSceneDepth(In, globals));
+    return saturate((sceneDepthLinear - screenDepthLinear)/fadeDistance);
+}
+]]>
+            </CodeInjection>
+            <CodeInjection position = "FS_GLOBALS">
+<![CDATA[
+    float4 gUV;
+    float  gAlpha;
+    float  gAlphaPow;
+]]>
+            </CodeInjection>
+            <CodeInjection position="GET_POSITION_VS">
+<![CDATA[
+    float3 mResultPosition = In.position.xyz;
+
+#if defined( VS_HORIZONTAL )
+    float mAmplitude = 20 * In.texCoords1.x * In.texCoords1.x;
+
+    float offset1 = ( 0.5 * sin( 10 * cTime_s - In.texCoords1.x * 140 ) + 0.5 ) * mAmplitude;
+    float3 mDeformedPosition1 = offset1 * In.normal.xyz;
+
+    float offset2 = sin( 4.7 * cTime_s ) * mAmplitude;
+    float3 mDeformedPosition2 = float3( 0.0, offset2, 0.0 );
+
+    mResultPosition = In.position.xyz + mDeformedPosition1 + mDeformedPosition2;
+#endif
+
+#if defined( VS_SIDETOSIDE )
+// cTime_s should be replaced by fadeProgress.z
+    float mSpeed                = fadeProgress.z - 3 * In.texCoords1.x;
+    //float mAlpha                = mSpeed - floor( mSpeed ); // 0..1
+    //float mWave                 = ( 1 - 2 * abs( 2 * mAlpha - 1 ) );
+    float pi = 3.14159265359;
+    float mWave = sin( 2*pi* mSpeed - 0.5*pi );
+
+    float3 mDeformedPositionY   = In.position.xyz;
+
+    float mCosAngle;
+    float mSinAngle;
+    sincos( mWave, mSinAngle, mCosAngle );
+
+    mDeformedPositionY.x = dot( In.position.xz, float2( mCosAngle, -mSinAngle ) );
+
+    mResultPosition = mDeformedPositionY;
+#endif
+    return mResultPosition;
+]]>
+            </CodeInjection>
+            <CodeInjection position = "START_FS">
+<![CDATA[
+    float mSpeed   = 3 * cTime_s;
+    float mUVscale = 2.0;
+
+    globals.gUV.rg   =       mUVscale * In.vs.ALBEDOMAP_TEXCOORD + float2( mSpeed, 0 );
+    globals.gUV.ba   = 1.5 * mUVscale * In.vs.ALBEDOMAP_TEXCOORD + float2( mSpeed, 0 );
+
+    globals.gAlpha   = 1;
+
+    float4 mVertexColor = float4(1.0,1.0,1.0,1.0);
+#if defined( VERTEX_COLOR )
+    mVertexColor  = In.vs.vertexColor.rgba;
+    #undef VERTEX_COLOR
+#endif
+
+    float mText1 = ( tex2D( slurryRGB, globals.gUV.rg ) ).r;
+    float mText2 = ( tex2D( slurryRGB, globals.gUV.ba ) ).r;
+    float mResult = mText1 + mText2;
+    mText1 = ( tex2D( slurryRGB, float2( 0.5, 0.5 )   * globals.gUV.rg  ) ).g;
+    mText2 = ( tex2D( slurryRGB, float2( 0.25, 0.25 ) * globals.gUV.ba  ) ).g;
+    mResult += mText1 + mText2;
+    mText1 = ( tex2D( slurryRGB, globals.gUV.rg  ) ).b;
+    mText2 = ( tex2D( slurryRGB, globals.gUV.ba  ) ).b;
+    float mFade1 = float2( 2.0, 1.0 ) * In.vs.ALBEDOMAP_TEXCOORD.r;
+    mResult = lerp( mResult, mResult + 0.5 *( mText1 + mText2 ),  mFade1 );
+    mResult *= mVertexColor.r;
+    // =================================
+    float mFadeIN  = tex2D( fadeMask, float2( fadeProgress.x, 0 ) + In.vs.ALBEDOMAP_TEXCOORD ).r;
+    float2 mFlipUV = In.vs.ALBEDOMAP_TEXCOORD;
+    mFlipUV.x = 1 - mFlipUV.x;
+    float mFadeOUT = tex2D( fadeMask, float2( fadeProgress.y, 0 ) + mFlipUV ).r;
+    mResult *= mFadeIN * mFadeOUT;
+    // =================================
+    mResult = clamp( mResult, 0.0, 1.0 );
+
+    globals.gAlpha = mResult;
+    globals.gAlphaPow = mResult*mResult;
+]]>
+            </CodeInjection>
+            <CodeInjection position = "GET_UNNORMALIZED_TANGENT_SPACE_NORMAL_FS">
+<![CDATA[
+ #if defined( NORMAL_MAP )
+    float3 mNormal1  = tex2D( normalMap, globals.gUV.rg ).xyz;
+    float3 mNormal2  = tex2D( normalMap, globals.gUV.ba ).xyz;
+    return mNormal1 + mNormal2  - 1;
+ #endif
+]]>
+            </CodeInjection>
+            <CodeInjection position="POST_ALBEDO_FS">
+<![CDATA[
+    // ================= Diffuse Color =========================
+    float3 colorA = float3( 0.118, 0.068, 0.016 );
+    float3 colorB = float3( 0.027, 0.016, 0.004 );
+    // =========================================================
+    float3 mResultColor = lerp( colorA, colorB, globals.gAlphaPow );
+    albedo.rgb = mResultColor;
+]]>
+            </CodeInjection>
+            <CodeInjection position = "POST_GLOSS_COLOR_FS">
+<![CDATA[
+#if defined( SPECULAR )
+    glossColor.xyz *= globals.gAlphaPow;
+#endif
+]]>
+            </CodeInjection>
+            <CodeInjection position="GET_REFLECTION_COLOR_FS">
+<![CDATA[
+#if defined( REFLECTION_MAP_CUBE )
+    float3 mRes = oColor.xyz;
+    // =============== Reflection Color ========================
+    float3 mReflectionColor = float3( 0.157, 0.119, 0.058 );
+    // =========================================================
+    mRes = oColor.xyz + globals.gAlphaPow * mReflectionColor * getReflectionColorTex( In, globals, normal, tangentSpaceNormal, viewDir ).xyz;
+    return mRes;
+#endif
+]]>
+            </CodeInjection>
+            <CodeInjection position="ALPHA_FS">
+<![CDATA[
+    alpha = globals.gAlpha;
+    #if GPU_PROFILE >= GPU_PROFILE_HIGH
+        alpha *= getDepthFade(In, globals, 0.5);
+    #endif
+]]>
+            </CodeInjection>
+            <CodeInjection position = "NUM_TEXCOORDS">
+<![CDATA[
+#if GPU_PROFILE < GPU_PROFILE_MEDIUM
+    #if defined( REFLECTION_MAP_CUBE )
+        #undef REFLECTION_MAP_CUBE
+    #endif
+    #if defined( NORMAL_MAP )
+        #undef NORMAL_MAP
+    #endif
+    #if defined( SPECULAR )
+        #undef SPECULAR
+    #endif
+#endif
+]]>
+            </CodeInjection>
+        </CodeInjections>
+    </LodLevel>
+</CustomShader>

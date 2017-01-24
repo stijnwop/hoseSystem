@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8" standalone="no" ?>
+<modDesc descVersion="33">
+    <author>Wopster and Xentro</author>
+    <version>1.0.0.0 RC1</version>
+    <title>
+        <en>Hose system</en>
+        <de>Schlauch system</de>
+    </title>
+    <description>
+        <en><![CDATA[With a liquid manure hose you are able to pump a liquid fill type from source to target. If applicable you could extend the liquid manure hose to reach larger ranges.]]></en>
+        <de><![CDATA[With a liquid manure hose you are able to pump a liquid fill type from source to target. If applicable you could extend the liquid manure hose to reach larger ranges.]]></de>
+    </description>
+    <iconFilename>shared/store.dds</iconFilename>
+    <multiplayer supported="true" />
+	<extraSourceFiles>
+		<sourceFile filename="specializations/AnimatedObjectExtension.lua" />
+		<sourceFile filename="specializations/HoseSystemLiquidManureFillTrigger.lua" />
+		<sourceFile filename="specializations/LoadMaterialHolder.lua" />
+		<sourceFile filename="specializations/playerInRangeTool.lua" />
+		<!-- <sourceFile filename="specializations/LiquidManureHoseHandler.lua" /> -->
+	</extraSourceFiles>		
+	<specializations>
+		<specialization name="liquidManureHose" className="LiquidManureHose" filename="specializations/LiquidManureHose.lua" />
+	</specializations>	
+	<vehicleTypes>
+		<type name="liquidManureHose" className="Vehicle" filename="$dataS/scripts/vehicles/Vehicle.lua">
+			<specialization name="animatedVehicle" />
+			<specialization name="washable" />
+			<specialization name="attacherJoints"/>
+			<specialization name="cylindered" />
+			<specialization name="mountable" />
+			<specialization name="liquidManureHose" />
+        </type>
+	</vehicleTypes>
+	<inputBindings>	
+		<input name="ATTACH_HOSE" category="VEHICLE" key1="" key2="" button="" device="0" mouse="MOUSE_BUTTON_LEFT" />
+		<input name="DETACH_HOSE" category="VEHICLE" key1="" key2="" button="" device="0" mouse="MOUSE_BUTTON_RIGHT" />
+	</inputBindings>
+    <storeItems>
+        <storeItem xmlFilename="liquidManureHoses/3m/liquidManureHose3m.xml"/>
+    </storeItems>
+	<l10n>
+		<text name="function_liquidManureHose">
+            <en>With a liquid manure hose you are able to pump a liquid fill type from source to target. If applicable you could extend the liquid manure hose to reach larger ranges.</en>
+            <de>With a liquid manure hose you are able to pump a liquid fill type from source to target. If applicable you could extend the liquid manure hose to reach larger ranges.</de>	
+        </text>
+		
+		<text name="configuration_ext_liquidManureHose">
+            <en>Extendable</en>
+            <de>Extendable</de>	
+        </text>
+		<text name="configuration_nor_liquidManureHose">
+            <en>Normal</en>
+            <de>Normal</de>	
+        </text>
+		<text name="typeDesc_liquidManureHose">
+            <en>Liquid manure hose</en>
+            <de>Gülleschlauch</de>	
+        </text>
+		<text name="MOUSE_INTERACT">
+            <en>Press mouse button %s to</en>
+            <de>Press mouse button %s to</de>	
+        </text>
+		<text name="GRABHOSE">
+            <en>grab liquid manure hose</en>
+            <de>grab liquid manure hose</de>	
+        </text>
+		<text name="DROPHOSE">
+            <en>drop liquid manure hose</en>
+            <de>drop liquid manure hose</de>	
+        </text>
+        <text name="ATTACHHOSE">
+            <en>attach liquid manure hose</en>
+            <de>attach liquid manure hose</de>
+        </text>
+		<text name="DETACHHOSE">
+            <en>detach liquid manure hose</en>
+            <de>detach liquid manure hose</de>
+        </text>
+        <text name="HOSE_RANGERESTRICTION">
+            <en>The liquid manure hose range restriction won't allow you to go any further</en>
+            <de>The liquid manure hose range restriction won't allow you to go any further</de>
+        </text>
+		<text name="HOSE_PARKINGPLACE_TO_SHORT">
+            <en>The %sm parking place is to small for the %sm hose!</en>
+            <de>The %sm parking place is to small for the %sm hose!</de>
+        </text>
+		<text name="HOSE_TAKE_ENDS">
+            <en>Take the first or last grab point of the hose!</en>
+            <de>Take the first or last grab point of the hose!</de>
+        </text>
+		<!-- Input below -->
+		<text name="input_ATTACH_HOSE">
+            <en>Attach liquid manure hose</en>
+            <de>Attach liquid manure hose</de>
+        </text>
+		<text name="input_DETACH_HOSE">
+            <en>Detach liquid manure hose</en>
+            <de>Detach liquid manure hose</de>
+        </text>
+	</l10n>
+</modDesc>
