@@ -87,6 +87,7 @@ function LiquidManureHose:load(savegame)
     self.fillableObjectRaycastCallback = LiquidManureHose.fillableObjectRaycastCallback
 	
 	self.hardConnect = LiquidManureHose.hardConnect
+	self.jointConnect = LiquidManureHose.jointConnect
 	self.hardDisconnect = LiquidManureHose.hardDisconnect
 	self.hardParkHose = LiquidManureHose.hardParkHose
 	self.hardUnparkHose = LiquidManureHose.hardUnparkHose
@@ -105,7 +106,8 @@ function LiquidManureHose:load(savegame)
 	self.vehicleIsExtendable = false
 	self.queueNetworkObjects = false
 	
-	self.inRangeVehicle, self.inRangeReference = nil
+	self.inRangeVehicle = nil
+	self.inRangeReference = nil
 	self.inRangeIsExtendable = false
 	
     LiquidManureHose.loadHoseJoints(self, self.xmlFile)
@@ -1242,7 +1244,7 @@ function LiquidManureHose:doPlayerDistanceCheck(dt, grabPoint)
 			
 			if grabPoint == playerGrabPoint then
 				if LiquidManureHose:isAttached(grabPoint.attachState) then
-					local dependentGrabpoint = nil
+					local dependentGrabpoint
 					
 					self:setChainCount(1) -- We're always 1 behind cause we are counting the jointIndexes!
 					
@@ -1331,7 +1333,7 @@ end
 
 function LiquidManureHose:doReferenceDistanceCheck(dt, grabPoint)
 	if LiquidManureHose:isConnected(grabPoint.attachState) then
-		local dependentGrabpoint = nil
+		local dependentGrabpoint
 		
 		for _, gp in pairs(self.grabPoints) do					
 			if gp ~= grabPoint then
@@ -1788,10 +1790,10 @@ function LiquidManureHose:attach(index, state, vehicle, referenceId, isExtendabl
 							object:toggleLock(true) -- close lock
 						end
 					end
-					
-					if self.isServer then
+
+--					if self.isServer then
 						self:hardConnect(grabPoint, object, reference)
-					end
+--					end
 				end
 				
 				for _, grabPoint in pairs(grabPoints) do
@@ -2166,12 +2168,13 @@ function LiquidManureHose:hardParkHose(grabPoints, vehicle, reference)
 	end
 	
 	if not reference.isObject then
-		local currentVehicle = vehicle
-		
-		while currentVehicle ~= nil do
-			currentVehicle:removeFromPhysics()
-			currentVehicle = currentVehicle.attacherVehicle
-		end
+		vehicle:removeFromPhysics()
+--		local currentVehicle = vehicle
+--
+--		while currentVehicle ~= nil do
+--			currentVehicle:removeFromPhysics()
+--			currentVehicle = currentVehicle.attacherVehicle
+--		end
 	end
 	
 	-- if not vehicle.isAddedToPhysics then
@@ -2318,12 +2321,13 @@ function LiquidManureHose:hardParkHose(grabPoints, vehicle, reference)
 	-- end
 	
 	if not reference.isObject then
-		local currentVehicle = vehicle
-		
-		while currentVehicle ~= nil do
-			currentVehicle:addToPhysics()
-			currentVehicle = currentVehicle.attacherVehicle
-		end
+		vehicle:addToPhysics()
+--		local currentVehicle = vehicle
+--
+--		while currentVehicle ~= nil do
+--			currentVehicle:addToPhysics()
+--			currentVehicle = currentVehicle.attacherVehicle
+--		end
 	end
 	
 	-- self:addToPhysics()
@@ -2389,20 +2393,55 @@ function LiquidManureHose:hardUnparkHose(grabPoints)
 	end
 end
 
+function LiquidManureHose:jointConnect(grabPoint, vehicle, reference)
+	self:createConnectJoints(grabPoint, vehicle, reference)
+
+	for _, component in pairs(self.components) do
+		--if component.node ~= jointDesc.rootNodeBackup and not component.collideWithAttachables then
+			setPairCollision(component.node, vehicle.rootNode, false)
+		--end
+	end
+
+	if self.isServer then
+
+	end
+end
+
 function LiquidManureHose:hardConnect(grabPoint, vehicle, reference)
-	-- Note: cause we delete the connector vehicle from physics we have to attach it back later on		
+	-- Note: cause we delete the connector vehicle from physics we have to attach it back later on
+	-- Todo: delete only the connectorVehicle from physics, unlink and remove joints from that one hose when attaching an exentable hose
 	local grabPoints = {}
-	
+	local connectableGrabPoints = {}
+
 	for index, gp in pairs(self.grabPoints) do 
 		if gp.id ~= grabPoint.id and LiquidManureHose:isConnected(gp.attachState) then
-			--self:hardDisconnect(gp, gp.connectorVehicle, gp.connectorRef)
+			if gp.connectable or gp.connectorRef.connectable then
+				--gp.connectorVehicle:hardDisconnect(gp, gp.connectorVehicle, gp.connectorRef)
+			end
+
 			table.insert(grabPoints, gp)
+		end
+	end
+
+	if grabPoint.connectable or reference.connectable then
+		if vehicle.grabPoints ~= nil then
+			for index, gp in pairs(vehicle.grabPoints) do
+				if LiquidManureHose:isConnected(gp.attachState) and (gp.connectable or gp.connectorRef.connectable)then
+					print('Vehicle has one connected gp index = ' .. index)
+					print('gp.connectable = ' .. tostring(gp.connectable))
+					--detach(index, state, vehicle, referenceId, isExtendable, noEventSend)
+					table.insert(connectableGrabPoints, {index=gp.id, vehicle=gp.connectorVehicle, referenceId=gp.connectorRef.id})
+					--vehicle:detach(gp.id, nil, gp.connectorVehicle, gp.connectorRef.id, true, true)
+					--vehicle:hardDisconnect(gp, gp.connectorVehicle, gp.connectorRef)
+				end
+			end
 		end
 	end
 	
 	print("component id of grabPoint before doing something with physics = " .. grabPoint.componentIndex)
 	print("connectedGrabPoints before doing something with physics = " .. table.getn(grabPoints))
-	
+
+
 	-- we always completely delete
 	self:removeFromPhysics()
 	
@@ -2424,67 +2463,91 @@ function LiquidManureHose:hardConnect(grabPoint, vehicle, reference)
 		-- self:removeFromPhysics()
 	-- end
 	--self:removeFromPhysics()
-	
+
+	for index, gp in pairs(connectableGrabPoints) do
+		gp.vehicle:removeFromPhysics()
+	end
+
 	if not reference.isObject then
-		local currentVehicle = vehicle
-		
-		while currentVehicle ~= nil do
-			currentVehicle:removeFromPhysics()
-			currentVehicle = currentVehicle.attacherVehicle
-		end
-		
+		vehicle:removeFromPhysics()
+--		local currentVehicle = vehicle
+--
+--		while currentVehicle ~= nil do
+--			currentVehicle:removeFromPhysics()
+--			currentVehicle = currentVehicle.attacherVehicle
+--		end
+
 		--setIsCompound(vehicle.components[reference.componentIndex].node, true)
 		
 		if not grabPoint.connectable and not reference.connectable then
 			setIsCompoundChild(self.components[grabPoint.componentIndex].node, true)
 		end
 	end
-	
+
 	-- Todo: is this really needed?
 	-- LiquidManureHose:orientConnectionJoint(grabPoint.connectorRef.node, grabPoint.node, index, grabPoint.connectable, grabPoint.connectorRef.id, isExtendable)
 			
 	-- local trans = {getTranslation(grabPoint.connectorRef.node)}
 	-- LiquidManureHose:orientConnectionJoint(grabPoint.connectorRef.node, self.components[grabPoint.componentIndex].node, index, grabPoint.connectable, grabPoint.connectorRef.id, isExtendable)
-	
-	local moveDir = grabPoint.id > 1 and -1 or 1
-	moveDir = (grabPoint.connectable or reference.connectable) and (moveDir > 0 and (reference.id > 1 and 1 or -1) or -1) or moveDir
-	local direction = {localDirectionToLocal(self.components[grabPoint.componentIndex].node, grabPoint.node, 0, 0, moveDir)}
-	local upVector = {localDirectionToLocal(self.components[grabPoint.componentIndex].node, grabPoint.node, 0, grabPoint.id > 1 and -1 or 1, 0)}
-	
-	setDirection(self.components[grabPoint.componentIndex].node, direction[1], direction[2], direction[3], upVector[1], upVector[2], upVector[3])
-	
-	local translation = {localToLocal(self.components[grabPoint.componentIndex].node, grabPoint.node, 0, 0, 0)}
-	setTranslation(self.components[grabPoint.componentIndex].node, unpack(translation))
-	
-	link(reference.node, self.components[grabPoint.componentIndex].node)
-	
+	local linkComponent = function(vehicle, grabPoint, reference)
+		local moveDir = grabPoint.id > 1 and -1 or 1
+		moveDir = (grabPoint.connectable or reference.connectable) and (moveDir > 0 and (reference.id > 1 and 1 or -1) or -1) or moveDir
+		local direction = {localDirectionToLocal(vehicle.components[grabPoint.componentIndex].node, grabPoint.node, 0, 0, moveDir)}
+		local upVector = {localDirectionToLocal(vehicle.components[grabPoint.componentIndex].node, grabPoint.node, 0, grabPoint.id > 1 and -1 or 1, 0)}
+
+		setDirection(vehicle.components[grabPoint.componentIndex].node, direction[1], direction[2], direction[3], upVector[1], upVector[2], upVector[3])
+
+		local translation = {localToLocal(vehicle.components[grabPoint.componentIndex].node, grabPoint.node, 0, 0, 0)}
+		setTranslation(vehicle.components[grabPoint.componentIndex].node, unpack(translation))
+
+		link(reference.node, vehicle.components[grabPoint.componentIndex].node)
+	end
+
+	linkComponent(self, grabPoint, reference)
+
+	--for index, gp in pairs(connectableGrabPoints) do
+		--print(gp.vehicle.grabPoints[gp.referenceId].node)
+		--print(vehicle.components[vehicle.grabPoints[gp.index].componentIndex].node)
+		--unlink(vehicle.components[vehicle.grabPoints[gp.index].componentIndex].node)
+		--link(gp.vehicle.grabPoints[gp.referenceId].node, vehicle.components[vehicle.grabPoints[gp.index].componentIndex].node)
+		--linkComponent(vehicle, vehicle.grabPoints[gp.index], gp.vehicle.grabPoints[gp.referenceId])
+	--end
+
 	if not grabPoint.connectable and not reference.connectable then
 		self:addToPhysicsPartly(grabPoint, grabPoints, vehicle, reference, true)
 	else
 		self:addToPhysics()
 	end
-	
+
+	for index, gp in pairs(connectableGrabPoints) do
+		gp.vehicle:addToPhysics()
+	end
+
 	-- self:addToPhysics()
 	
 	if not reference.isObject then
-		local currentVehicle = vehicle
-		
-		while currentVehicle ~= nil do
-			currentVehicle:addToPhysics()
-			currentVehicle = currentVehicle.attacherVehicle
-		end
+		vehicle:addToPhysics()
+--		local currentVehicle = vehicle
+--
+--		while currentVehicle ~= nil do
+--			currentVehicle:addToPhysics()
+--			currentVehicle = currentVehicle.attacherVehicle
+--		end
 	end
-	
+
+	--for index, gp in pairs(connectableGrabPoints) do
+		--gp.vehicle:addToPhysics()
+--		if gp.connectable or gp.connectorRef.connectable then
+--			gp.connectorVehicle:createConnectJoints(gp, gp.connectorVehicle, gp.connectorRef)
+--		end
+	--end
+
 	self:createConnectJoints(grabPoint, vehicle, reference)
-			
-	-- for index, gp in pairs(grabPoints) do 
-		-- --self:hardConnect(gp, gp.connectorVehicle, gp.connectorRef)
-		
-		-- if not gp.connectorRef.isObject and gp.connectorVehicle ~= nil then
-			-- gp.connectorVehicle:raiseDirtyFlags(gp.connectorVehicle.vehicleDirtyFlag)
-		-- end
-	-- end
-	
+
+	for index, gp in pairs(connectableGrabPoints) do
+		vehicle:createConnectJoints(vehicle.grabPoints[gp.index], gp.vehicle, gp.vehicle.grabPoints[gp.referenceId])
+	end
+
 	if self.isServer then
 		self:raiseDirtyFlags(self.vehicleDirtyFlag)
 	end
@@ -2540,12 +2603,13 @@ function LiquidManureHose:hardDisconnect(grabPoint, vehicle, reference)
 	-- end
 	
 	if not reference.isObject then
-		local currentVehicle = vehicle	    
-		
-		while currentVehicle ~= nil do
-			currentVehicle:removeFromPhysics()
-			currentVehicle = currentVehicle.attacherVehicle
-		end
+		vehicle:removeFromPhysics()
+--		local currentVehicle = vehicle
+--
+--		while currentVehicle ~= nil do
+--			currentVehicle:removeFromPhysics()
+--			currentVehicle = currentVehicle.attacherVehicle
+--		end
 	end
 	
 	setIsCompound(self.components[grabPoint.componentIndex].node, true)
@@ -2570,16 +2634,17 @@ function LiquidManureHose:hardDisconnect(grabPoint, vehicle, reference)
 	local upVector = {localDirectionToWorld(self.rootNode, 0, 1, 0)}
 	
 	setDirection(self.components[grabPoint.componentIndex].node, direction[1], direction[2], direction[3], upVector[1], upVector[2], upVector[3])
-	
+	unlink(self.components[grabPoint.componentIndex].node)
 	link(getRootNode(), self.components[grabPoint.componentIndex].node)
 			
 	if not reference.isObject then
-		local currentVehicle = vehicle
-		
-		while currentVehicle ~= nil do
-			currentVehicle:addToPhysics()
-			currentVehicle = currentVehicle.attacherVehicle
-		end
+		vehicle:addToPhysics()
+--		local currentVehicle = vehicle
+--
+--		while currentVehicle ~= nil do
+--			currentVehicle:addToPhysics()
+--			currentVehicle = currentVehicle.attacherVehicle
+--		end
 	end
 		
 	if table.getn(grabPoints) > 0 and not grabPoint.connectable and not reference.connectable then
@@ -2624,18 +2689,20 @@ end
 
 function LiquidManureHose:createConnectJoints(grabPoint, vehicle, reference)
 	if self.isServer then
-		-- local jointDesc = self.hose.componentJoints[grabPoint.id][1]						
-		-- self:createComponentJoint(self.components[jointDesc.componentIndices[1]], self.components[jointDesc.componentIndices[2]], jointDesc)
-		
-		-- grabPoint.centerJointIndex = LiquidManureHose:constructJoint(self.components[(table.getn(self.components) + 1) / 2].node, vehicle.components[reference.componentIndex].node, reference.node, reference.node, 40, 0, 0, 0)
-		
-		grabPoint.jointIndex = LiquidManureHose:constructJoint(vehicle.components[reference.componentIndex].node, self.components[grabPoint.componentIndex].node, reference.node, reference.node, {1000000, 1000000, 1000000}, {1000000, 1000000, 1000000}, {1000000, 1000000, 1000000}, {1000000, 1000000, 1000000}, true)
-						
-		-- for i, component in pairs(self.components) do
-			-- if i ~= grabPoint.componentIndex then
-				-- setPairCollision(grabPoint.connectorVehicle.components[grabPoint.connectorRef.componentIndex].node, component.node, false)
+		if grabPoint ~= nil and vehicle ~= nil and reference ~= nil then
+			-- local jointDesc = self.hose.componentJoints[grabPoint.id][1]
+			-- self:createComponentJoint(self.components[jointDesc.componentIndices[1]], self.components[jointDesc.componentIndices[2]], jointDesc)
+
+			-- grabPoint.centerJointIndex = LiquidManureHose:constructJoint(self.components[(table.getn(self.components) + 1) / 2].node, vehicle.components[reference.componentIndex].node, reference.node, reference.node, 40, 0, 0, 0)
+
+			grabPoint.jointIndex = LiquidManureHose:constructJoint(vehicle.components[reference.componentIndex].node, self.components[grabPoint.componentIndex].node, reference.node, reference.node, {1000000, 1000000, 1000000}, {1000000, 1000000, 1000000}, {1000000, 1000000, 1000000}, {1000000, 1000000, 1000000}, true)
+
+			-- for i, component in pairs(self.components) do
+				-- if i ~= grabPoint.componentIndex then
+					-- setPairCollision(grabPoint.connectorVehicle.components[grabPoint.connectorRef.componentIndex].node, component.node, false)
+				-- end
 			-- end
-		-- end
+		end
 	end
 end
 
@@ -2950,7 +3017,7 @@ function LiquidManureHose:updateHose(force, inverse)
         end
     end
 
-    if LiquidManureHose.debug then
+    --if LiquidManureHose.debug then
         -- debug curve line
         local tableNum = 150 -- more = closer between dots
 
@@ -2972,7 +3039,7 @@ function LiquidManureHose:updateHose(force, inverse)
             drawDebugPoint(dot[1], dot[2], dot[3], 1, 0, 0, 1)
             drawDebugPoint(dot2[1], dot2[2], dot2[3], 0, 1, 0, 1)
         end
-    end
+    --end
 end
 
 ---
