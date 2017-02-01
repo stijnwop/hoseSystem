@@ -951,46 +951,7 @@ function LiquidManureHose:searchReferences(grabPoint)
             if liquidManureHoseReference ~= nil then
                 for i, reference in pairs(liquidManureHoseReference.hoseSystemReferences) do
                     if not reference.isUsed then
-                        local inRange = false
-
-                        local rx, ry, rz = getWorldTranslation(reference.node)
-                        local dist = Utils.vector2LengthSq(x - rx, z - rz)
-
-                        if dist < nearestDisSequence then
-                            local vehicleDistance = math.abs(y - ry)
-
-                            if vehicleDistance < 1.3 then
-                                local cosAngle = LiquidManureHose:calculateCosAngle(reference.node, grabPoint.node)
-
-                                if not reference.parkable then
-                                    if not grabPoint.connectable then
-                                        if cosAngle > math.rad(-80) and cosAngle < math.rad(80) then -- > -10° < 10° -- > cosAngle > -0.17365 and cosAngle < 0.17365 then -- > -80° < 80°
-                                            inRange = true
-                                        end
-                                    end
-                                else
-                                    inRange = true
-                                end
-                            end
-                        end
-
-                        if reference.parkable then
-                            local rmx, rmy, rmz = getWorldTranslation(reference.maxParkLengthNode)
-                            local distance = Utils.vector2LengthSq(x - rmx, z - rmz)
-
-                            --print(distance)
-                            if distance < nearestDisSequence then
-                                --print(distance)
-                                local referenceDistance = math.abs(y - rmy)
-
-                                if referenceDistance < 1.3 then
-                                    --print(referenceDistance)
-                                    inRange = true
-                                end
-                            end
-                        end
-
-                        if inRange then
+                        if LiquidManureHose:canConnectHoseSystem(x, y, z, nearestDisSequence, grabPoint, reference) then
                             -- self.inRangeVehicle = reference.isObject and g_currentMission:getNodeObject(liquidManureHoseReference.nodeId) or liquidManureHoseReference -- getNodeObject does work in MP?
                             -- self.inRangeReference = reference.id
                             -- self.inRangeIsExtendable = false
@@ -1008,9 +969,9 @@ function LiquidManureHose:searchReferences(grabPoint)
     end
 
     if g_currentMission.liquidManureHoses ~= nil then
-        for _, g_liquidManureHose in pairs(g_currentMission.liquidManureHoses) do
-            if g_liquidManureHose ~= self and g_liquidManureHose.grabPoints ~= nil then
-                for i, reference in pairs(g_liquidManureHose.grabPoints) do
+        for _, liquidManureHose in pairs(g_currentMission.liquidManureHoses) do
+            if liquidManureHose ~= self and liquidManureHose.grabPoints ~= nil then
+                for i, reference in pairs(liquidManureHose.grabPoints) do
                     if grabPoint.connectable or reference.connectable then
                         if LiquidManureHose:isDetached(reference.attachState) then
                             local rx, ry, rz = getWorldTranslation(reference.node)
@@ -1021,8 +982,8 @@ function LiquidManureHose:searchReferences(grabPoint)
 
                                 if vehicleDistance < 1.3 then
                                     if LiquidManureHose:canExtendHoseSytem(reference.id > 1, reference.node, grabPoint.node) then
-                                        self:loadFillableObjectAndReference(networkGetObjectId(g_liquidManureHose), reference.id, true)
-                                        -- self.inRangeVehicle = g_liquidManureHose
+                                        self:loadFillableObjectAndReference(networkGetObjectId(liquidManureHose), reference.id, true)
+                                        -- self.inRangeVehicle = liquidManureHose
                                         -- self.inRangeReference = reference.id
                                         -- self.inRangeIsExtendable = true
                                         break
@@ -1430,7 +1391,8 @@ function LiquidManureHose:updateTick(dt)
     end
 end
 
-function LiquidManureHose:draw() end
+function LiquidManureHose:draw()
+end
 
 ---
 -- @param index
@@ -1442,7 +1404,6 @@ function LiquidManureHose:grab(index, player, state, noEventSend)
     if not noEventSend and state == nil or state == liquidManureHoseGrabEvent.initialise then
         liquidManureHoseGrabEvent.sendEvent(self, index, player, liquidManureHoseGrabEvent.client, noEventSend)
     end
-
 
     local grabPoint = self.grabPoints[index]
 
@@ -3279,7 +3240,38 @@ function LiquidManureHose:canExtendHoseSytem(inverse, node1, node2)
     return LiquidManureHose:round(rot, 1) >= 2.3
 end
 
-function LiquidManureHose:canConnectHoseSystem()
+function LiquidManureHose:canConnectHoseSystem(x, y, z, sequence, grabPoint, reference)
+    local rx, ry, rz = getWorldTranslation(reference.node)
+    local dist = Utils.vector2LengthSq(x - rx, z - rz)
+
+    if dist < sequence then
+        if math.abs(y - ry) < 1.3 then
+            local cosAngle = LiquidManureHose:calculateCosAngle(reference.node, grabPoint.node)
+
+            if not reference.parkable then
+                if not grabPoint.connectable then
+                    if cosAngle > math.rad(-80) and cosAngle < math.rad(80) then -- > -10° < 10° -- > cosAngle > -0.17365 and cosAngle < 0.17365 then -- > -80° < 80°
+                        return true
+                    end
+                end
+            else
+                return true
+            end
+        end
+    end
+
+    if reference.parkable then
+        local rmx, rmy, rmz = getWorldTranslation(reference.maxParkLengthNode)
+        local distance = Utils.vector2LengthSq(x - rmx, z - rmz)
+
+        if distance < sequence then
+            if math.abs(y - rmy) < 1.3 then
+                return true
+            end
+        end
+    end
+
+    return false
 end
 
 ---
