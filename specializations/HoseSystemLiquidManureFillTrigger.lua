@@ -80,7 +80,7 @@ function HoseSystemLiquidManureFillTrigger:load(superFunc, nodeId, fillLevelObje
 			
 			if objectIdentifier ~= nil then
 				local i = 0
-				local key = nil
+				local key
 				
 				while true do
 					local objectXMLKey = string.format('map.hoseSystemFillTriggers.hoseSystemFillTrigger(%d)', i)
