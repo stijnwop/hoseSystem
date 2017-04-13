@@ -2139,13 +2139,15 @@ function LiquidManureHose:hardParkHose(grabPoints, vehicle, reference)
         return
     end
 
-    if not reference.isObject then
-        local currentVehicle = vehicle
+    local rootVehicle = vehicle:getRootAttacherVehicle()
 
-        while currentVehicle ~= nil do
-            currentVehicle:removeFromPhysics()
-            currentVehicle = currentVehicle.attacherVehicle
-        end
+    if not reference.isObject then		
+		for i = #rootVehicle.attachedImplements, 1, -1 do
+			local implement = rootVehicle.attachedImplements[i]
+			implement.object:removeFromPhysics();			
+		end
+		
+		rootVehicle:removeFromPhysics()
     end
 
     -- if not vehicle.isAddedToPhysics then
@@ -2292,19 +2294,22 @@ function LiquidManureHose:hardParkHose(grabPoints, vehicle, reference)
     -- end
 
     if not reference.isObject then
-        local currentVehicle = vehicle
-
-        while currentVehicle ~= nil do
-            currentVehicle:addToPhysics()
-            currentVehicle = currentVehicle.attacherVehicle
-        end
+		for i = #rootVehicle.attachedImplements, 1, -1 do
+			local implement = rootVehicle.attachedImplements[i]
+			implement.object:addToPhysics();			
+		end
+		
+		rootVehicle:addToPhysics()
     end
 
     -- self:addToPhysics()
 
     if self.isServer then
         self:raiseDirtyFlags(self.vehicleDirtyFlag)
-        vehicle:raiseDirtyFlags(vehicle.vehicleDirtyFlag)
+
+        if not reference.isObject then
+            rootVehicle:raiseDirtyFlags(rootVehicle.vehicleDirtyFlag)
+        end
     end
 end
 
@@ -2313,8 +2318,15 @@ function LiquidManureHose:hardUnparkHose(grabPoints, vehicle, reference)
         return
     end
 
+    local rootVehicle = vehicle:getRootAttacherVehicle()
+
     if not reference.isObject then
-        vehicle:removeFromPhysics()
+		for i = #rootVehicle.attachedImplements, 1, -1 do
+			local implement = rootVehicle.attachedImplements[i]
+			implement.object:removeFromPhysics();			
+		end
+		
+		rootVehicle:removeFromPhysics()
     end
 
     self:removeFromPhysics()
@@ -2361,7 +2373,12 @@ function LiquidManureHose:hardUnparkHose(grabPoints, vehicle, reference)
     delete(self.hose.parkEndTargetNode)
 
     if not reference.isObject then
-        vehicle:addToPhysics()
+		for i = #rootVehicle.attachedImplements, 1, -1 do
+			local implement = rootVehicle.attachedImplements[i]
+			implement.object:addToPhysics();			
+		end
+		
+		rootVehicle:addToPhysics()
     end
 
     self:addToPhysics()
@@ -2387,6 +2404,7 @@ end
 function LiquidManureHose:hardConnect(grabPoint, vehicle, reference)
     -- Note: cause we delete the connector vehicle from physics we have to attach it back later on
     -- Todo: delete only the connectorVehicle from physics, unlink and remove joints from that one hose when attaching an exentable hose
+    local rootVehicle = vehicle:getRootAttacherVehicle()
     local grabPoints = {}
     local connectableGrabPoints = {}
 
@@ -2446,12 +2464,17 @@ function LiquidManureHose:hardConnect(grabPoint, vehicle, reference)
     end
 
     if not reference.isObject then
-        local currentVehicle = vehicle
+		for i = #rootVehicle.attachedImplements, 1, -1 do
+			local implement = rootVehicle.attachedImplements[i]
+			implement.object:removeFromPhysics();			
+		end
+		
+		rootVehicle:removeFromPhysics()
 
-        while currentVehicle ~= nil do
-            currentVehicle:removeFromPhysics()
-            currentVehicle = currentVehicle.attacherVehicle
-        end
+--        while currentVehicle ~= nil do
+--            currentVehicle:removeFromPhysics()
+--            currentVehicle = currentVehicle.attacherVehicle
+--        end
 
         --setIsCompound(vehicle.components[reference.componentIndex].node, true)
 
@@ -2502,12 +2525,19 @@ function LiquidManureHose:hardConnect(grabPoint, vehicle, reference)
     -- self:addToPhysics()
 
     if not reference.isObject then
-        local currentVehicle = vehicle
-
-        while currentVehicle ~= nil do
-            currentVehicle:addToPhysics()
-            currentVehicle = currentVehicle.attacherVehicle
-        end
+        for i = #rootVehicle.attachedImplements, 1, -1 do
+			local implement = rootVehicle.attachedImplements[i]
+			implement.object:addToPhysics();			
+		end
+		
+		rootVehicle:addToPhysics()
+		
+--        local currentVehicle = vehicle
+--
+--        while currentVehicle ~= nil do
+--            currentVehicle:addToPhysics()
+--            currentVehicle = currentVehicle.attacherVehicle
+--        end
     end
 
     --for index, gp in pairs(connectableGrabPoints) do
@@ -2525,11 +2555,11 @@ function LiquidManureHose:hardConnect(grabPoint, vehicle, reference)
 
     if self.isServer then
         self:raiseDirtyFlags(self.vehicleDirtyFlag)
-    end
 
-    -- if not reference.isObject then
-    -- vehicle:raiseDirtyFlags(vehicle.vehicleDirtyFlag)
-    -- end
+         if not reference.isObject then
+             rootVehicle:raiseDirtyFlags(rootVehicle.vehicleDirtyFlag)
+         end
+    end
 
     -- for i, component in pairs(self.components) do
     -- if i ~= grabPoint.componentIndex then
@@ -2540,7 +2570,7 @@ end
 
 function LiquidManureHose:hardDisconnect(grabPoint, vehicle, reference)
     --simulatePhysics(false) -- stop physics for wheel shapes
-
+    local rootVehicle = vehicle:getRootAttacherVehicle()
     local grabPoints = {}
 
     for index, gp in pairs(self.grabPoints) do
@@ -2555,8 +2585,8 @@ function LiquidManureHose:hardDisconnect(grabPoint, vehicle, reference)
     print("HARDISCONNECT - connectedGrabPoints before doing something with physics = " .. table.getn(grabPoints))
 
     self:removeConnectOrParkJoints(grabPoint)
-
     self:removeFromPhysics()
+
     if self.isServer then
         for _, componentJoint in pairs(self.componentJoints) do
             if componentJoint.hoseJointIndex ~= 0 and componentJoint.hoseJointIndex ~= nil then
@@ -2578,12 +2608,19 @@ function LiquidManureHose:hardDisconnect(grabPoint, vehicle, reference)
     -- end
 
     if not reference.isObject then
-        local currentVehicle = vehicle
-
-        while currentVehicle ~= nil do
-            currentVehicle:removeFromPhysics()
-            currentVehicle = currentVehicle.attacherVehicle
-        end
+        for i = #rootVehicle.attachedImplements, 1, -1 do
+			local implement = rootVehicle.attachedImplements[i]
+			implement.object:removeFromPhysics();			
+		end
+		
+		rootVehicle:removeFromPhysics()
+		
+--        local currentVehicle = vehicle
+--
+--        while currentVehicle ~= nil do
+--            currentVehicle:removeFromPhysics()
+--            currentVehicle = currentVehicle.attacherVehicle
+--        end
     end
 
     setIsCompound(self.components[grabPoint.componentIndex].node, true)
@@ -2611,12 +2648,19 @@ function LiquidManureHose:hardDisconnect(grabPoint, vehicle, reference)
     link(getRootNode(), self.components[grabPoint.componentIndex].node)
 
     if not reference.isObject then
-        local currentVehicle = vehicle
+       for i = #rootVehicle.attachedImplements, 1, -1 do
+			local implement = rootVehicle.attachedImplements[i]
+			implement.object:addToPhysics();			
+		end
+		
+		rootVehicle:addToPhysics()
 
-        while currentVehicle ~= nil do
-            currentVehicle:addToPhysics()
-            currentVehicle = currentVehicle.attacherVehicle
-        end
+--        local currentVehicle = vehicle
+--
+--        while currentVehicle ~= nil do
+--            currentVehicle:addToPhysics()
+--            currentVehicle = currentVehicle.attacherVehicle
+--        end
 
         -- whenever the vehicle is an extenable hose
         if reference.connectable then
