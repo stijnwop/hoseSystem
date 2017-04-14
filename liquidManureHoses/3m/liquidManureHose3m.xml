@@ -32,10 +32,11 @@
     <size width="0.2" length="3"/>
 
     <hoseSystem>
-        <jointSpline rootJoint="0>0|0" numJoints="6" />
+        <jointSpline rootJointNode="0>0|0" numJoints="6" />
 
         <grabPoints>
-
+            <grabPoint node="0>1" componentIndex="0" /> <!-- componentChildNode="0>3" /> -->
+            <grabPoint node="2>0" componentIndex="2" /> <!-- componentChildNode="2>1" /> -->
         </grabPoints>
     </hoseSystem>
 	
@@ -102,10 +103,10 @@
         </designConfiguration>
     </designConfigurations>
 	
-	<baseColorConfigurations useDefaultColors="true" defaultColorIndex="6" price="10" icon="$dataS2/menu/hud/configurations/config_color.png">
-        <colorNode node="0>0|1" />
-        <colorNode node="0>0|2" />
-    </baseColorConfigurations>
+	<!--<baseColorConfigurations useDefaultColors="true" defaultColorIndex="6" price="10" icon="$dataS2/menu/hud/configurations/config_color.png">-->
+        <!--<colorNode node="0>0|1" />-->
+        <!--<colorNode node="0>0|2" />-->
+    <!--</baseColorConfigurations>-->
 	
 	<animations>
         <animation name="connect">

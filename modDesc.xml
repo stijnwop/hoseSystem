@@ -20,7 +20,7 @@
 		<!-- <sourceFile filename="specializations/LiquidManureHoseHandler.lua" /> -->
 	</extraSourceFiles>		
 	<specializations>
-		<specialization name="liquidManureHose" className="LiquidManureHose" filename="specializations/LiquidManureHose.lua" />
+		<specialization name="hoseSystem" className="HoseSystem" filename="specializations/HoseSystem.lua" />
 	</specializations>	
 	<vehicleTypes>
 		<type name="liquidManureHose" className="Vehicle" filename="$dataS/scripts/vehicles/Vehicle.lua">
@@ -29,7 +29,7 @@
 			<specialization name="attacherJoints"/>
 			<specialization name="cylindered" />
 			<specialization name="mountable" />
-			<specialization name="liquidManureHose" />
+			<specialization name="hoseSystem" />
         </type>
 	</vehicleTypes>
 	<inputBindings>	
@@ -57,15 +57,15 @@
             <en>Liquid manure hose</en>
             <de>Gülleschlauch</de>	
         </text>
-		<text name="MOUSE_INTERACT">
+		<text name="input_mouseInteract">
             <en>Press mouse button %s to</en>
             <de>Press mouse button %s to</de>	
         </text>
-		<text name="GRABHOSE">
+		<text name="action_grabHose">
             <en>grab liquid manure hose</en>
             <de>grab liquid manure hose</de>	
         </text>
-		<text name="DROPHOSE">
+		<text name="action_dropHose">
             <en>drop liquid manure hose</en>
             <de>drop liquid manure hose</de>	
         </text>
