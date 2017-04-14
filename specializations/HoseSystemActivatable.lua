@@ -7,7 +7,7 @@
 --
 
 HoseSystemActivatable = {}
-local HoseSystemActivatable_mt = Class(TensionBeltsActivatable)
+local HoseSystemActivatable_mt = Class(HoseSystemActivatable)
 
 function HoseSystemActivatable:new(object)
     local self = {
