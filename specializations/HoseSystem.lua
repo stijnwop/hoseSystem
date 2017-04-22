@@ -1,6 +1,6 @@
 --
 -- Created by IntelliJ IDEA.
--- User: stijn
+-- User: Stijn Wopereis
 -- Date: 13-4-2017
 -- Time: 18:36
 -- To change this template use File | Settings | File Templates.
@@ -8,19 +8,33 @@
 
 HoseSystem = {
     debugRendering = true,
-    modDir = g_currentModDirectory,
-    eventsDir = g_currentModDirectory .. "specializations/events"
+    modDir = g_currentModDirectory
 }
 
-source(('%sspecializations/%s'):format(HoseSystem.modDir, 'HoseSystemPlayerInteractive.lua'))
-source(('%sspecializations/%s'):format(HoseSystem.modDir, 'HoseSystemPlayerInteractiveHandling.lua'))
+local srcDirectory = HoseSystem.modDir .. 'specializations'
+local eventDirectory = HoseSystem.modDir .. 'specializations/events'
+
+local files = {
+    -- Events
+    ('%s/%s'):format(eventDirectory, 'HoseSystemGrabEvent'),
+    ('%s/%s'):format(eventDirectory, 'HoseSystemDropEvent'),
+    ('%s/%s'):format(eventDirectory, 'HoseSystemLoadFillableObjectAndReferenceEvent'),
+    -- Classes
+    ('%s/%s'):format(srcDirectory, 'HoseSystemPlayerInteractive'),
+    ('%s/%s'):format(srcDirectory, 'HoseSystemPlayerInteractiveHandling'),
+    ('%s/%s'):format(srcDirectory, 'HoseSystemReferences'),
+}
+
+for _, directory in pairs(files) do
+    source(directory .. '.lua')
+end
 
 HoseSystem.STATE_ATTACHED = 0
 HoseSystem.STATE_DETACHED = 1
 HoseSystem.STATE_CONNECTED = 2
 HoseSystem.STATE_PARKED = 3
 
-HoseSystem.cctCollisionMask = 32  -- bit 00000000000000000000000000110010
+HoseSystem.cctCollisionMask = 32 -- 110010 avoid CTT bit mask
 HoseSystem.hoseCollisionMask = 8194
 
 ---
@@ -83,6 +97,7 @@ function HoseSystem:load(savegame)
     self.polymorphismClasses = {}
 
     table.insert(self.polymorphismClasses, HoseSystemPlayerInteractiveHandling:new(self))
+    table.insert(self.polymorphismClasses, HoseSystemReferences:new(self))
 end
 
 function HoseSystem:loadHoseJoints(xmlFile, baseString)
@@ -116,11 +131,11 @@ function HoseSystem:loadHoseJoints(xmlFile, baseString)
 
     if entry.numJoints > 0 then -- we should confirm that 1 or 2 attacherJoints are in place too.
         -- store "hose" in an global table for faster distance check later on
-        if g_currentMission.liquidManureHoses == nil then
-            g_currentMission.liquidManureHoses = {}
+        if g_currentMission.hoseSystemHoses == nil then
+            g_currentMission.hoseSystemHoses = {}
         end
 
-        table.insert(g_currentMission.liquidManureHoses, self)
+        table.insert(g_currentMission.hoseSystemHoses, self)
     end
 
     self.jointSpline = entry
@@ -285,6 +300,35 @@ end
 --
 function HoseSystem:catmullRomSpline(t, p0, p1, p2, p3)
     return 0.5 * ((2 * p1) + (-p0 + p2) * t + (2 * p0 - 5 * p1 + 4 * p2 - p3) * t ^ 2 + (-p0 + 3 * p1 - 3 * p2 + p3) * t ^ 3)
+end
+
+---
+-- @param number
+-- @param idp
+--
+function HoseSystem:mathRound(number, idp)
+    local multiplier = 10 ^ (idp or 0)
+    return math.floor(number * multiplier + 0.5) / multiplier
+end
+
+---
+-- @param j1
+-- @param j2
+--
+function HoseSystem:calculateCosAngle(j1, j2)
+    local x1, y1, z1 = localDirectionToWorld(j1, 1, 0, 0)
+    local x2, y2, z2 = localDirectionToWorld(j2, 1, 0, 0)
+
+    return x1 * x2 + y1 * y2 + z1 * z2
+end
+
+---
+-- @param cond
+-- @param trueValue
+-- @param falseValue
+--
+function HoseSystem:ternary(cond, trueValue, falseValue)
+    if cond then return trueValue else return falseValue end
 end
 
 ---

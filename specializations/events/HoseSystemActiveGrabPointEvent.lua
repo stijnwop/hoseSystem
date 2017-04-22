@@ -13,10 +13,8 @@ HoseSystemActiveGrabPointEvent_mt = Class(HoseSystemActiveGrabPointEvent, Event)
 InitEventClass(HoseSystemActiveGrabPointEvent, 'HoseSystemActiveGrabPointEvent')
 
 function HoseSystemActiveGrabPointEvent:emptyNew()
-    local self = Event:new(HoseSystemActiveGrabPointEvent_mt)
-    self.className = 'HoseSystemActiveGrabPointEvent'
-
-    return self
+    local event = Event:new(HoseSystemActiveGrabPointEvent_mt)
+    return event
 end
 
 function HoseSystemActiveGrabPointEvent:new(liquidManureHose, index)

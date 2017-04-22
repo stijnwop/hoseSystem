@@ -23,7 +23,7 @@ function HoseSystemPlayerInteractiveHandling:update(dt)
     HoseSystemPlayerInteractiveHandling:superClass().update(self, dt)
 
     if self.object.isClient then
-        if g_currentMission.player.hoseSystem ~= nil and g_currentMission.player.hoseSystem.hose ~= nil then
+        if g_currentMission.player.hoseSystem ~= nil and g_currentMission.player.hoseSystem.interactiveHandling ~= nil then
             local index = g_currentMission.player.hoseSystem.index
             local grabPoint = self.object.grabPoints[index]
 
@@ -33,6 +33,38 @@ function HoseSystemPlayerInteractiveHandling:update(dt)
 
                     if InputBinding.hasEvent(InputBinding.DETACH_HOSE) then
                         self:drop(index, grabPoint.currentOwner)
+                    end
+
+                    if self.object.vehicleToMountHoseSystem ~= nil and self.object.referenceIdToMountHoseSystem ~= nil then
+                        local object = networkGetObject(self.object.vehicleToMountHoseSystem)
+
+                        if object ~= nil then
+                            local reference
+                            if object.hoseSystemReferences ~= nil then
+                                reference = object.hoseSystemReferences[self.object.referenceIdToMountHoseSystem]
+                            end
+
+                            local node = grabPoint.node
+                            if reference ~= nil then
+                                node = reference.parkable and grabPoint.node or reference.node
+                            end
+
+                            -- if g_i18n:hasText('ATTACHHOSE') then
+                            -- g_currentMission:addHelpButtonText(g_i18n:getText('ATTACHHOSE'), InputBinding.ATTACH_HOSE)
+                            -- end
+
+                            if node ~= nil and g_i18n:hasText('ATTACHHOSE') then
+                                self:renderHelpTextOnNode(node, g_i18n:getText('ATTACHHOSE'), string.format(g_i18n:getText('MOUSE_INTERACT'), string.lower(MouseHelper.getButtonName(Input.MOUSE_BUTTON_LEFT))))
+                            end
+
+                            g_currentMission:enableHudIcon('attach', 1)
+                            --g_currentMission:setShowHasMouseButtonInput(true)
+
+                            if InputBinding.hasEvent(InputBinding.ATTACH_HOSE) then
+                                -- print(LiquidManureHose:print_r(self.fillableObject))
+                                -- self:attach(index, nil, object, self.object.referenceIdToMountHoseSystem, self.object.referenceIsExtendable)
+                            end
+                        end
                     end
                 end
             end
