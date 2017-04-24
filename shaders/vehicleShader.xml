@@ -2,78 +2,72 @@
 
 <CustomShader version="3" classRequirement = "">
     <Parameters>
-        <Parameter name="RDT"                     target="RDT"                      type="float4" group="base"                  defaultValue="1.0 1.0 20.0 20.0"     minValue = "0.0 0.0 0.0 0.0"          maxValue = "1.0 1.0 50.0 50.0"/>
-        <Parameter name="offsetUV"                target="offsetUV"                 type="float4" group="offsetUV"              defaultValue="0.0 0.0 0.0 0.0"       minValue = "-10.0 -10.0 -10.0 -10.0"  maxValue = "10.0 10.0 10.0 10.0"/>
-        <Parameter name="uvCenterSize"            target="uvCenterSize"             type="float4" group="uvRotate"              defaultValue="0.5 0.5 1.0 1.0"       minValue = "-1.0 -1.0 0.0 0.0"        maxValue = "1.0 1.0 50.0 50.0"/>
-        <Parameter name="uvScale"                 target="uvScale"                  type="float4" group="uvScale"               defaultValue="1.0 1.0 1.0 1.0"       minValue = "-10.0 -10.0 -10.0 -10.0"  maxValue = "10.0 10.0 10.0 10.0"/>
-        <Parameter name="colorScale"              target="colorScale"               type="float4" group="color"                 defaultValue="0.8 0.55 0.055 1.0"    minValue = "0.0 0.0 0.0 0.0"          maxValue = "1.0 1.0 1.0 1.0"/>
-        <Parameter name="morphPosition"           target="morphPosition"            type="float4" group="morphPosition"         defaultValue="-0.45 -0.915 0.5 0.1"  minValue = "-4.0 -4.0 0.0 0.0"        maxValue = "2.0 2.0 1.0 1.0"/>
-        <Parameter name="scrollPosition"          target="scrollPosition"           type="float4" group="scroll"                defaultValue="0.0 0.0 0.0 0.0"/>
-        <Parameter name="lengthAndRadius"         target="lengthAndRadius"          type="float4" group="scroll"                defaultValue="2.0 0.5 0.0 0.0"/>
-        <Parameter name="widthAndDiam"            target="widthAndDiam"             type="float2" group="rim"                   defaultValue="40 40"/>
-        <Parameter name="connectorPos"            target="connectorPos"             type="float4" group="connectorPos"          defaultValue="0 80 40 40"/>
-        <Parameter name="numberOfStaticsAndDiam"  target="numberOfStaticsAndDiam"   type="float2" group="numStatics"            defaultValue="4 40"/>
-        <Parameter name="connectorPosAndScale"    target="connectorPosAndScale"     type="float3" group="connectorPosAndScale"  defaultValue="0 80 1.0"/>
-        <Parameter name="beltPos"                 target="beltPos"                  type="float"  group="beltPos"               defaultValue="0.0"/>
-        <Parameter name="cv0"                     target="cv0"                      type="float4" group="catmull"               defaultValue="2 2 -5 0"/>
-        <Parameter name="cv1"                     target="cv1"                      type="float4" group="catmull"               defaultValue="0 0 0 0"/>
-        <Parameter name="cv2"                     target="cv2"                      type="float4" group="catmull"               defaultValue="0 0 10 0"/>
-        <Parameter name="cv3"                     target="cv3"                      type="float4" group="catmull"               defaultValue="-2 2 15 0"/>
-        <Parameter name="lengthInvLength"         target="lengthInvLength"          type="float4" group="catmull"               defaultValue="10 0.1 0 0"/>
+        <Parameter name = "RDT"             target = "RDT"             type = "float4"  defaultValue = "1.0 1.0 20.0 20.0"     minValue = "0.0 0.0 0.0 0.0"          maxValue = "1.0 1.0 50.0 50.0"/>
+        <Parameter name = "offsetUV"        target = "offsetUV"        type = "float4"  defaultValue = "0 0 0 0"               minValue = "-10.0 -10.0 -10.0 -10.0"  maxValue = "10.0 10.0 10.0 10.0"/>
+        <Parameter name = "uvCenterSize"    target = "uvCenterSize"    type = "float4"  defaultValue = "0.5 0.5 1.0 1.0"       minValue = "-1.0 -1.0 0.0 0.0"        maxValue = "1.0 1.0 50.0 50.0"/>
+        <Parameter name = "colorScale"      target = "colorScale"      type = "float4"  defaultValue = "0.8 0.55 0.055 1.0"    minValue = "0.0 0.0 0.0 0.0"          maxValue = "1.0 1.0 1.0 1.0"/>
+        <Parameter name = "morphPosition"   target = "morphPosition"   type = "float4"  defaultValue = "-0.45 -0.915 0.5 0.1"  minValue = "-4.0 -4.0 0.0 0.0"        maxValue = "2.0 2.0 1.0 1.0"/>
+        <Parameter name = "scrollPosition"  target = "scrollPosition"  type = "float4"  defaultValue = "0 0 0 0"/>
+        <Parameter name = "lengthAndRadius" target = "lengthAndRadius" type = "float4"  defaultValue = "2.0 0.5 0 0"/>
+        <Parameter name = "widthAndDiam"    target = "widthAndDiam"    type = "float2"  defaultValue = "40 40"/>
+        <Parameter name = "connectorPos"            target = "connectorPos"           type = "float4" defaultValue = "0 80 40 40"/>
+        <Parameter name = "numberOfStaticsAndDiam"  target = "numberOfStaticsAndDiam" type = "float2" defaultValue = "4 40"/>
+        <Parameter name = "connectorPosAndScale"    target = "connectorPosAndScale"   type = "float3" defaultValue = "0 80 1.0"/>
+        <Parameter name = "beltPos"                 target = "beltPos"                type = "float"  defaultValue = "0.0"/>
+        <Parameter name = "cv0"             target = "cv0"              type="float4" defaultValue="2 2 -5 0"/>
+        <Parameter name = "cv1"             target = "cv1"              type="float4" defaultValue="0 0 0 0"/>
+        <Parameter name = "cv2"             target = "cv2"              type="float4" defaultValue="0 0 10 0"/>
+        <Parameter name = "cv3"             target = "cv3"              type="float4" defaultValue="-2 2 15 0"/>
+        <Parameter name = "lengthInvLength" target = "lengthInvLength"  type="float4" defaultValue="10 0.1 0 0"/>
     </Parameters>
     <Textures>
-        <Texture name="DirtNmap" defaultColorProfile="linearRGB" defaultFilename="../shared/dirt_normal.png"/>
+        <Texture name = "DirtNmap" defaultColorProfile = "linearRGB" defaultFilename = "../shared/dirt_normal.dds"/>
+        <Texture name = "DirtSmap" defaultColorProfile = "linearRGB" defaultFilename = "../shared/dirt_specular.dds"/>
     </Textures>
     <Variations>
-        <Variation name="meshScroll" groups="base scroll">
+        <Variation name = "meshScroll">
 <![CDATA[
     // Enables caterpillar mesh scrolling
     #define MESH_SCROLL 
 ]]>
         </Variation>    
-        <Variation name="uvScroll" groups="base offsetUV">
+        <Variation name = "uvScroll">
 <![CDATA[
     // Enables UV scrolling
     #define UV_SCROLL       
 ]]>
         </Variation>
-        <Variation name="uvRotate" groups="base offsetUV uvRotate">
+        <Variation name = "uvRotate">
 <![CDATA[
     // Enables UV rotation
     #define UV_ROTATE       
 ]]>
         </Variation>
-        <Variation name="uvScale" groups="base uvScale">
-<![CDATA[
-    // Enables UV scaling
-    #define UV_SCALE       
-]]>
-        </Variation>
-        <Variation name="Decal">
+        <Variation name = "Decal">
 <![CDATA[
     // Enables 2nd UV set for specular
     #define DECAL_RENDER    
 ]]>
         </Variation>
-        <Variation name="Window">
+        <Variation name = "Window">
 <![CDATA[
     // should be used with akphaBlended material
     #define WINDOW
 ]]>
         </Variation>
-        <Variation name="colorMask" groups="base color">
+        <Variation name = "colorMask">
 <![CDATA[
     // Enables colorPainting by mask from glossMap.a
     #define COLOR_MASK      
 ]]>
         </Variation>
-        <Variation name="tirePressureDeformation" groups="base morphPosition">
+        <Variation name = "tirePressureDeformation">
 <![CDATA[
     // Enables deformation of the tire (offset vertices of the mesh)
     #define TIRE_PRESSURE_DEFORMATION      
 ]]>
         </Variation>
-        <Variation name="RIM" groups="base rim color">
+        <Variation name = "RIM">
 <![CDATA[
     // Enables smart scale for some parts of the mesh (masked by vertex colors)
     // see example file
@@ -81,14 +75,14 @@
     #define DISABLE_VERTEX_COLOR
 ]]>
         </Variation>
-        <Variation name="RIM_colorMask" groups="base rim color">
+        <Variation name = "RIM_colorMask">
 <![CDATA[
     #define RIM
     #define COLOR_MASK
     #define DISABLE_VERTEX_COLOR
 ]]>
         </Variation>
-        <Variation name="RIM_numberOfStatics_colorMask" groups="base numStatics color">
+        <Variation name = "RIM_numberOfStatics_colorMask">
 <![CDATA[
     #define NUMBER_OF_STATICS_AND_DIAM
     #define RIM_NUMBER_OF_STATICS
@@ -96,7 +90,7 @@
     #define DISABLE_VERTEX_COLOR
 ]]>
         </Variation>
-        <Variation name="RIM_DUAL1_colorMask" groups="base connectorPos numStatics color">
+        <Variation name = "RIM_DUAL1_colorMask">
 <![CDATA[
     // Enables smart scale for some parts of the mesh (masked by vertex colors)
     // see example file
@@ -106,7 +100,7 @@
     #define DISABLE_VERTEX_COLOR
 ]]>
         </Variation>
-        <Variation name="HUB_DUAL1_colorMask" groups="base connectorPosAndScale color">
+        <Variation name = "HUB_DUAL1_colorMask">
 <![CDATA[
     // Enables smart scale for some parts of the mesh (masked by vertex colors)
     // see example file
@@ -115,7 +109,7 @@
     #define DISABLE_VERTEX_COLOR
 ]]>
         </Variation>
-        <Variation name="BELT_KUHN" groups="base beltPos">
+        <Variation name = "BELT_KUHN">
 <![CDATA[
     // Enables smart mesh and uv deform (masked by vertex colors)
     // see example file
@@ -123,9 +117,9 @@
     #define DISABLE_VERTEX_COLOR
 ]]>
         </Variation>
-        <Variation name="LOCAL_CATMULL_ROM" groups="base catmull">
+        <Variation name = "LOCAL_CATMULL_ROM">
 <![CDATA[
-    // Enables 4 points Catmull rom spline
+    // Enables 4 points Catmull rom spline     
     #define LOCAL_CATMULL_ROM
 ]]>
         </Variation>
@@ -168,12 +162,6 @@
     uvCenterSize.zw - proportion of the texture ( for example, 2x1 (horizontal x vertical) == 512x256 ) 
 */
     uniform float4 uvCenterSize;
-#endif
-#if defined( UV_SCALE )
-/*
-    uvScale.xy - scale UV
-*/
-    uniform float4 uvScale;
 #endif
 #if defined( COLOR_MASK )
 /*
@@ -247,6 +235,7 @@
             <CodeInjection position = "SAMPLERS">
 <![CDATA[
 sampler2D DirtNmap;
+sampler2D DirtSmap;
 ]]>
             </CodeInjection>
             <CodeInjection position = "FS_GLOBALS">
@@ -294,6 +283,22 @@ float2 m_getUVRotationSinCos( )
     return mSinCos;
 }
 #endif
+#if defined( NUMBER_OF_STATICS_AND_DIAM )
+float myAtan2(float y, float x)
+{
+    if (x > 0) {
+        return atan(y/x);
+    } else if (x < 0) {
+        if (y >= 0) {
+            return atan(y/x) + 3.1415926535897932384626433832795;
+        } else {
+            return atan(y/x) - 3.1415926535897932384626433832795;
+        }
+    } else {
+        return 0;
+    }
+}
+#endif
 ]]>
             </CodeInjection>
             <CodeInjection position="GET_POSITION_VS">
@@ -310,7 +315,7 @@ float2 m_getUVRotationSinCos( )
     if (In.color.w < 0.5) {
         // Move whole blocks towards the center that are placed around the rim with the same angular distance
         float stepSize = 6.283185307179586476925286766559 / numberOfStaticsAndDiam.x;
-        float angle = atan2(In.position.y, In.position.z);
+        float angle = myAtan2(In.position.y, In.position.z);
         angle = floor(angle / stepSize + 0.5) * stepSize;
         float2 d = float2(sin(angle), cos(angle));
         mPos.yz = In.position.yz + d * (mDiameter-1)*0.5;
@@ -424,12 +429,6 @@ float2 m_getUVRotationSinCos( )
 #if defined( UV_SCROLL ) && defined( ALBEDO_MAP )
     float2 mUV = getDefaultTexCoords(In);
     mUV.xy += offsetUV.xy;
-    Out.defaultTexCoords = mUV;
-
-#endif
-#if defined( UV_SCALE ) && defined( ALBEDO_MAP )
-    float2 mUV = getDefaultTexCoords(In);
-    mUV.xy *= uvScale.xy;
     Out.defaultTexCoords = mUV;
 #endif
 ]]>
@@ -633,10 +632,13 @@ glossMap.g - ambient occlusion
 glossMap.b - dirt mask
 glossMap.a - color mask ( if enabled )
 */
+	//float2 mOutgoingUV = getDefaultTexCoords(In);
+	float affectedVertices = max(0.0,  0.5-In.vs.GLOSSMAP_TEXCOORD.y ); // when turning the values around the affected direction will change! (the 0.5 will be a parameter)
+	float affectedVerticesX = max(1 - In.vs.GLOSSMAP_TEXCOORD.x, 0.0);
     globals.gGloss = tex2D( glossMap, In.vs.GLOSSMAP_TEXCOORD).rgba;
     globals.gAO    = globals.gGloss.g;
-    float texDirt  = 1 - globals.gGloss.b;
-    globals.gDirt  = saturate( (texDirt*1.05 - (RDT.g - 0.5)) * 2 );
+	float texDirt  = 1 - 1 * affectedVertices; //globals.gGloss.b
+    globals.gDirt  = saturate( (texDirt*affectedVerticesX - (RDT.g - 0.5)) * 2 );// texDirt; Note: the affectedVerticesX is not really impacting .. lookup later
 #else
     globals.gGloss = 0;
     globals.gAO = 0;
@@ -677,8 +679,13 @@ globals.maxSpecularIntensity = 0.5; // iron
     #if defined( WINDOW )
         albedo.xyz += clamp( 0.65 *( 1-globals.gDirt ), 0.0, 1.0 );
     #else
-        float3 mDirtColor = float3( 0.20, 0.14, 0.08 ); // HardCoded Dirt Color
-        albedo.xyz = lerp( mDirtColor, albedo.xyz, globals.gDirt); // DirtColor lerp
+		float3 colorA = float3( 0.118, 0.068, 0.016 );
+		float3 colorB = float3( 0.027, 0.016, 0.004 );
+		
+		float3 mDirtColor = lerp( colorA, colorB, globals.gDirt );
+		//albedo.rgb = mResultColor;
+        //float3 mDirtColor = float3( 0.20, 0.13, 0.06 ); // HardCoded Dirt Color
+		albedo.xyz = lerp( mDirtColor, albedo.xyz, globals.gDirt); // DirtColor lerp
     #endif
     albedo.xyz *= globals.gAO; // Multiply AO for DIFFUSE
 #endif
@@ -693,7 +700,11 @@ globals.maxSpecularIntensity = 0.5; // iron
         float cosPower = max(cCosPower * globals.gGloss.r * globals.gDirt, 0.1);
     #endif
     roughness = sqrt(sqrt(2.0/(cosPower+2.0)));
-    glossColor.xyz = (float3)(globals.gGloss.r*globals.gDirt);
+	
+	float3 mDirtSmap = tex2D( DirtSmap, float2( RDT.z, RDT.w ) * In.vs.GLOSSMAP_TEXCOORD ).xyz - 0.5;    
+	float3 some = float3(mDirtSmap.xy, 0.0) * (1 - globals.gDirt);
+	glossColor.xyz = (float3)(globals.gGloss.r*globals.gDirt) + some;
+	
     glossColor.xyz *= globals.maxSpecularIntensity*globals.gAO; // Multiply AO for SPECULAR
     #if defined( WINDOW ) && !defined( REFLECTION_MAP_CUBE )
         glossColor.xyz *= float3(0.0,0.0,0.0);
