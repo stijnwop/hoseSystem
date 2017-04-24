@@ -88,3 +88,71 @@ function HoseSystemPlayerInteractive:renderHelpTextOnNode(node, actionText, inpu
         end
     end
 end
+
+-- Todo: refactor below to new format
+
+function HoseSystemPlayerInteractive:playerDelete(superFunc)
+    if self.hose ~= nil then -- only server knows this
+        if self.activeTool ~= nil and self.activeTool.drop ~= nil then
+            self.activeTool:drop(self.activeToolLocationId, self)
+        end
+    end
+
+    if superFunc ~= nil then
+        superFunc(self)
+    end
+end
+
+function HoseSystemPlayerInteractive:playerOnLeave(superFunc)
+    if superFunc ~= nil then
+        superFunc(self)
+    end
+
+    if self.hose ~= nil and self.hose.node ~= nil then -- only server knows this
+        if self.activeTool ~= nil and self.activeTool.drop ~= nil then
+            self.activeTool:drop(self.activeToolLocationId, self)
+        end
+    end
+end
+
+function HoseSystemPlayerInteractive:setPlayerTool(superFunc, tool)
+    if self.activeTool ~= nil and self.activeToolLocationId ~= nil or self.hose ~= nil and self.hose.node ~= nil then
+        return -- cancel
+    end
+
+    if superFunc ~= nil then
+        superFunc(self, tool)
+    end
+end
+
+function HoseSystemPlayerInteractive:setPlayerToolById(superFunc, toolId, noEventSend)
+    if self.activeTool ~= nil and self.activeToolLocationId ~= nil or self.hose ~= nil and self.hose.node ~= nil then
+        return -- cancel
+    end
+
+    if superFunc ~= nil then
+        superFunc(self, toolId, noEventSend)
+    end
+end
+
+function HoseSystemPlayerInteractive:highPressureWasherSetIsTurnedOn(superFunc, isTurnedOn, player, noEventSend)
+    if player ~= nil then
+        if player.activeTool ~= nil and player.activeToolLocationId ~= nil or player.hose ~= nil and player.hose.node ~= nil then
+            return -- cancel
+        end
+    end
+
+    if superFunc ~= nil then
+        superFunc(self, isTurnedOn, player, noEventSend)
+    end
+end
+
+---
+-- Override
+--
+
+Player.delete = Utils.overwrittenFunction(Player.delete, HoseSystemPlayerInteractive.playerDelete)
+Player.onLeave = Utils.overwrittenFunction(Player.onLeave, HoseSystemPlayerInteractive.playerOnLeave)
+Player.setTool = Utils.overwrittenFunction(Player.setTool, HoseSystemPlayerInteractive.setPlayerTool)
+Player.setToolById = Utils.overwrittenFunction(Player.setToolById, HoseSystemPlayerInteractive.setPlayerToolById)
+HighPressureWasher.setIsTurnedOn = Utils.overwrittenFunction(HighPressureWasher.setIsTurnedOn, HoseSystemPlayerInteractive.highPressureWasherSetIsTurnedOn)
