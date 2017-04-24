@@ -1,0 +1,775 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<CustomShader version="3" classRequirement = "">
+    <Parameters>
+        <Parameter name="RDT"                     target="RDT"                      type="float4" group="base"                  defaultValue="1.0 1.0 20.0 20.0"     minValue = "0.0 0.0 0.0 0.0"          maxValue = "1.0 1.0 50.0 50.0"/>
+        <Parameter name="offsetUV"                target="offsetUV"                 type="float4" group="offsetUV"              defaultValue="0.0 0.0 0.0 0.0"       minValue = "-10.0 -10.0 -10.0 -10.0"  maxValue = "10.0 10.0 10.0 10.0"/>
+        <Parameter name="uvCenterSize"            target="uvCenterSize"             type="float4" group="uvRotate"              defaultValue="0.5 0.5 1.0 1.0"       minValue = "-1.0 -1.0 0.0 0.0"        maxValue = "1.0 1.0 50.0 50.0"/>
+        <Parameter name="uvScale"                 target="uvScale"                  type="float4" group="uvScale"               defaultValue="1.0 1.0 1.0 1.0"       minValue = "-10.0 -10.0 -10.0 -10.0"  maxValue = "10.0 10.0 10.0 10.0"/>
+        <Parameter name="colorScale"              target="colorScale"               type="float4" group="color"                 defaultValue="0.8 0.55 0.055 1.0"    minValue = "0.0 0.0 0.0 0.0"          maxValue = "1.0 1.0 1.0 1.0"/>
+        <Parameter name="morphPosition"           target="morphPosition"            type="float4" group="morphPosition"         defaultValue="-0.45 -0.915 0.5 0.1"  minValue = "-4.0 -4.0 0.0 0.0"        maxValue = "2.0 2.0 1.0 1.0"/>
+        <Parameter name="scrollPosition"          target="scrollPosition"           type="float4" group="scroll"                defaultValue="0.0 0.0 0.0 0.0"/>
+        <Parameter name="lengthAndRadius"         target="lengthAndRadius"          type="float4" group="scroll"                defaultValue="2.0 0.5 0.0 0.0"/>
+        <Parameter name="widthAndDiam"            target="widthAndDiam"             type="float2" group="rim"                   defaultValue="40 40"/>
+        <Parameter name="connectorPos"            target="connectorPos"             type="float4" group="connectorPos"          defaultValue="0 80 40 40"/>
+        <Parameter name="numberOfStaticsAndDiam"  target="numberOfStaticsAndDiam"   type="float2" group="numStatics"            defaultValue="4 40"/>
+        <Parameter name="connectorPosAndScale"    target="connectorPosAndScale"     type="float3" group="connectorPosAndScale"  defaultValue="0 80 1.0"/>
+        <Parameter name="beltPos"                 target="beltPos"                  type="float"  group="beltPos"               defaultValue="0.0"/>
+        <Parameter name="cv0"                     target="cv0"                      type="float4" group="catmull"               defaultValue="2 2 -5 0"/>
+        <Parameter name="cv1"                     target="cv1"                      type="float4" group="catmull"               defaultValue="0 0 0 0"/>
+        <Parameter name="cv2"                     target="cv2"                      type="float4" group="catmull"               defaultValue="0 0 10 0"/>
+        <Parameter name="cv3"                     target="cv3"                      type="float4" group="catmull"               defaultValue="-2 2 15 0"/>
+        <Parameter name="lengthInvLength"         target="lengthInvLength"          type="float4" group="catmull"               defaultValue="10 0.1 0 0"/>
+    </Parameters>
+    <Textures>
+        <Texture name="DirtNmap" defaultColorProfile="linearRGB" defaultFilename="../shared/dirt_normal.png"/>
+    </Textures>
+    <Variations>
+        <Variation name="meshScroll" groups="base scroll">
+<![CDATA[
+    // Enables caterpillar mesh scrolling
+    #define MESH_SCROLL 
+]]>
+        </Variation>    
+        <Variation name="uvScroll" groups="base offsetUV">
+<![CDATA[
+    // Enables UV scrolling
+    #define UV_SCROLL       
+]]>
+        </Variation>
+        <Variation name="uvRotate" groups="base offsetUV uvRotate">
+<![CDATA[
+    // Enables UV rotation
+    #define UV_ROTATE       
+]]>
+        </Variation>
+        <Variation name="uvScale" groups="base uvScale">
+<![CDATA[
+    // Enables UV scaling
+    #define UV_SCALE       
+]]>
+        </Variation>
+        <Variation name="Decal">
+<![CDATA[
+    // Enables 2nd UV set for specular
+    #define DECAL_RENDER    
+]]>
+        </Variation>
+        <Variation name="Window">
+<![CDATA[
+    // should be used with akphaBlended material
+    #define WINDOW
+]]>
+        </Variation>
+        <Variation name="colorMask" groups="base color">
+<![CDATA[
+    // Enables colorPainting by mask from glossMap.a
+    #define COLOR_MASK      
+]]>
+        </Variation>
+        <Variation name="tirePressureDeformation" groups="base morphPosition">
+<![CDATA[
+    // Enables deformation of the tire (offset vertices of the mesh)
+    #define TIRE_PRESSURE_DEFORMATION      
+]]>
+        </Variation>
+        <Variation name="RIM" groups="base rim color">
+<![CDATA[
+    // Enables smart scale for some parts of the mesh (masked by vertex colors)
+    // see example file
+    #define RIM
+    #define DISABLE_VERTEX_COLOR
+]]>
+        </Variation>
+        <Variation name="RIM_colorMask" groups="base rim color">
+<![CDATA[
+    #define RIM
+    #define COLOR_MASK
+    #define DISABLE_VERTEX_COLOR
+]]>
+        </Variation>
+        <Variation name="RIM_numberOfStatics_colorMask" groups="base numStatics color">
+<![CDATA[
+    #define NUMBER_OF_STATICS_AND_DIAM
+    #define RIM_NUMBER_OF_STATICS
+    #define COLOR_MASK    
+    #define DISABLE_VERTEX_COLOR
+]]>
+        </Variation>
+        <Variation name="RIM_DUAL1_colorMask" groups="base connectorPos numStatics color">
+<![CDATA[
+    // Enables smart scale for some parts of the mesh (masked by vertex colors)
+    // see example file
+    #define RIM_DUAL1
+    #define NUMBER_OF_STATICS_AND_DIAM
+    #define COLOR_MASK
+    #define DISABLE_VERTEX_COLOR
+]]>
+        </Variation>
+        <Variation name="HUB_DUAL1_colorMask" groups="base connectorPosAndScale color">
+<![CDATA[
+    // Enables smart scale for some parts of the mesh (masked by vertex colors)
+    // see example file
+    #define HUB_DUAL1
+    #define COLOR_MASK
+    #define DISABLE_VERTEX_COLOR
+]]>
+        </Variation>
+        <Variation name="BELT_KUHN" groups="base beltPos">
+<![CDATA[
+    // Enables smart mesh and uv deform (masked by vertex colors)
+    // see example file
+    #define BELT_KUHN
+    #define DISABLE_VERTEX_COLOR
+]]>
+        </Variation>
+        <Variation name="LOCAL_CATMULL_ROM" groups="base catmull">
+<![CDATA[
+    // Enables 4 points Catmull rom spline
+    #define LOCAL_CATMULL_ROM
+]]>
+        </Variation>
+    </Variations>
+    <LodLevel startDistance = "0">
+        <CodeInjections>
+            <CodeInjection position = "MATERIALINFO">
+<![CDATA[
+#if defined( DISABLE_VERTEX_COLOR )
+    #if defined(VERTEX_COLOR)
+        #undef VERTEX_COLOR
+    #endif
+#endif
+/*
+    RDT.x - NOT USED YET
+    RDT.y - Dirt Amount
+    RDT.z - Dirt Texture Tile
+*/
+    uniform float4 RDT;
+#if defined( MESH_SCROLL )
+/*
+    Assumption fisrt_circle.radius == second_circle.radius, see example file how to use it
+    scrollPosition.x  - position of the caterpillar elements (scrolling time based parameter)
+    lengthAndRadius.x - caterpillar length (from fisrt_circle center to second_circle center)
+    lengthAndRadius.y - caterpillar radius (circle radius)
+*/ 
+    uniform float4 scrollPosition;
+    uniform float4 lengthAndRadius;
+#endif
+#if defined( UV_SCROLL ) || defined( UV_ROTATE )
+/*
+    offsetUV.xy - translate 
+    offsetUV.z  - rotate
+*/
+    uniform float4 offsetUV;
+#endif
+#if defined( UV_ROTATE )
+/*
+    uvCenterSize.xy - roattion center in UV space (for example, 0.25 0.5 )
+    uvCenterSize.zw - proportion of the texture ( for example, 2x1 (horizontal x vertical) == 512x256 ) 
+*/
+    uniform float4 uvCenterSize;
+#endif
+#if defined( UV_SCALE )
+/*
+    uvScale.xy - scale UV
+*/
+    uniform float4 uvScale;
+#endif
+#if defined( COLOR_MASK )
+/*
+    colorScale - rgb color multiplied by albedo.rgb, uses specular.a for masking
+*/
+    uniform float4 colorScale;
+#endif
+#if defined( TIRE_PRESSURE_DEFORMATION )
+/*
+    Enables tirePressureDeformation uses morphPosition parameter
+    morphPosition.x - start deforming position ( objectSpace by "Y" )
+    morphPosition.y - end deforming position ( objectSpace by "Y" )
+    morphPosition.z - mPushOutRatio HARDCODED // relationship between deformation and mPushOut ( 0 - [do noting], 1 - [mPushOut == mPushUp] )
+    morphPosition.w - mPushUp - deformation in meters
+*/ 
+    uniform float4 morphPosition;
+#endif
+#if defined( RIM )
+/*
+    widthAndDiam.x - rim width (real size in inches)
+    widthAndDiam.y - diameter of the rim (real size in inches)
+*/
+    uniform float2 widthAndDiam;
+#endif
+#if defined( RIM_DUAL1 )
+/*
+    connectorPos.x - offset of the hooks ( absolute, do not offset other parameters, in inches )
+    connectorPos.y - fisrt rim width (real size in inches)
+    connectorPos.z - connection between rims (real sixe in inches)
+    connectorPos.w - second rim width (real size in inches)
+    
+    Pivot point for the second rim (in meters) is:
+    ( 0.5*connectorPos.y + connectorPos.z + 0.5*connectorPos.w ) * 0.0254  
+*/
+    uniform float4 connectorPos;
+#endif
+#if defined( NUMBER_OF_STATICS_AND_DIAM )
+/*
+    numberOfStaticsAndDiam.x - number of hooks
+    numberOfStaticsAndDiam.y - diameter of the rim (real size in inches)
+*/
+    uniform float2 numberOfStaticsAndDiam;
+#endif
+#if defined( HUB_DUAL1 )
+/*
+    connectorPosAndScale.x - offset of the center ( absolute, do not offset other parameters, in inches )
+    connectorPosAndScale.y - offset to the second hub (real size in inches)
+    connectorPosAndScale.z - object scale
+*/
+    uniform float3 connectorPosAndScale;
+#endif
+#if defined( BELT_KUHN )
+/*
+    beltPos - defines bending position of vertices 
+*/
+    uniform float beltPos;
+#endif
+#if defined( LOCAL_CATMULL_ROM )
+/*
+    the curve is placed between cv1 and cv2. 
+    cv0 and cv3 control the tangential direction at cv1 and cv2 respectively
+*/    
+    uniform float4 cv0;
+    uniform float4 cv1;
+    uniform float4 cv2;
+    uniform float4 cv3;
+    uniform float4 lengthInvLength;
+#endif
+]]>
+            </CodeInjection>
+            <CodeInjection position = "SAMPLERS">
+<![CDATA[
+sampler2D DirtNmap;
+]]>
+            </CodeInjection>
+            <CodeInjection position = "FS_GLOBALS">
+<![CDATA[
+    float4 gGloss;
+    float  gAO;
+    float  gDirt;
+    float  maxSpecularIntensity;
+]]>
+            </CodeInjection>
+            <CodeInjection position = "CONFIG_DEFINES">
+<![CDATA[
+#if GPU_PROFILE < GPU_PROFILE_MEDIUM
+    #if defined( REFLECTION_MAP_CUBE )
+        #undef REFLECTION_MAP_CUBE
+    #endif
+#endif
+
+#if GPU_PROFILE > GPU_PROFILE_MEDIUM
+    #define COOK_TORRANCE_GGX_SHADING
+#endif
+
+#if defined( DECAL_RENDER )
+    // Remap gloss map lookups to our custom tex coord
+    #define GLOSSMAP_TEXCOORD glossMapTexCoords2
+#endif
+]]>
+            </CodeInjection>
+            <CodeInjection position="VS_OUTPUT">
+<![CDATA[
+#if defined( DECAL_RENDER )
+float2 glossMapTexCoords2 : TEXCOORDn;
+#endif
+]]>
+            </CodeInjection>
+            <CodeInjection position="SAMPLERS">
+<![CDATA[
+#if defined( UV_ROTATE )
+float2 m_getUVRotationSinCos( )
+{
+    float mTime = offsetUV.z;
+    float2 mSinCos;
+    // compute sin and cos for this angle
+    sincos( mTime, mSinCos.x, mSinCos.y );
+    return mSinCos;
+}
+#endif
+]]>
+            </CodeInjection>
+            <CodeInjection position="GET_POSITION_VS">
+<![CDATA[
+    float3 mPos          = In.position.xyz;
+#if defined( BELT_KUHN )
+    mPos.x += beltPos*In.color.x;
+    mPos.x += 2*beltPos*In.color.z;
+    return mPos;
+#endif
+#if defined( NUMBER_OF_STATICS_AND_DIAM )
+    float mDiameter = 0.0254 * numberOfStaticsAndDiam.y;    
+    // Apply radial distortion (we assume that the initial mesh radius is 1)
+    if (In.color.w < 0.5) {
+        // Move whole blocks towards the center that are placed around the rim with the same angular distance
+        float stepSize = 6.283185307179586476925286766559 / numberOfStaticsAndDiam.x;
+        float angle = atan2(In.position.y, In.position.z);
+        angle = floor(angle / stepSize + 0.5) * stepSize;
+        float2 d = float2(sin(angle), cos(angle));
+        mPos.yz = In.position.yz + d * (mDiameter-1)*0.5;
+    } else {
+        mPos.yz = In.position.yz + normalize(In.position.yz) * (mDiameter-1)*0.5;
+    }
+#endif
+#if defined( RIM_NUMBER_OF_STATICS )
+    return mPos;
+#endif
+#if defined( RIM )
+    float2 mWidthAndDiam = 0.0254 * widthAndDiam.xy; // inch to meter convertion
+    // Apply radial distortion (we assume that the mesh radius is 1)    
+    mPos.yz = In.position.yz + normalize(In.position.yz) * (mWidthAndDiam.y-1)*0.5;
+    // Apply distortion along x axis from 2 control points (control points in the mesh are assumed to be 0.5 from the center)
+    mPos.x  = In.color.x * (In.position.x + mWidthAndDiam.x*0.5-0.5);
+    mPos.x += In.color.y * (In.position.x - mWidthAndDiam.x*0.5+0.5);
+    mPos.x += (1-(dot(In.color.xy, float2(1,1)))) * In.position.x;
+    return mPos;
+#endif
+#if defined( RIM_DUAL1 )
+    // Apply distortion along x axis from 3 control points (distance between control points in the mesh is assumed to be 1)
+    float mSide = 1.0;
+    if ( In.position.x < 0 ) {
+        mSide  = -1.0;
+    }
+    float4 mRealPosition =  0.0254 * connectorPos; // convert inches to meters
+    mPos.x = (1-In.color.x)*(1-In.color.y)*(1-In.color.z)*( In.position.x + mSide*mRealPosition.x);
+    mRealPosition.y *= 0.5;
+    mPos.x += In.color.x * (In.position.x + mSide*(mRealPosition.y-1));
+    mRealPosition.z += mRealPosition.y;
+    mPos.x += In.color.y * (In.position.x + mSide*(mRealPosition.z-2));
+    mRealPosition.w += mRealPosition.z;
+    mPos.x += In.color.z * (In.position.x + mSide*(mRealPosition.w-3));
+    mPos.x += (1-(dot(In.color.xyz, float3(1,1,1)))) * In.position.x;
+    return mPos;
+#endif
+#if defined( HUB_DUAL1 )
+    float2 mRealPosition = 0.0254 * connectorPosAndScale.xy;
+    float mSide = 1.0;
+    if ( In.position.x < 0 ) {
+        mSide  = -1.0;
+    }
+    mPos.x += In.color.x * mSide*( - 1 );
+    mPos *= connectorPosAndScale.z;
+    mPos.x += In.color.y * mSide*( 4 *(1 - connectorPosAndScale.z ) );
+
+    mPos.x += In.color.x * mSide* mRealPosition.x;
+    mPos.x += In.color.y * mSide* ( mRealPosition.y - 4 );
+    return mPos;
+#endif
+#if defined( TIRE_PRESSURE_DEFORMATION )
+    float3 localY = mul(float3(0,1,0), (float3x3)modelMatrix);
+    localY.x = 0;
+    localY = normalize(localY);
+
+    float3 mDeformedPosition = In.position.xyz;
+    float localYPosition = dot(In.position, localY);
+    
+    float mBlendIn  = morphPosition.x;
+    float mBlendOut = morphPosition.y;
+    
+    float mMaskBase = saturate((localYPosition - mBlendIn) / ( mBlendOut - mBlendIn ));
+    float mMask = sin( mMaskBase * 3.14159 );
+    
+    float mPushOutRatio = 0.5; //morphPosition.z;
+    float mPushUp  = morphPosition.w;
+    float mBound   = abs( mBlendOut - mBlendIn );
+    mPushUp = clamp( mPushUp, 0.0, mBound );
+    float mPushOut = mPushUp * mPushOutRatio;
+    
+    mDeformedPosition.x += mPushOut * mMask * sign(In.position.x);
+    mDeformedPosition += localY * (mPushUp * mMaskBase);
+    return float4( mDeformedPosition, 1.0 );
+#endif
+]]>
+            </CodeInjection>
+            <CodeInjection position="POST_SET_TEXCOORDS_VS">
+<![CDATA[
+#if defined( BELT_KUHN )
+    float2 mUV = convertDefaultTexCoords( In, In.texCoords0.xy );
+    float mScaler1 = beltPos + 1;
+    float mScaler2 = 1 - 0.5 * beltPos;
+    mUV.y = lerp( mUV.y, mUV.y * mScaler1, In.color.y );
+    mUV.y = lerp( mUV.y, ( mUV.y + 0.25 ) * mScaler2 - 0.25, In.color.w );
+    float mBlendFactor = In.color.x*(1-In.color.y)*(1-In.color.z)*(1-In.color.w);
+    float mScaler3 = 0.5 * beltPos;
+    mUV.y = lerp( mUV.y, mUV.y + mScaler3, mBlendFactor);
+    Out.defaultTexCoords = mUV;
+#endif
+#if defined( DECAL_RENDER )
+    // Pass second UVSet to the Pixel Shader
+    Out.glossMapTexCoords2 = convertDefaultTexCoords(In, In.texCoords1.xy);
+#endif
+#if defined( UV_ROTATE ) && defined( ALBEDO_MAP )
+    float2 mOutgoingUV = getDefaultTexCoords(In);
+    mOutgoingUV *= uvCenterSize.zw;
+    float2 mRotationCenter = uvCenterSize.xy;
+    mRotationCenter *= uvCenterSize.zw;
+    float2 mSinCos = m_getUVRotationSinCos();
+    // move the rotation center to the origin
+    float2 mTmpUV = mOutgoingUV - mRotationCenter;
+    // rotate the uv
+    mOutgoingUV.x = dot( mTmpUV, float2( mSinCos.y, - mSinCos.x ) );
+    mOutgoingUV.y = dot( mTmpUV, mSinCos.xy );
+    // move the uv's back to the correct place
+    mOutgoingUV += mRotationCenter;
+    mOutgoingUV /= uvCenterSize.zw;
+    Out.defaultTexCoords = mOutgoingUV;
+#endif
+#if defined( UV_SCROLL ) && defined( ALBEDO_MAP )
+    float2 mUV = getDefaultTexCoords(In);
+    mUV.xy += offsetUV.xy;
+    Out.defaultTexCoords = mUV;
+
+#endif
+#if defined( UV_SCALE ) && defined( ALBEDO_MAP )
+    float2 mUV = getDefaultTexCoords(In);
+    mUV.xy *= uvScale.xy;
+    Out.defaultTexCoords = mUV;
+#endif
+]]>
+            </CodeInjection>
+            <CodeInjection position="START_POS_VS">
+<![CDATA[
+#if defined( MESH_SCROLL ) 
+    float mTotalLenght = 3.1415926*lengthAndRadius.y + 2*lengthAndRadius.x;
+
+    float crawlerRadius = lengthAndRadius.y;
+    float crawlerRadiusPi = 3.1415926*crawlerRadius;
+    float crawlerLength = lengthAndRadius.x;
+
+    float posFirstRot = crawlerLength;
+    float posAfterRot = posFirstRot + crawlerRadiusPi;
+    float posAfterBottom = posAfterRot + crawlerLength;
+    float posAfterLastRot = posAfterBottom + crawlerRadiusPi;
+
+    float offsetZRaw = mTotalLenght * ( scrollPosition.x - floor(scrollPosition.x) );
+    position.z = fmod(position.z+offsetZRaw,posAfterLastRot);
+
+    float3 origPosition = position.xyz;
+
+    if (origPosition.z > posFirstRot) 
+    {
+        // z=0 -> 0
+        // z=pi*r -> pi
+        float angle = (origPosition.z - posFirstRot) / crawlerRadius;
+        position.z = posFirstRot + sin(angle)*origPosition.y;
+        position.y = cos(angle)*origPosition.y;
+        if (origPosition.z > posAfterRot) {
+            position.z = posFirstRot - (origPosition.z - posAfterRot);
+            position.y = -origPosition.y;
+            if (origPosition.z > posAfterBottom) {
+                // z=0 -> 0
+                // z=pi*r -> pi
+                float angle = (origPosition.z - posAfterBottom) / crawlerRadius;
+                position.z = - sin(angle)*origPosition.y;
+                position.y = - cos(angle)*origPosition.y;
+            }
+        }
+    }
+#endif
+#if defined( LOCAL_CATMULL_ROM )
+{
+    float3 v = float3( position.x, position.y, 0 );
+
+    //	q(t) = 0.5f *((2 * P1) + (-P0 + P2) * t + (2*P0 - 5*P1 + 4*P2 - P3) * t^2 + (-P0 + 3*P1 - 3*P2 + P3) * t^3)
+
+    float sT = position.z/lengthInvLength.x;
+    float3 splinePos = 0.5f *((2.0f* cv1.xyz) + (- cv0.xyz+ cv2.xyz)*sT + (2.0f* cv0.xyz - 5.0f* cv1.xyz + 4.0f* cv2.xyz -  cv3.xyz) * (sT*sT) + (- cv0.xyz + 3.0f* cv1.xyz - 3.0f* cv2.xyz +  cv3.xyz) * (sT*sT*sT));
+
+    float sT2 = (position.z+0.01f)/lengthInvLength.x;
+    float3 splinePos2 = 0.5f *((2.0f* cv1.xyz) + (- cv0.xyz+ cv2.xyz)*sT2 + (2.0f* cv0.xyz - 5.0f* cv1.xyz + 4.0f* cv2.xyz -  cv3.xyz) * (sT2*sT2) + (- cv0.xyz + 3.0f* cv1.xyz - 3.0f* cv2.xyz +  cv3.xyz) * (sT2*sT2*sT2));
+
+     // calculate rotation matrix
+    float3 z1 = float3(0.0f, 0.0f, 1.0f);
+    float3 z2 = normalize( splinePos2.xyz - splinePos.xyz );
+   
+    float3 ra = normalize( cross(z2, z1) );             // rot. axis
+    float a = acos( dot(z2, z1) );                      // rot. angle
+
+    float sa = sin(a);
+    float ca = cos(a);
+    float cam = 1.0f - ca;
+
+    float3x3 rotMat = float3x3(
+        ra.x*ra.x * cam + ca,       ra.y*ra.x * cam + ra.z*sa,  ra.z*ra.x * cam - ra.y*sa,
+        ra.x*ra.y * cam - ra.z*sa,  ra.y*ra.y * cam + ca,       ra.z*ra.y * cam + ra.x*sa,
+        ra.x*ra.z * cam + ra.y*sa,  ra.y*ra.z * cam - ra.x*sa,  ra.z*ra.z * cam + ca
+        );
+
+    position.xyz = splinePos.xyz + mul( rotMat, v );
+}
+#endif
+]]>
+            </CodeInjection>
+            <CodeInjection position="GET_NORMAL_VS">
+<![CDATA[
+#if defined( MESH_SCROLL ) 
+    float3 normal = In.normal.xyz;
+    float mTotalLenght = 3.1415926*lengthAndRadius.y + 2*lengthAndRadius.x;
+
+    float crawlerRadius = lengthAndRadius.y;
+    float crawlerRadiusPi = 3.1415926*crawlerRadius;
+    float crawlerLength = lengthAndRadius.x;
+
+    float posFirstRot = crawlerLength;
+    float posAfterRot = posFirstRot + crawlerRadiusPi;
+    float posAfterBottom = posAfterRot + crawlerLength;
+    float posAfterLastRot = posAfterBottom + crawlerRadiusPi;
+
+    float offsetZRaw = mTotalLenght * ( scrollPosition.x - floor(scrollPosition.x) );
+    float posZ = fmod(getPosition(In).z+offsetZRaw,posAfterLastRot);
+
+    if (posZ > posFirstRot) {
+        // z=0 -> 0
+        // z=pi*r -> pi
+        float angle = (posZ - posFirstRot) / crawlerRadius;
+
+        float cosAngle = cos(angle);
+        float sinAngle = sin(angle);
+
+        normal.y = cosAngle*In.normal.y - sinAngle*In.normal.z;
+        normal.z = sinAngle*In.normal.y + cosAngle*In.normal.z;
+        if (posZ > posAfterRot) {
+            normal.yz = -In.normal.yz;
+            if (posZ > posAfterBottom) {
+                // z=0 -> 0
+                // z=pi*r -> pi
+                float angle = (posZ - posAfterBottom) / crawlerRadius;
+
+                float cosAngle = cos(angle);
+                float sinAngle = sin(angle);
+
+                normal.y = -cosAngle*In.normal.y + sinAngle*In.normal.z;
+                normal.z = -sinAngle*In.normal.y - cosAngle*In.normal.z;
+            }
+        }
+    }
+
+    return normal;
+#endif
+]]>
+            </CodeInjection>
+            <CodeInjection position="GET_TANGENT_VS">
+<![CDATA[
+#if defined( MESH_SCROLL ) 
+    float3 tangent = In.tangent.xyz;
+    float mTotalLenght = 3.1415926*lengthAndRadius.y + 2*lengthAndRadius.x;
+
+    float crawlerRadius = lengthAndRadius.y;
+    float crawlerRadiusPi = 3.1415926*crawlerRadius;
+    float crawlerLength = lengthAndRadius.x;
+
+    float posFirstRot = crawlerLength;
+    float posAfterRot = posFirstRot + crawlerRadiusPi;
+    float posAfterBottom = posAfterRot + crawlerLength;
+    float posAfterLastRot = posAfterBottom + crawlerRadiusPi;
+
+    float offsetZRaw = mTotalLenght * ( scrollPosition.x - floor(scrollPosition.x) );
+    float posZ = fmod(getPosition(In).z+offsetZRaw,posAfterLastRot);
+
+    if (posZ > posFirstRot) {
+        // z=0 -> 0
+        // z=pi*r -> pi
+        float angle = (posZ - posFirstRot) / crawlerRadius;
+
+        float cosAngle = cos(angle);
+        float sinAngle = sin(angle);
+
+        tangent.y = cosAngle*In.tangent.y - sinAngle*In.tangent.z;
+        tangent.z = sinAngle*In.tangent.y + cosAngle*In.tangent.z;
+        if (posZ > posAfterRot) {
+            tangent.yz = -In.tangent.yz;
+            if (posZ > posAfterBottom) {
+                // z=0 -> 0
+                // z=pi*r -> pi
+                float angle = (posZ - posAfterBottom) / crawlerRadius;
+
+                float cosAngle = cos(angle);
+                float sinAngle = sin(angle);
+
+                tangent.y = -cosAngle*In.tangent.y + sinAngle*In.tangent.z;
+                tangent.z = -sinAngle*In.tangent.y - cosAngle*In.tangent.z;
+            }
+        }
+    }
+    return tangent;
+#endif
+#if defined( UV_ROTATE ) && defined( ALBEDO_MAP )
+    float2 mSinCos = m_getUVRotationSinCos();
+
+    float3 b = cross(In.normal.xyz, In.tangent.xyz)*In.tangent.w;
+    float3 t = In.tangent.xyz;
+
+    // Rotate tangent in oposite direction than uvs to compensate changed tangent space
+    return float3(
+        t.x*mSinCos.y - b.x*mSinCos.x,
+        t.y*mSinCos.y - b.y*mSinCos.x,
+        t.z*mSinCos.y - b.z*mSinCos.x);
+#endif
+]]>
+            </CodeInjection>
+            <CodeInjection position="GET_BITANGENT_VS">
+<![CDATA[
+#if defined( MESH_SCROLL ) 
+    return cross(getNormal(In), getTangent(In))*In.tangent.w;
+#endif
+#if defined( UV_ROTATE ) && defined( ALBEDO_MAP )
+    return cross(In.normal.xyz, getTangent(In))*In.tangent.w;
+#endif
+]]>
+            </CodeInjection>
+            <CodeInjection position = "START_FS">
+<![CDATA[
+#if defined( GLOSS_MAP )
+/*
+glossMap.r - roughness
+glossMap.g - ambient occlusion
+glossMap.b - dirt mask
+glossMap.a - color mask ( if enabled )
+*/
+    globals.gGloss = tex2D( glossMap, In.vs.GLOSSMAP_TEXCOORD).rgba;
+    globals.gAO    = globals.gGloss.g;
+    float texDirt  = 1 - globals.gGloss.b;
+    globals.gDirt  = saturate( (texDirt*1.05 - (RDT.g - 0.5)) * 2 );
+#else
+    globals.gGloss = 0;
+    globals.gAO = 0;
+    globals.gDirt = 0;
+#endif
+globals.maxSpecularIntensity = 0.5; // iron
+]]>
+            </CodeInjection>
+            <CodeInjection position = "GET_UNNORMALIZED_TANGENT_SPACE_NORMAL_FS">
+<![CDATA[
+#if defined( NORMAL_MAP )
+    float3 mNormal;
+    #ifdef NORMAL_MAP_SIGNED_2CHANNEL
+        // use BC5 signed format for the normal map
+        mNormal.xy = tex2D(normalMap, In.vs.NORMALMAP_TEXCOORD).xy;
+        mNormal.z = sqrt(1.0 - dot(mNormal.xy, mNormal.xy));
+    #else
+        mNormal = tex2D(normalMap, In.vs.NORMALMAP_TEXCOORD).xyz - 0.5;
+    #endif
+    float3 mDirtNmap = tex2D( DirtNmap, float2( RDT.z, RDT.w ) * In.vs.NORMALMAP_TEXCOORD ).xyz - 0.5;
+    return mNormal + float3(mDirtNmap.xy, 0.0) * (1 - globals.gDirt);
+#endif
+]]>
+            </CodeInjection>
+            <CodeInjection position = "GET_TANGENT_SPACE_NORMAL_FS">
+<![CDATA[
+#if defined( NORMAL_MAP )
+    return normalize(getUnnormalizedTangentSpaceNormal(In, globals));
+#endif
+]]>
+            </CodeInjection>
+            <CodeInjection position = "POST_ALBEDO_FS">
+<![CDATA[
+#if defined( SPECULAR ) && defined( GLOSS_MAP )
+    #if defined( COLOR_MASK )
+        albedo.xyz = lerp( albedo.rgb, albedo.rgb * colorScale.rgb, globals.gGloss.a );
+    #endif
+    #if defined( WINDOW )
+        albedo.xyz += clamp( 0.65 *( 1-globals.gDirt ), 0.0, 1.0 );
+    #else
+        float3 mDirtColor = float3( 0.20, 0.14, 0.08 ); // HardCoded Dirt Color
+        albedo.xyz = lerp( mDirtColor, albedo.xyz, globals.gDirt); // DirtColor lerp
+    #endif
+    albedo.xyz *= globals.gAO; // Multiply AO for DIFFUSE
+#endif
+]]>
+            </CodeInjection>
+            <CodeInjection position = "POST_GLOSS_COLOR_FS">
+<![CDATA[
+#if defined( SPECULAR ) && defined( GLOSS_MAP )
+    #if defined( WINDOW )
+        float cosPower = max(5000 * globals.gGloss.r * globals.gDirt, 0.1);
+    #else
+        float cosPower = max(cCosPower * globals.gGloss.r * globals.gDirt, 0.1);
+    #endif
+    roughness = sqrt(sqrt(2.0/(cosPower+2.0)));
+    glossColor.xyz = (float3)(globals.gGloss.r*globals.gDirt);
+    glossColor.xyz *= globals.maxSpecularIntensity*globals.gAO; // Multiply AO for SPECULAR
+    #if defined( WINDOW ) && !defined( REFLECTION_MAP_CUBE )
+        glossColor.xyz *= float3(0.0,0.0,0.0);
+    #endif
+#endif
+]]>
+            </CodeInjection>
+            <CodeInjection position = "GET_REFLECTION_COLOR_FS">
+<![CDATA[
+#if GPU_PROFILE >= GPU_PROFILE_MEDIUM
+    #if defined( REFLECTION_MAP_2D ) || defined( REFLECTION_MAP_CUBE )
+        float3 mResult = getReflectionColorTex( In, globals, normal, tangentSpaceNormal, viewDir );
+        #if defined( WINDOW )
+            mResult *= getFresnel( facing, cReflectionCoeff , 1.0 );
+        #else
+            mResult *= globals.maxSpecularIntensity;
+            #if defined( REFLECTION_MAP_CUBE )
+                float3 mTintColorTop    = float3( 0.217, 0.612, 1.00 ); // hard-coded blue tint color
+                float3 mTintColorBottom = float3( 0.058, 0.040, 0.03 ); // hard-coded ground tint color
+                // cReflectionCoeff == refractiveIndex - comes from xml file
+                // if 1 - fresnel default
+                // if 0 - fresnel more visible
+                float mFresnelBias = cReflectionCoeff;
+                float mWorldNormalY = normal.y;
+                mResult += lerp( mTintColorBottom, mTintColorTop , clamp(mWorldNormalY, 0.0, 1.0 ) ) * getFresnel( facing, mFresnelBias , 4.0 );
+            #endif
+        #endif
+    #if defined( GLOSS_MAP )
+        float mReflectionIntensityMap = 1.0;
+        float mDirt = 0.0;
+        #if defined( WINDOW )
+            mReflectionIntensityMap = 1.0;
+            mDirt = globals.gDirt;
+        #else
+            mReflectionIntensityMap = globals.gGloss.r;
+            mDirt = globals.gDirt * ( 1 - clamp( RDT.g, 0.0, 0.9 ) );
+        #endif
+        mReflectionIntensityMap *= mDirt;
+        mResult *= mReflectionIntensityMap;
+        mResult *= globals.gAO; // Multiply AO for REFLECTION
+    #endif
+        float envScale = 0.2;
+        #if ( NUM_DIRECTIONAL_LIGHTS > 0 )
+            float3 reflDir =  reflect(-viewDir.xyz, normal.xyz);
+            float directionalEnvMapBias = 0.5; // Fresnel Visisbility in Shadowed Area
+            float3 lightDir = bufferFetch(clusterLightsBuffer, 0).xyz;
+            float3 lightDiffuseColor = bufferFetch(clusterLightsBuffer, 1).xyz;
+            mResult *= dot(normalize(reflDir), lightDir) * ( 1 - directionalEnvMapBias ) + directionalEnvMapBias;
+            envScale = lightDiffuseColor.y;
+        #endif
+        mResult *= envScale;
+        mResult += oColor.xyz;  // ADD previously calculated diffuse and specular
+        res = mResult;
+    #endif
+#endif
+]]>
+            </CodeInjection>
+            <CodeInjection position="FINAL_POS_FS">
+<![CDATA[
+#if defined( ALPHA_BLENDED )
+    #if defined( WINDOW )
+        oColor.a += clamp( 0.65*(1-globals.gDirt), 0.0, 1.0 );
+    #endif
+#endif
+
+#if defined(DEBUG_SHOW_PARALLAX)
+{
+    float a = roughness * roughness;
+    float a2 = a * a;
+    float cosPower = min(2 / a2 - 2, 2048);
+    oColor.xyz *= 0.0001;
+    oColor.xyz += pow(cosPower/100, 2.2);
+}
+#endif
+]]>
+            </CodeInjection>
+        </CodeInjections>
+    </LodLevel>
+</CustomShader>
