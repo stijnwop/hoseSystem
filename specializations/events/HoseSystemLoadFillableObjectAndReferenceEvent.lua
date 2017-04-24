@@ -13,10 +13,8 @@ HoseSystemLoadFillableObjectAndReferenceEvent_mt = Class(HoseSystemLoadFillableO
 InitEventClass(HoseSystemLoadFillableObjectAndReferenceEvent, 'HoseSystemLoadFillableObjectAndReferenceEvent')
 
 function HoseSystemLoadFillableObjectAndReferenceEvent:emptyNew()
-    local self = Event:new(HoseSystemLoadFillableObjectAndReferenceEvent_mt)
-    self.className = 'HoseSystemLoadFillableObjectAndReferenceEvent'
-
-    return self
+    local event = Event:new(HoseSystemLoadFillableObjectAndReferenceEvent_mt)
+    return event
 end
 
 function HoseSystemLoadFillableObjectAndReferenceEvent:new(liquidManureHose, vehicle, reference, isExtendable)
@@ -54,7 +52,7 @@ function HoseSystemLoadFillableObjectAndReferenceEvent:run(connection)
     -- end
 	
 	if self.liquidManureHose ~= nil then
-		self.liquidManureHose:loadFillableObjectAndReference(self.vehicle, self.reference, self.isExtendable, true)    
+		self.liquidManureHose:loadFillableObjectAndReference(self.vehicle, self.reference, self.isExtendable, true)
 	end
 end
 
