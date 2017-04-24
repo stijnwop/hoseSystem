@@ -23,9 +23,9 @@ function HoseSystemReferences:new(object, mt)
     references.queueNetworkObjects = false
 
     if object.isServer then
-        references.lastVehicleToMountHoseSystem = nil
-        references.lastReferenceIdToMountHoseSystem = nil
-        references.lastReferenceIsExtendable = nil
+        references.vehicleToMountHoseSystemSend = nil
+        references.referenceIdToMountHoseSystemSend = nil
+        references.referenceIsExtendableSend = nil
     end
 
     return references
@@ -54,12 +54,14 @@ function HoseSystemReferences:update(dt)
         self:doNetworkQueue()
     end
 
-    if self.object.isServer then
-        if self.object.grabPoints ~= nil then
-            for _, grabPoint in pairs(self.object.grabPoints) do
-                if grabPoint.isOwned and HoseSystem:getIsAttached(grabPoint.state) then
-                    self:searchReferences(grabPoint)
-                end
+    if not self.object.isServer then
+        return
+    end
+
+    if self.object.grabPoints ~= nil then
+        for _, grabPoint in pairs(self.object.grabPoints) do
+            if grabPoint.isOwned and HoseSystem:getIsAttached(grabPoint.state) then
+                self:searchReferences(grabPoint)
             end
         end
     end
@@ -74,19 +76,19 @@ function HoseSystemReferences:loadFillableObjectAndReference(vehicle, referenceI
     self.object.referenceIsExtendable = isExtendable
 
     if self.object.isServer then
-        if (self.object.vehicleToMountHoseSystem ~= self.lastVehicleToMountHoseSystem) or (self.object.referenceIdToMountHoseSystem ~= self.lastReferenceIdToMountHoseSystem) or (self.object.referenceIsExtendable ~= self.lastReferenceIsExtendable) then
+        if (self.object.vehicleToMountHoseSystem ~= self.vehicleToMountHoseSystemSend) or (self.object.referenceIdToMountHoseSystem ~= self.referenceIdToMountHoseSystemSend) or (self.object.referenceIsExtendable ~= self.referenceIsExtendableSend) then
             if noEventSend == nil or not noEventSend then
                 g_server:broadcastEvent(HoseSystemLoadFillableObjectAndReferenceEvent:new(self, self.object.vehicleToMountHoseSystem, self.object.referenceIdToMountHoseSystem, self.object.referenceIsExtendable))
             end
 
-            print('Send event')
-            -- print('vehicleToMountHoseSystem ' .. tostring(self.vehicleToMountHoseSystem))
-            -- print('referenceIdToMountHoseSystem ' .. tostring(self.referenceIdToMountHoseSystem))
-            -- print('referenceIsExtendable ' .. tostring(self.referenceIsExtendable))
+--            print('Send event')
+--            print('vehicleToMountHoseSystem ' .. tostring(self.vehicleToMountHoseSystem))
+--            print('referenceIdToMountHoseSystem ' .. tostring(self.object.referenceIdToMountHoseSystem))
+--            print('referenceIsExtendable ' .. tostring(self.referenceIsExtendable))
 
-            self.lastVehicleToMountHoseSystem = self.object.vehicleToMountHoseSystem
-            self.lastReferenceIdToMountHoseSystem = self.object.referenceIdToMountHoseSystem
-            self.lastReferenceIsExtendable = self.object.referenceIsExtendable
+            self.vehicleToMountHoseSystemSend = self.object.vehicleToMountHoseSystem
+            self.referenceIdToMountHoseSystemSend = self.object.referenceIdToMountHoseSystem
+            self.referenceIsExtendableSend = self.object.referenceIsExtendable
         end
     end
 end
@@ -135,7 +137,7 @@ function HoseSystemReferences:searchReferences(grabPoint)
 
                             -- self:loadFillableObjectAndReference(reference.isObject and g_currentMission:getNodeObject(liquidManureHoseReference.nodeId) or liquidManureHoseReference, reference.id, false)
                             -- local object = reference.isObject and g_currentMission:getNodeObject(liquidManureHoseReference.nodeId) or liquidManureHoseReference
-                            local object = reference.isObject and liquidManureHoseReference.fillLevelObject or liquidManureHoseReference
+                            local object = reference.isObject and hoseSystemReference.fillLevelObject or hoseSystemReference
                             self:loadFillableObjectAndReference(networkGetObjectId(object), i, false)
                             break
                         end
@@ -221,6 +223,14 @@ function HoseSystemReferences:getCanConnect(x, y, z, sequence, grabPoint, refere
     return false
 end
 
-function HoseSystemReferences:getHasReferenceInRange()
-    return self.object.vehicleToMountHoseSystem ~= nil and self.object.referenceIdToMountHoseSystem ~= nil
+function HoseSystemReferences:getHasReferenceInRange(object)
+    return object.vehicleToMountHoseSystem ~= 0 and object.referenceIdToMountHoseSystem ~= 0
+end
+
+function HoseSystemReferences:getReference(object, index)
+    if object.hoseSystemReferences ~= nil then
+        return object.hoseSystemReferences[index]
+    end
+
+    return nil
 end
