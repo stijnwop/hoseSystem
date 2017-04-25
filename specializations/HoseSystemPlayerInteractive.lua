@@ -74,6 +74,11 @@ function HoseSystemPlayerInteractive:getIsPlayerValid()
             not g_currentMission.player.isCarryingObject
 end
 
+---
+-- @param node
+-- @param actionText
+-- @param inputBinding
+--
 function HoseSystemPlayerInteractive:renderHelpTextOnNode(node, actionText, inputBinding)
     if node ~= nil then
         local worldX, worldY, worldZ = localToWorld(node, 0, 0.1, 0)
@@ -89,12 +94,13 @@ function HoseSystemPlayerInteractive:renderHelpTextOnNode(node, actionText, inpu
     end
 end
 
--- Todo: refactor below to new format
-
+---
+-- @param superFunc
+--
 function HoseSystemPlayerInteractive:playerDelete(superFunc)
-    if self.hose ~= nil then -- only server knows this
-        if self.activeTool ~= nil and self.activeTool.drop ~= nil then
-            self.activeTool:drop(self.activeToolLocationId, self)
+    if self.hoseSystem ~= nil then
+        if self.hoseSystem.interactiveHandling ~= nil and self.hoseSystem.interactiveHandling.drop ~= nil then
+            self.hoseSystem.interactiveHandling:drop(self.hoseSystem.index, self)
         end
     end
 
@@ -103,20 +109,29 @@ function HoseSystemPlayerInteractive:playerDelete(superFunc)
     end
 end
 
+---
+-- @param superFunc
+--
 function HoseSystemPlayerInteractive:playerOnLeave(superFunc)
     if superFunc ~= nil then
         superFunc(self)
     end
 
-    if self.hose ~= nil and self.hose.node ~= nil then -- only server knows this
-        if self.activeTool ~= nil and self.activeTool.drop ~= nil then
-            self.activeTool:drop(self.activeToolLocationId, self)
+--    if self.isServer then
+        if self.hoseSystem ~= nil then
+            if self.hoseSystem.interactiveHandling ~= nil and self.hoseSystem.interactiveHandling.drop ~= nil then
+                self.hoseSystem.interactiveHandling:drop(self.hoseSystem.index, self)
+            end
         end
-    end
+--    end
 end
 
+---
+-- @param superFunc
+-- @param tool
+--
 function HoseSystemPlayerInteractive:setPlayerTool(superFunc, tool)
-    if self.activeTool ~= nil and self.activeToolLocationId ~= nil or self.hose ~= nil and self.hose.node ~= nil then
+    if self.hoseSystem ~= nil and self.hoseSystem.index ~= nil then
         return -- cancel
     end
 
@@ -125,8 +140,13 @@ function HoseSystemPlayerInteractive:setPlayerTool(superFunc, tool)
     end
 end
 
+---
+-- @param superFunc
+-- @param toolId
+-- @param noEventSend
+--
 function HoseSystemPlayerInteractive:setPlayerToolById(superFunc, toolId, noEventSend)
-    if self.activeTool ~= nil and self.activeToolLocationId ~= nil or self.hose ~= nil and self.hose.node ~= nil then
+    if self.hoseSystem ~= nil and self.hoseSystem.index ~= nil then
         return -- cancel
     end
 
@@ -135,9 +155,15 @@ function HoseSystemPlayerInteractive:setPlayerToolById(superFunc, toolId, noEven
     end
 end
 
+---
+-- @param superFunc
+-- @param isTurnedOn
+-- @param player
+-- @param noEventSend
+--
 function HoseSystemPlayerInteractive:highPressureWasherSetIsTurnedOn(superFunc, isTurnedOn, player, noEventSend)
     if player ~= nil then
-        if player.activeTool ~= nil and player.activeToolLocationId ~= nil or player.hose ~= nil and player.hose.node ~= nil then
+        if player.hoseSystem ~= nil and player.hoseSystem.index ~= nil then
             return -- cancel
         end
     end
@@ -150,7 +176,6 @@ end
 ---
 -- Override
 --
-
 Player.delete = Utils.overwrittenFunction(Player.delete, HoseSystemPlayerInteractive.playerDelete)
 Player.onLeave = Utils.overwrittenFunction(Player.onLeave, HoseSystemPlayerInteractive.playerOnLeave)
 Player.setTool = Utils.overwrittenFunction(Player.setTool, HoseSystemPlayerInteractive.setPlayerTool)
