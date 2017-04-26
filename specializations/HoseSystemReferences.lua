@@ -234,3 +234,19 @@ function HoseSystemReferences:getReference(object, index)
 
     return nil
 end
+
+function HoseSystemReferences:getAllowsDetach(object, index)
+    local grabPoint = object.grabPoints[index]
+
+    if grabPoint ~= nil then
+        if grabPoint.connectorRefId ~= nil then
+            local reference = grabPoint.connectable and grabPoint.connectorVehicle.grabPoints[grabPoint.connectorRefId] or grabPoint.connectorVehicle.hoseSystemReferences[grabPoint.connectorRefId]
+
+            if reference ~= nil and reference.flowOpened or reference.isLocked then
+                return false
+            end
+        end
+    end
+
+    return true
+end
