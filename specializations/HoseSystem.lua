@@ -101,7 +101,12 @@ function HoseSystem:load(savegame)
 
     self.polymorphismClasses = {}
 
-    table.insert(self.polymorphismClasses, HoseSystemPlayerInteractiveHandling:new(self))
+    -- in case we need to access it later we setup callbacks here
+    self.poly = {
+        interactiveHandling = HoseSystemPlayerInteractiveHandling:new(self)
+    }
+
+    table.insert(self.polymorphismClasses, self.poly.interactiveHandling)
     table.insert(self.polymorphismClasses, HoseSystemReferences:new(self))
 end
 
