@@ -55,8 +55,8 @@ function HoseSystem:preLoad(savegame)
     self.loadGrabPoints = HoseSystem.loadGrabPoints
     self.updateSpline = HoseSystem.updateSpline
 
---    self.loadObjectChangeValuesFromXML = Utils.overwrittenFunction(self.loadObjectChangeValuesFromXML, HoseSystem.loadObjectChangeValuesFromXML)
---    self.setObjectChangeValues = Utils.overwrittenFunction(self.setObjectChangeValues, HoseSystem.setObjectChangeValues)
+    self.loadObjectChangeValuesFromXML = Utils.overwrittenFunction(self.loadObjectChangeValuesFromXML, HoseSystem.loadObjectChangeValuesFromXML)
+    self.setObjectChangeValues = Utils.overwrittenFunction(self.setObjectChangeValues, HoseSystem.setObjectChangeValues)
 end
 
 ---
@@ -170,6 +170,7 @@ function HoseSystem:loadGrabPoints(xmlFile, baseString)
                 componentJointIndex = Utils.getNoNil(getXMLFloat(xmlFile, key .. '#componentJointIndex'), 1),
                 componentChildNode = Utils.indexToObject(self.components, getXMLString(xmlFile, key .. '#componentChildNode')),
                 connectable = Utils.getNoNil(getXMLBool(xmlFile, key .. '#connectable'), false),
+                connectableAnimation = nil,
                 state = HoseSystem.STATE_DETACHED,
                 connectorRef = nil,
                 connectorRefId = 0,
@@ -365,6 +366,29 @@ end
 --
 function HoseSystem:getIsConnected(state)
     return state == HoseSystem.STATE_CONNECTED
+end
+
+
+function HoseSystem:loadObjectChangeValuesFromXML(superFunc, xmlFile, key, node, object)
+    if self.nodesToGrabPoints ~= nil and self.nodesToGrabPoints[node] ~= nil then
+        local grabPoint = self.nodesToGrabPoints[node]
+
+        grabPoint.connectableActive = Utils.getNoNil(getXMLBool(xmlFile, key .. '#connectableActive'), false)
+        grabPoint.connectableInactive = Utils.getNoNil(getXMLBool(xmlFile, key .. '#connectableInactive'), false)
+        grabPoint.connectableAnimation = Utils.getNoNil(getXMLString(xmlFile, key .. '#connectableAnimation'), nil)
+    end
+end
+
+function HoseSystem:setObjectChangeValues(superFunc, object, isActive)
+    if self.nodesToGrabPoints ~= nil and self.nodesToGrabPoints[object.node] ~= nil then
+        local grabPoint = self.nodesToGrabPoints[object.node]
+
+        if isActive then
+            grabPoint.connectable = grabPoint.connectableActive
+        else
+            grabPoint.connectable = grabPoint.connectableInactive
+        end
+    end
 end
 
 function HoseSystem:print_r(t, name, indent)
