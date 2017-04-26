@@ -55,6 +55,7 @@ function HoseSystem:preLoad(savegame)
     self.loadHoseJoints = HoseSystem.loadHoseJoints
     self.loadGrabPoints = HoseSystem.loadGrabPoints
     self.updateSpline = HoseSystem.updateSpline
+    self.toggleLock = HoseSystem.toggleLock
 
     self.loadObjectChangeValuesFromXML = Utils.overwrittenFunction(self.loadObjectChangeValuesFromXML, HoseSystem.loadObjectChangeValuesFromXML)
     self.setObjectChangeValues = Utils.overwrittenFunction(self.setObjectChangeValues, HoseSystem.setObjectChangeValues)
