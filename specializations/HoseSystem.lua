@@ -18,6 +18,9 @@ local files = {
     -- Events
     ('%s/%s'):format(eventDirectory, 'HoseSystemGrabEvent'),
     ('%s/%s'):format(eventDirectory, 'HoseSystemDropEvent'),
+    ('%s/%s'):format(eventDirectory, 'HoseSystemAttachEvent'),
+    ('%s/%s'):format(eventDirectory, 'HoseSystemDetachEvent'),
+    ('%s/%s'):format(eventDirectory, 'HoseSystemIsUsedEvent'),
     ('%s/%s'):format(eventDirectory, 'HoseSystemLoadFillableObjectAndReferenceEvent'),
     -- Classes
     ('%s/%s'):format(srcDirectory, 'HoseSystemPlayerInteractive'),
@@ -50,7 +53,7 @@ end
 function HoseSystem:preLoad(savegame)
     self.loadHoseJoints = HoseSystem.loadHoseJoints
     self.loadGrabPoints = HoseSystem.loadGrabPoints
-    self.updateMesh = HoseSystem.updateMesh
+    self.updateSpline = HoseSystem.updateSpline
 
 --    self.loadObjectChangeValuesFromXML = Utils.overwrittenFunction(self.loadObjectChangeValuesFromXML, HoseSystem.loadObjectChangeValuesFromXML)
 --    self.setObjectChangeValues = Utils.overwrittenFunction(self.setObjectChangeValues, HoseSystem.setObjectChangeValues)
@@ -164,6 +167,7 @@ function HoseSystem:loadGrabPoints(xmlFile, baseString)
                 hasJointIndex = false, -- We don't sync the actual JointIndex it's server sided
                 hasExtenableJointIndex = false, -- We don't sync the actual JointIndex it's server sided
                 componentIndex = Utils.getNoNil(getXMLFloat(xmlFile, key .. '#componentIndex'), 0) + 1,
+                componentJointIndex = Utils.getNoNil(getXMLFloat(xmlFile, key .. '#componentJointIndex'), 1),
                 componentChildNode = Utils.indexToObject(self.components, getXMLString(xmlFile, key .. '#componentChildNode')),
                 connectable = Utils.getNoNil(getXMLBool(xmlFile, key .. '#connectable'), false),
                 state = HoseSystem.STATE_DETACHED,
@@ -210,9 +214,9 @@ function HoseSystem:update(dt)
     if self.isClient then
         if self.jointSpline.firstRunUpdates < self.jointSpline.firstNumRunUpdates then
             self.jointSpline.firstRunUpdates = self.jointSpline.firstRunUpdates + 1
-            self:updateMesh(true) -- force firstNumRunUpdates frame updates to give hose time to move.
+            self:updateSpline(true) -- force firstNumRunUpdates frame updates to give hose time to move.
         else
-            self:updateMesh(false)
+            self:updateSpline(false)
         end
     end
 end
@@ -223,7 +227,7 @@ end
 ---
 -- @param force
 --
-function HoseSystem:updateMesh(force)
+function HoseSystem:updateSpline(force)
     local js = self.jointSpline
 
     -- controllers
