@@ -33,8 +33,8 @@
         </type>
 	</vehicleTypes>
 	<inputBindings>	
-		<input name="ATTACH_HOSE" category="VEHICLE" key1="" key2="" button="" device="0" mouse="MOUSE_BUTTON_LEFT" />
-		<input name="DETACH_HOSE" category="VEHICLE" key1="" key2="" button="" device="0" mouse="MOUSE_BUTTON_RIGHT" />
+		<input name="attachHose" category="VEHICLE" key1="" key2="" button="" device="0" mouse="MOUSE_BUTTON_LEFT" />
+		<input name="detachHose" category="VEHICLE" key1="" key2="" button="" device="0" mouse="MOUSE_BUTTON_RIGHT" />
 	</inputBindings>
     <storeItems>
         <storeItem xmlFilename="liquidManureHoses/3m/liquidManureHose3m.xml"/>
@@ -69,11 +69,11 @@
             <en>drop liquid manure hose</en>
             <de>drop liquid manure hose</de>	
         </text>
-        <text name="ATTACHHOSE">
+        <text name="action_attachHose">
             <en>attach liquid manure hose</en>
             <de>attach liquid manure hose</de>
         </text>
-		<text name="DETACHHOSE">
+		<text name="action_detachHose">
             <en>detach liquid manure hose</en>
             <de>detach liquid manure hose</de>
         </text>
@@ -90,11 +90,11 @@
             <de>Take the first or last grab point of the hose!</de>
         </text>
 		<!-- Input below -->
-		<text name="input_ATTACH_HOSE">
+		<text name="input_attachHose">
             <en>Attach liquid manure hose</en>
             <de>Attach liquid manure hose</de>
         </text>
-		<text name="input_DETACH_HOSE">
+		<text name="input_detachHose">
             <en>Detach liquid manure hose</en>
             <de>Detach liquid manure hose</de>
         </text>

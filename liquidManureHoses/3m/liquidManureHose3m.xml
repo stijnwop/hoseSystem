@@ -44,8 +44,8 @@
 		<attachComponent node="1>0" filename="liquidManureHoses/attachComponent.i3d" />		
 		
 		<grabPoints>
-            <grabPoint node="0>1" componentIndex="0" /> <!-- componentChildNode="0>3" /> -->
-            <grabPoint node="2>0" componentIndex="2" /> <!-- componentChildNode="2>1" /> -->
+            <grabPoint node="0>1" componentIndex="0" componentJointIndex="0" /> <!-- componentChildNode="0>3" /> -->
+            <grabPoint node="2>0" componentIndex="2" componentJointIndex="1" /> <!-- componentChildNode="2>1" /> -->
 		</grabPoints> 	
 		
 		<!-- <effect fillTypes="liquidManure"> -->
