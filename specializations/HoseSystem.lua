@@ -21,6 +21,7 @@ local files = {
     ('%s/%s'):format(eventDirectory, 'HoseSystemAttachEvent'),
     ('%s/%s'):format(eventDirectory, 'HoseSystemDetachEvent'),
     ('%s/%s'):format(eventDirectory, 'HoseSystemIsUsedEvent'),
+    ('%s/%s'):format(eventDirectory, 'HoseSystemToggleLockEvent'),
     ('%s/%s'):format(eventDirectory, 'HoseSystemLoadFillableObjectAndReferenceEvent'),
     -- Classes
     ('%s/%s'):format(srcDirectory, 'HoseSystemPlayerInteractive'),
@@ -368,7 +369,30 @@ function HoseSystem:getIsConnected(state)
     return state == HoseSystem.STATE_CONNECTED
 end
 
+---
+-- @param index
+-- @param shouldLock
+-- @param noEventSend
+--
+function HoseSystem:toggleLock(index, shouldLock, noEventSend)
+    if self.grabPoints ~= nil then
+        local grabPoint = self.grabPoints[index]
 
+        if grabPoint ~= nil and grabPoint.connectableAnimation ~= nil then
+            self:playAnimation(grabPoint.connectableAnimation, shouldLock and -1 or 1, nil, true)
+        end
+
+        HoseSystemToggleLockEvent.sendEvent(self, index, shouldLock, noEventSend)
+    end
+end
+
+---
+-- @param superFunc
+-- @param xmlFile
+-- @param key
+-- @param node
+-- @param object
+--
 function HoseSystem:loadObjectChangeValuesFromXML(superFunc, xmlFile, key, node, object)
     if self.nodesToGrabPoints ~= nil and self.nodesToGrabPoints[node] ~= nil then
         local grabPoint = self.nodesToGrabPoints[node]
@@ -379,6 +403,11 @@ function HoseSystem:loadObjectChangeValuesFromXML(superFunc, xmlFile, key, node,
     end
 end
 
+---
+-- @param superFunc
+-- @param object
+-- @param isActive
+--
 function HoseSystem:setObjectChangeValues(superFunc, object, isActive)
     if self.nodesToGrabPoints ~= nil and self.nodesToGrabPoints[object.node] ~= nil then
         local grabPoint = self.nodesToGrabPoints[object.node]
