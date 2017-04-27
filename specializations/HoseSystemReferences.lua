@@ -227,9 +227,13 @@ function HoseSystemReferences:getHasReferenceInRange(object)
     return object.vehicleToMountHoseSystem ~= 0 and object.referenceIdToMountHoseSystem ~= 0
 end
 
-function HoseSystemReferences:getReference(object, index)
-    if object.hoseSystemReferences ~= nil then
+function HoseSystemReferences:getReference(object, index, grabPoint)
+    if not grabPoint.connectable and object.hoseSystemReferences ~= nil then
         return object.hoseSystemReferences[index]
+    end
+
+    if grabPoint.connectable or object.grabPoints ~= nil then
+        return object.grabPoints[index]
     end
 
     return nil
@@ -240,10 +244,13 @@ function HoseSystemReferences:getAllowsDetach(object, index)
 
     if grabPoint ~= nil then
         if grabPoint.connectorRefId ~= nil then
-            local reference = grabPoint.connectable and grabPoint.connectorVehicle.grabPoints[grabPoint.connectorRefId] or grabPoint.connectorVehicle.hoseSystemReferences[grabPoint.connectorRefId]
+--            local reference = grabPoint.connectable and grabPoint.connectorVehicle.grabPoints[grabPoint.connectorRefId] or grabPoint.connectorVehicle.hoseSystemReferences[grabPoint.connectorRefId]
+            local reference = HoseSystemReferences:getReference(grabPoint.connectorVehicle, grabPoint.connectorRefId, grabPoint)
 
-            if reference ~= nil and reference.flowOpened or reference.isLocked then
-                return false
+            if reference ~= nil then
+                if reference.flowOpened or reference.isLocked then
+                    return false
+                end
             end
         end
     end
