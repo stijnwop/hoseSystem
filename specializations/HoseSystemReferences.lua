@@ -44,8 +44,8 @@ function HoseSystemReferences:writeStream(streamId, connection)
     local vehicleToMountHoseSystem = readNetworkNodeObjectId(streamId)
     local referenceIdToMountHoseSystem = streamReadInt32(streamId)
     local referenceIsExtendable = streamReadBool(streamId)
-    self:loadFillableObjectAndReference(vehicleToMountHoseSystem, referenceIdToMountHoseSystem, referenceIsExtendable, true)
 
+    self:loadFillableObjectAndReference(vehicleToMountHoseSystem, referenceIdToMountHoseSystem, referenceIsExtendable, true)
     self.queueNetworkObjects = true
 end
 
@@ -244,7 +244,6 @@ function HoseSystemReferences:getAllowsDetach(object, index)
 
     if grabPoint ~= nil then
         if grabPoint.connectorRefId ~= nil then
---            local reference = grabPoint.connectable and grabPoint.connectorVehicle.grabPoints[grabPoint.connectorRefId] or grabPoint.connectorVehicle.hoseSystemReferences[grabPoint.connectorRefId]
             local reference = HoseSystemReferences:getReference(grabPoint.connectorVehicle, grabPoint.connectorRefId, grabPoint)
 
             if reference ~= nil then
