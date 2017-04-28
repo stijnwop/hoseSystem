@@ -41,20 +41,25 @@
           </TransformGroup>
           <Shape name="mesh" translation="1.38778e-17 0 1.5" shapeId="2" castsShadows="true" receiveShadows="true" materialIds="2" skinBindNodeIds="3 4 5 6 7 8" clipDistance="300" nodeId="9">
             <Shape name="normal" translation="6.93889e-18 0 0" shapeId="3" castsShadows="true" receiveShadows="true" materialIds="2" skinBindNodeIds="3 4 5 6 7" clipDistance="300" nodeId="10"/>
-            <Shape name="extenable" translation="0 0 1.81237e-07" shapeId="4" castsShadows="true" receiveShadows="true" materialIds="2" skinBindNodeIds="3 4 5 6 7" clipDistance="300" nodeId="11"/>
+            <Shape name="extendable" translation="0 0.0001 1.81237e-07" shapeId="4" castsShadows="true" receiveShadows="true" materialIds="2" skinBindNodeIds="11 12 13 14" clipDistance="300" nodeId="11">
+              <TransformGroup name="polySurface20" translation="9.19104e-05 0.101358 -1.4429" collision="false" clipDistance="300" nodeId="12"/>
+              <TransformGroup name="polySurface23" translation="-0.000144601 -0.103104 -1.44354" collision="false" clipDistance="300" nodeId="13">
+                <TransformGroup name="polySurface22" translation="5.24521e-05 -0.000228736 0.0178028" collision="false" clipDistance="300" nodeId="14"/>
+              </TransformGroup>
+            </Shape>
           </Shape>
         </TransformGroup>
       </TransformGroup>
-      <TransformGroup name="grabPoint" nodeId="12"/>
-      <TransformGroup name="effects" nodeId="13"/>
-      <TransformGroup name="componentJoint1" translation="0 0 1.5" nodeId="14"/>
+      <TransformGroup name="grabPoint" nodeId="15"/>
+      <TransformGroup name="effects" nodeId="16"/>
+      <TransformGroup name="componentJoint1" translation="0 0 1.5" nodeId="17"/>
     </Shape>
-    <Shape name="pCylinder2" translation="0 2.6077e-08 1.5" shapeId="5" dynamic="true" compound="true" collisionMask="8194" castsShadows="true" receiveShadows="true" nonRenderable="true" materialIds="1" clipDistance="300" nodeId="15">
-      <TransformGroup name="attachNode" translation="0 0 1.5" nodeId="16"/>
-      <TransformGroup name="componentJoint3" translation="0 0 1.5" nodeId="17"/>
+    <Shape name="pCylinder2" translation="0 2.6077e-08 1.5" shapeId="5" dynamic="true" compound="true" collisionMask="8194" castsShadows="true" receiveShadows="true" nonRenderable="true" materialIds="1" clipDistance="300" nodeId="18">
+      <TransformGroup name="attachNode" translation="0 0 1.5" nodeId="19"/>
+      <TransformGroup name="componentJoint3" translation="0 0 1.5" nodeId="20"/>
     </Shape>
-    <Shape name="pCylinder3" translation="0 0 3" shapeId="6" dynamic="true" compound="true" collisionMask="8194" castsShadows="true" receiveShadows="true" nonRenderable="true" materialIds="1" clipDistance="300" nodeId="18">
-      <TransformGroup name="null3" translation="0 2.6077e-08 0" nodeId="19"/>
+    <Shape name="pCylinder3" translation="0 0 3" shapeId="6" dynamic="true" compound="true" collisionMask="8194" castsShadows="true" receiveShadows="true" nonRenderable="true" materialIds="1" clipDistance="300" nodeId="21">
+      <TransformGroup name="null3" translation="0 2.6077e-08 0" nodeId="22"/>
     </Shape>
   </Scene>
 
