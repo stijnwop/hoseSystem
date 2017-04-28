@@ -110,9 +110,9 @@
 	
 	<animations>
         <animation name="connect">
-            <!-- <part node="0>0|0|0|1|1"   startTime="0"   endTime="0.5" startRot="0 0 0" endRot="60 0 0"/> -->
-            <!-- <part node="0>0|0|0|1|1|0" startTime="0"   endTime="0.5" startRot="0 0 0" endRot="-70 0 0"/> -->
-            <!-- <part node="0>0|0|0|1|0"   startTime="0.4" endTime="0.5" startRot="0 0 0" endRot="8 0 0"/> -->
+            <part node="0>0|0|1|1|1"   startTime="0"   endTime="0.5" startRot="0 0 0" endRot="60 0 0"/>
+            <part node="0>0|0|1|1|1|0" startTime="0"   endTime="0.5" startRot="0 0 0" endRot="-70 0 0"/>
+            <part node="0>0|0|1|1|0"   startTime="0.4" endTime="0.5" startRot="0 0 0" endRot="8 0 0"/>
         </animation>
     </animations>
 	

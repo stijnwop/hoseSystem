@@ -178,6 +178,7 @@ function HoseSystem:loadGrabPoints(xmlFile, baseString)
                 componentChildNode = Utils.indexToObject(self.components, getXMLString(xmlFile, key .. '#componentChildNode')),
                 connectable = Utils.getNoNil(getXMLBool(xmlFile, key .. '#connectable'), false),
                 connectableAnimation = nil,
+                isLocked = false,
                 state = HoseSystem.STATE_DETACHED,
                 connectorRef = nil,
                 connectorRefId = 0,
@@ -202,6 +203,71 @@ function HoseSystem:loadGrabPoints(xmlFile, baseString)
 
         i = i + 1 -- i++
     end
+end
+
+function HoseSystem:postLoad(savegame)
+    for index, grabPoint in pairs(self.grabPoints) do
+        if grabPoint.connectable and grabPoint.connectableAnimation ~= nil then
+            self:toggleLock(index, false)
+        end
+    end
+
+    if savegame ~= nil and not savegame.resetVehicles then
+        for index, grabPoint in pairs(self.grabPoints) do
+            local key = ('%s.grabPoint(%d)'):format(savegame.key, index - 1)
+
+            if grabPoint.connectable and grabPoint.connectableAnimation ~= nil then
+                local lockState = Utils.getNoNil(getXMLBool(savegame.xmlFile, key .. '#lockState'), false)
+                self:toggleLock(index, lockState)
+            end
+        end
+    end
+end
+
+function HoseSystem:delete()
+    if self.polymorphismClasses ~= nil and #self.polymorphismClasses > 0 then
+        for _, class in pairs(self.polymorphismClasses) do
+            if class.delete ~= nil then
+                class:delete()
+            end
+        end
+    end
+end
+
+function HoseSystem:writeStream(streamId, connection)
+    if self.polymorphismClasses ~= nil and #self.polymorphismClasses > 0 then
+        for _, class in pairs(self.polymorphismClasses) do
+            if class.writeStream ~= nil then
+                class:writeStream(streamId, connection)
+            end
+        end
+    end
+end
+
+function HoseSystem:readStream(streamId, connection)
+    if self.polymorphismClasses ~= nil and #self.polymorphismClasses > 0 then
+        for _, class in pairs(self.polymorphismClasses) do
+            if class.readStream ~= nil then
+                class:readStream(streamId, connection)
+            end
+        end
+    end
+end
+
+function HoseSystem:getSaveAttributesAndNodes(nodeIdent)
+    local nodes = ""
+
+    if self.grabPoints ~= nil then
+        for index, grabPoint in pairs(self.grabPoints) do
+            if nodes ~= "" then
+                nodes = nodes .. "\n"
+            end
+
+            nodes = nodes .. nodeIdent .. ('<grabPoint id="%s" lockState="%s" />'):format(index, grabPoint.isLocked)
+        end
+    end
+
+    return nil, nodes
 end
 
 function HoseSystem:mouseEvent(posX, posY, isDown, isUp, button)
@@ -385,6 +451,7 @@ function HoseSystem:toggleLock(index, shouldLock, noEventSend)
         local grabPoint = self.grabPoints[index]
 
         if grabPoint ~= nil and grabPoint.connectableAnimation ~= nil then
+            grabPoint.isLocked = not grabPoint.isLocked
             self:playAnimation(grabPoint.connectableAnimation, shouldLock and -1 or 1, nil, true)
         end
 
