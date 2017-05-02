@@ -86,19 +86,23 @@ function HoseSystemPlayerInteractiveHandling:update(dt)
                             if InputBinding.hasEvent(InputBinding.detachHose) then
                                 --if self:allowsDetach(index) then
                                 local vehicle = grabPoint.connectorVehicle
-                                local reference = grabPoint.connectable and vehicle.grabPoints[grabPoint.connectorRefId] or vehicle.hoseSystemReferences[grabPoint.connectorRefId]
-                                local extenable = not reference.parkable and ((reference.connectable ~= nil and reference.connectable) or (grabPoint.connectable ~= nil and grabPoint.connectable))
+--                                local reference = grabPoint.connectable and vehicle.grabPoints[grabPoint.connectorRefId] or vehicle.hoseSystemReferences[grabPoint.connectorRefId]
+                                local reference = HoseSystemReferences:getReference(vehicle, index, grabPoint)
 
-                                if reference.hasJointIndex then
-                                    grabPoint.connectorVehicle:detach(reference.id, self, index, extenable)
-                                else
-                                    self:detach(index, vehicle, reference.id, extenable)
-                                end
+                                if reference ~= nil then
+                                    local extenable = not reference.parkable and ((reference.connectable ~= nil and reference.connectable) or (grabPoint.connectable ~= nil and grabPoint.connectable))
 
-                                if not grabPoint.connectable and (reference ~= nil and not reference.connectable) and reference.parkable then
-                                    -- print('we should grab')
-                                    -- TODO: Oke this fucks up the
-                                    -- self:grab(index, g_currentMission.player)
+                                    if reference.hasJointIndex then
+                                        vehicle.poly.interactiveHandling:detach(reference.id, self, index, extenable)
+                                    else
+                                        self:detach(index, vehicle, reference.id, extenable)
+                                    end
+
+                                    if not grabPoint.connectable and (reference ~= nil and not reference.connectable) and reference.parkable then
+                                        -- print('we should grab')
+                                        -- TODO: Oke this fucks up the
+                                        -- self:grab(index, g_currentMission.player)
+                                    end
                                 end
 
                                 --else
@@ -250,27 +254,29 @@ function HoseSystemPlayerInteractiveHandling:attach(index, vehicle, referenceId,
 
             if reference.parkable then
                 -- handle parked hose
-                if self.hose.length < reference.parkLength then
-                    table.insert(grabPoints, index > 1 and self.grabPoints[1] or self.grabPoints[table.getn(self.grabPoints)])
+                if self.object.data.length < reference.parkLength then
+                    table.insert(grabPoints, index > 1 and self.object.grabPoints[1] or self.object.grabPoints[#self.object.grabPoints])
 
-                    if self.isServer then
-                        local lastIndex = table.getn(grabPoints)
+                    if self.object.isServer then
+                        local lastIndex = #grabPoints
 
                         if HoseSystem:getIsConnected(grabPoints[lastIndex].attachState) then
                             self:detach(grabPoints[lastIndex].id, nil, grabPoints[lastIndex].connectorVehicle, grabPoints[lastIndex].connectorRef.id, (grabPoints[lastIndex].connectorRef.connectable ~= nil and grabPoints[lastIndex].connectorRef.connectable) or (grabPoints[lastIndex].connectable ~= nil and grabPoints[lastIndex].connectable))
                         end
-                    end
 
-                    -- Do this after above else it will fuckup the data..
-                    if grabPoint.isOwned then -- we can't call it on start since we don't want to drop when the parking place is to small.
-                        self:drop(index, self:getOwner(index))
+                        -- Todo: also call this on the server only?
+                        -- Do this after above else it will fuckup the data..
+
+                        if grabPoint.isOwned then -- we can't call it on start since we don't want to drop when the parking place is to small.
+                            self:drop(index, grabPoint.currentOwner)
+                        end
                     end
 
                     --if self.isServer then
                     self:hardParkHose(grabPoints, object, reference)
                     --end
                 else
-                    g_currentMission:showBlinkingWarning(string.format(g_i18n:getText('HOSE_PARKINGPLACE_TO_SHORT'), reference.parkLength, self.hose.length), 5000)
+                    g_currentMission:showBlinkingWarning(string.format(g_i18n:getText('HOSE_PARKINGPLACE_TO_SHORT'), reference.parkLength, self.object.data.length), 5000)
 
                     return false
                 end
@@ -342,7 +348,7 @@ function HoseSystemPlayerInteractiveHandling:detach(index, vehicle, referenceId,
 
                 if reference.parkable then
                     -- handle parked hose
-                    table.insert(grabPoints, index > 1 and self.grabPoints[1] or self.grabPoints[table.getn(self.grabPoints)])
+                    table.insert(grabPoints, index > 1 and self.object.grabPoints[1] or self.object.grabPoints[#self.object.grabPoints])
 
                     --if self.isServer then
                     self:hardUnparkHose(grabPoints, object, reference)
@@ -807,6 +813,262 @@ function HoseSystemPlayerInteractiveHandling:hardDisconnect(grabPoint, vehicle, 
     -- if not reference.isObject then
     -- vehicle:raiseDirtyFlags(vehicle.vehicleDirtyFlag)
     -- end
+end
+
+function HoseSystemPlayerInteractiveHandling:hardParkHose(grabPoints, vehicle, reference)
+    if #grabPoints < 2 then
+        return
+    end
+
+    local rootVehicle = vehicle:getRootAttacherVehicle()
+
+    if not reference.isObject then
+        for i = #rootVehicle.attachedImplements, 1, -1 do
+            local implement = rootVehicle.attachedImplements[i]
+            implement.object:removeFromPhysics();
+        end
+
+        rootVehicle:removeFromPhysics()
+    end
+
+    -- if not vehicle.isAddedToPhysics then
+    -- vehicle:addToPhysics()
+    -- end
+
+    local index = grabPoints[1].id
+    local strDir = grabPoints[1].id == 1 and 1 or -1
+    print("index = " .. index .. ' dir = ' .. strDir)
+
+    -- Create nodes
+    local startTargetNode = createTransformGroup('startTargetNode')
+    local centerTargetNode = createTransformGroup('centerTargetNode')
+    local endTargetNode = createTransformGroup('endTargetNode')
+
+    link(reference.node, startTargetNode)
+    link(reference.node, centerTargetNode)
+    link(reference.node, endTargetNode)
+
+    self.object:removeFromPhysics()
+
+    setIsCompoundChild(self.object.components[grabPoints[1].componentIndex].node, true)
+    setIsCompoundChild(self.object.components[(#self.object.components + 1) / 2].node, true)
+    setIsCompoundChild(self.object.components[grabPoints[2].componentIndex].node, true)
+
+    -- Not needed on park function
+    --LiquidManureHose:orientConnectionJoint(reference.node, grabPoints[1].node, grabPoints[1].id, grabPoints[1].connectable, reference.id, isExtendable)
+    --LiquidManureHose:orientConnectionJoint(reference.node, self.components[grabPoints[1].componentIndex].node, grabPoints[1].id, grabPoints[1].connectable, reference.id, isExtendable)
+
+    local referenceTranslation = { getWorldTranslation(reference.node) }
+    local xRotOffset, yRotOffset, zRotOffset = unpack(reference.startRotOffset)
+    local referenceRotation = { localRotationToLocal(self.object.components[grabPoints[1].componentIndex].node, grabPoints[1].node, xRotOffset, yRotOffset, zRotOffset) }
+    --local referenceRotation = {getRotation(reference.node)}
+
+    --setTranslation(self.components[grabPoints[1].componentIndex].node, unpack(referenceTranslation))
+
+    if reference.offsetDirection ~= 1 then
+        referenceRotation[2] = index == 1 and referenceRotation[2] + math.rad(0) or referenceRotation[2] + math.rad(180)
+    else
+        print('this?')
+        referenceRotation[2] = index == 1 and math.rad(0) + referenceRotation[2] or math.rad(180) + referenceRotation[2]
+    end
+
+    --local referenceRotation = {localRotationToWorld(startTargetNode, unpack(referenceRotation))}
+    -- setRotation(startTargetNode, unpack(referenceRotation))
+    --setWorldRotation(startTargetNode, unpack(referenceRotation))
+
+    local direction = { localDirectionToLocal(self.object.components[grabPoints[1].componentIndex].node, grabPoints[1].node, 0, 0, grabPoints[1].id > 1 and 1 or -1) } -- grabPoints[1].id > 1 and 1 or -1 grabPoints[1].id > 1 and 1 or -1
+    local upVector = { localDirectionToLocal(self.object.components[grabPoints[1].componentIndex].node, grabPoints[1].node, 0, 1, 0) } -- grabPoints[1].id > 1 and -1 or 1
+
+    setDirection(self.object.components[grabPoints[1].componentIndex].node, direction[1], direction[2], direction[3], upVector[1], upVector[2], upVector[3])
+
+    local xOffset, yOffset, zOffset = unpack(reference.startTransOffset)
+    local translation = { localToLocal(self.object.components[grabPoints[1].componentIndex].node, grabPoints[1].node, xOffset, yOffset, zOffset) }
+    setTranslation(self.object.components[grabPoints[1].componentIndex].node, unpack(translation))
+    setRotation(self.object.components[grabPoints[1].componentIndex].node, unpack(referenceRotation))
+    --link(reference.node, self.components[grabPoints[1].componentIndex].node)
+    setWorldTranslation(startTargetNode, unpack(referenceTranslation))
+
+    link(startTargetNode, self.object.components[grabPoints[1].componentIndex].node)
+
+    local centerTranslation = reference.offsetDirection ~= 1 and { localToWorld(reference.node, 0, 0, -self.object.data.length / 2) } or { localToWorld(reference.node, 0, 0, self.object.data.length / 2) }
+    local centerRotation = { getRotation(self.object.data.centerNode) }
+
+    -- setTranslation(self.components[(table.getn(self.components) + 1) / 2].node, unpack(centerTranslation)) -- this of course only works on even values
+
+    -- Note: does offsetDirection have influence on the y rotation?
+    if reference.offsetDirection ~= 1 then
+        centerRotation[2] = index == 1 and math.rad(0) or math.rad(180)
+    else
+        centerRotation[2] = index == 1 and math.rad(180) or math.rad(0)
+    end
+
+    local centerRotation = { localRotationToWorld(centerTargetNode, unpack(centerRotation)) }
+    -- setWorldRotation(centerTargetNode, unpack(centerRotation))
+    --setRotation(centerTargetNode, unpack(centerRotation))
+    -- setRotation(self.components[(table.getn(self.components) + 1) / 2].node, unpack(centerRotation))
+
+    local direction = { localDirectionToLocal(self.object.components[(#self.object.components + 1) / 2].node, self.object.data.centerNode, 0, 0, 1) }
+    local upVector = { localDirectionToLocal(self.object.components[(#self.object.components + 1) / 2].node, self.object.data.centerNode, 0, 1, 0) }
+
+    setDirection(self.object.components[(#self.object.components + 1) / 2].node, direction[1], direction[2], direction[3], upVector[1], upVector[2], upVector[3])
+
+    local translation = { localToLocal(self.object.components[(#self.object.components + 1) / 2].node, self.object.data.centerNode, 0, 0, 0) }
+    setTranslation(self.object.components[(#self.object.components + 1) / 2].node, unpack(translation))
+
+    --link(centerTargetNode, self.components[(table.getn(self.components) + 1) / 2].node)
+    setWorldTranslation(centerTargetNode, unpack(centerTranslation))
+
+    link(centerTargetNode, self.object.components[(#self.object.components + 1) / 2].node)
+
+    local endTranslation = reference.offsetDirection ~= 1 and { localToWorld(reference.node, 0, 0, -self.object.data.length) } or { localToWorld(reference.node, 0, 0, self.object.data.length) }
+
+    -- setTranslation(self.components[grabPoints[2].componentIndex].node, unpack(endTranslation))
+
+    -- Note: does offsetDirection have influence on the y rotation?
+    -- Note: this is not going to work with world rotations
+    local xRotOffset, yRotOffset, zRotOffset = unpack(reference.endRotOffset)
+    local referenceRotation = { localRotationToLocal(self.object.components[grabPoints[2].componentIndex].node, grabPoints[2].node, xRotOffset, yRotOffset, zRotOffset) }
+    --local referenceRotation = {getRotation(reference.node)}
+
+    if reference.offsetDirection ~= 1 then
+        referenceRotation[2] = index == 1 and referenceRotation[2] + math.rad(0) or referenceRotation[2] + math.rad(180)
+    else
+        referenceRotation[2] = index == 1 and math.rad(0) + referenceRotation[2] or math.rad(180) + referenceRotation[2]
+    end
+
+    --local referenceRotation = {localRotationToWorld(endTargetNode, unpack(referenceRotation))}
+    --setWorldRotation(endTargetNode, unpack(referenceRotation))
+    --setRotation(endTargetNode, unpack(referenceRotation))
+    --setRotation(self.components[grabPoints[2].componentIndex].node, unpack(referenceRotation))
+    -- todo: set direction based on first grabPoints[1].id!
+    local direction = { localDirectionToLocal(self.object.components[grabPoints[2].componentIndex].node, grabPoints[2].node, 0, 0, grabPoints[2].id > 1 and 1 or -1) } --grabPoints[2].id > 1 and -1 or 1
+    local upVector = { localDirectionToLocal(self.object.components[grabPoints[2].componentIndex].node, grabPoints[2].node, 0, 1, 0) } -- grabPoints[1].id > 1 and -1 or 1
+
+    setDirection(self.object.components[grabPoints[2].componentIndex].node, direction[1], direction[2], direction[3], upVector[1], upVector[2], upVector[3])
+
+    local xOffset, yOffset, zOffset = unpack(reference.endTransOffset)
+    local translation = { localToLocal(self.object.components[grabPoints[2].componentIndex].node, grabPoints[2].node, xOffset, yOffset, zOffset) }
+    setTranslation(self.object.components[grabPoints[2].componentIndex].node, unpack(translation))
+    setRotation(self.object.components[grabPoints[2].componentIndex].node, unpack(referenceRotation))
+
+    --link(endTargetNode, self.components[grabPoints[2].componentIndex].node)
+    setWorldTranslation(endTargetNode, unpack(endTranslation))
+
+    link(endTargetNode, self.object.components[grabPoints[2].componentIndex].node)
+
+    --grabPoints[1].jointIndex = LiquidManureHose:constructJoint(vehicle.components[reference.componentIndex].node, self.components[grabPoints[1].componentIndex].node, startTargetNode, startTargetNode, {1000, 1000, 1000}, {1000, 1000, 1000}, {1000, 1000, 1000}, {1000, 1000, 1000})
+    --grabPoints[1].centerJointIndex = LiquidManureHose:constructJoint(vehicle.components[reference.componentIndex].node, self.components[(table.getn(self.components) + 1) / 2].node, centerTargetNode, centerTargetNode, {1000, 1000, 1000}, {1000, 1000, 1000}, {1000, 1000, 1000}, {1000, 1000, 1000})
+    --grabPoints[2].jointIndex = LiquidManureHose:constructJoint(vehicle.components[reference.componentIndex].node, self.components[grabPoints[2].componentIndex].node, endTargetNode, endTargetNode, {1000, 1000, 1000}, {1000, 1000, 1000}, {1000, 1000, 1000}, {1000, 1000, 1000})
+
+    -- delete(startTargetNode)
+    -- delete(centerTargetNode)
+    -- delete(endTargetNode)
+
+    self.object.data.parkStartTargetNode = startTargetNode
+    self.object.data.parkCenterTargetNode = centerTargetNode
+    self.object.data.parkEndTargetNode = endTargetNode
+
+    -- for i, component in pairs(self.components) do
+    -- if i ~= grabPoints[1].componentIndex and i ~= grabPoints[2].componentIndex then
+    -- setPairCollision(vehicle.components[reference.componentIndex].node, component.node, false)
+    -- end
+    -- end
+
+    if not reference.isObject then
+        for i = #rootVehicle.attachedImplements, 1, -1 do
+            local implement = rootVehicle.attachedImplements[i]
+            implement.object:addToPhysics();
+        end
+
+        rootVehicle:addToPhysics()
+    end
+
+    -- self:addToPhysics()
+
+    if self.object.isServer then
+        -- this should force and update on the components
+        self.object:raiseDirtyFlags(self.object.vehicleDirtyFlag)
+
+        if not reference.isObject then
+            -- fo
+            rootVehicle:raiseDirtyFlags(rootVehicle.vehicleDirtyFlag)
+        end
+    end
+end
+
+function HoseSystemPlayerInteractiveHandling:hardUnparkHose(grabPoints, vehicle, reference)
+    if #grabPoints < 2 then
+        return
+    end
+
+    local rootVehicle = vehicle:getRootAttacherVehicle()
+
+    if not reference.isObject then
+        for i = #rootVehicle.attachedImplements, 1, -1 do
+            local implement = rootVehicle.attachedImplements[i]
+            implement.object:removeFromPhysics();
+        end
+
+        rootVehicle:removeFromPhysics()
+    end
+
+    self.object:removeFromPhysics()
+
+    setIsCompound(self.object.components[grabPoints[1].componentIndex].node, true)
+    setIsCompound(self.object.components[(#self.object.components + 1) / 2].node, true)
+    setIsCompound(self.object.components[grabPoints[2].componentIndex].node, true)
+
+    --
+    local translation = { getWorldTranslation(self.object.components[grabPoints[1].componentIndex].node) }
+    setTranslation(self.object.components[grabPoints[1].componentIndex].node, unpack(translation))
+
+    local direction = { localDirectionToWorld(grabPoints[1].node, 0, 0, 1) }
+    local upVector = { localDirectionToWorld(grabPoints[1].node, 0, 1, 0) }
+
+    setDirection(self.object.components[grabPoints[1].componentIndex].node, direction[1], direction[2], direction[3], upVector[1], upVector[2], upVector[3])
+
+    link(getRootNode(), self.object.components[grabPoints[1].componentIndex].node)
+    --
+    --
+    local translation = { getWorldTranslation(self.object.components[(#self.object.components + 1) / 2].node) }
+    setTranslation(self.object.components[(#self.object.components + 1) / 2].node, unpack(translation))
+
+    local direction = { localDirectionToWorld(self.object.data.centerNode, 0, 0, 1) }
+    local upVector = { localDirectionToWorld(self.object.data.centerNode, 0, 1, 0) }
+
+    setDirection(self.object.components[(#self.object.components + 1) / 2].node, direction[1], direction[2], direction[3], upVector[1], upVector[2], upVector[3])
+
+    link(getRootNode(), self.object.components[(#self.object.components + 1) / 2].node)
+    --
+    --
+    local translation = { getWorldTranslation(self.object.components[grabPoints[2].componentIndex].node) }
+    setTranslation(self.object.components[grabPoints[2].componentIndex].node, unpack(translation))
+
+    local direction = { localDirectionToWorld(grabPoints[2].node, 0, 0, 1) }
+    local upVector = { localDirectionToWorld(grabPoints[2].node, 0, 1, 0) }
+
+    setDirection(self.object.components[grabPoints[2].componentIndex].node, direction[1], direction[2], direction[3], upVector[1], upVector[2], upVector[3])
+    link(getRootNode(), self.object.components[grabPoints[2].componentIndex].node)
+    --
+
+    delete(self.object.data.parkStartTargetNode)
+    delete(self.object.data.parkCenterTargetNode)
+    delete(self.object.data.parkEndTargetNode)
+
+    if not reference.isObject then
+        for i = #rootVehicle.attachedImplements, 1, -1 do
+            local implement = rootVehicle.attachedImplements[i]
+            implement.object:addToPhysics();
+        end
+
+        rootVehicle:addToPhysics()
+    end
+
+    self.object:addToPhysics()
+
+    if self.object.isServer then
+        self.object:raiseDirtyFlags(self.object.vehicleDirtyFlag)
+    end
 end
 
 function HoseSystemPlayerInteractiveHandling:addToPhysicsParts(grabPoint, connectedGrabPoints, vehicle, reference, isConnecting)
