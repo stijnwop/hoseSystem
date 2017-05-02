@@ -16,7 +16,8 @@
 		<sourceFile filename="specializations/AnimatedObjectExtension.lua" />
 		<sourceFile filename="specializations/HoseSystemLiquidManureFillTrigger.lua" />
 		<sourceFile filename="specializations/LoadMaterialHolder.lua" />
-		<sourceFile filename="specializations/playerInRangeTool.lua" />
+		<sourceFile filename="specializations/HoseSystemUtil.lua" />
+		<!--<sourceFile filename="specializations/playerInRangeTool.lua" />-->
 		<!-- <sourceFile filename="specializations/LiquidManureHoseHandler.lua" /> -->
 	</extraSourceFiles>		
 	<specializations>

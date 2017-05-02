@@ -82,7 +82,8 @@ function HoseSystem:load(savegame)
     self.data = {
         length = Utils.vector3Length(endTrans[1] - startTrans[1], endTrans[2] - startTrans[2], endTrans[3] - startTrans[3]),
         lastInRangePosition = { 0, 0, 0 },
-        rangeRestrictionMessageShown = false
+        rangeRestrictionMessageShown = false,
+        centerNode = Utils.indexToObject(self.components, getXMLString(self.xmlFile, 'vehicle.hoseSystem#centerNode'))
     }
 
     self.supportedFillTypes = {}
@@ -529,10 +530,3 @@ function HoseSystem:print_r(t, name, indent)
 
     return table_r(t, name or 'Value', indent or '')
 end
-
-function HoseSystem.consoleCommandToggleHoseSystemDebugRendering(unusedSelf)
-    HoseSystem.debugRendering = not HoseSystem.debugRendering
-    return "HoseSystemDebugRendering = "..tostring(HoseSystem.debugRendering)
-end
-
-addConsoleCommand("gsToggleHoseSystemDebugRendering", "Toggles the debug rendering of the HoseSystem", "HoseSystem.consoleCommandToggleHoseSystemDebugRendering", nil)
