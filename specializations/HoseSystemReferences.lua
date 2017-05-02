@@ -232,7 +232,7 @@ function HoseSystemReferences:getReference(object, index, grabPoint)
         return object.hoseSystemReferences[index]
     end
 
-    if grabPoint.connectable or object.grabPoints ~= nil then
+    if grabPoint.connectable and object.grabPoints ~= nil or object.grabPoints ~= nil then
         return object.grabPoints[index]
     end
 
