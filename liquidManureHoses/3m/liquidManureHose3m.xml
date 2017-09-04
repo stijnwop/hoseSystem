@@ -5,20 +5,19 @@
     <storeData>
         <name>3M</name>
         <specs>
-			<fillTypes>liquidManure</fillTypes>
+			<!-- <fillTypes>liquidManure</fillTypes> -->
 			<!-- <workingWidth>3</workingWidth> -->
 		</specs>	
         <functions>
             <function>$l10n_function_liquidManureHose</function>
         </functions>
-        <image>liquidManureHoses/3m/store3m.dds</image><!-- Or just use one for the types (saves room) -->
+        <image>store.dds</image>
         <price>150</price>
         <dailyUpkeep>0</dailyUpkeep>
         <lifetime>600</lifetime>
         <rotation>0</rotation>
         <brand>LIZARD</brand>
-        <category>slurryTanks</category> <!-- receivingHopper shouldn't be? -->
-        <!-- <fieldJob sizeCategory="1" typeCategory="tractor" hasFrontAndBackHydraulics="true" /> -->
+        <category>slurryTanks</category>
         <vertexBufferMemoryUsage>1728608</vertexBufferMemoryUsage>
         <indexBufferMemoryUsage>295512</indexBufferMemoryUsage>
         <textureMemoryUsage>4700088</textureMemoryUsage>
@@ -31,66 +30,19 @@
 
     <size width="0.2" length="3"/>
 
-    <hoseSystem centerNode="1>0">
+    <hoseSystem centerNode="1>0" supportedFillTypeCategories="slurryTank">
         <jointSpline rootJointNode="0>0|0" numJoints="6" />
 
         <grabPoints>
-            <grabPoint node="0>1" componentIndex="0" /> <!-- componentChildNode="0>3" /> -->
-            <grabPoint node="2>0" componentIndex="2" /> <!-- componentChildNode="2>1" /> -->
+            <grabPoint node="0>1" raycastNode="0>0|0|2" componentIndex="0" playerJointRotLimit="40 40 40" playerJointTransLimit="5 5 5" /> <!-- componentChildNode="0>3" /> -->
+            <grabPoint node="2>0" raycastNode="0>0|0|0|0|0|0|0|0" componentIndex="2" playerJointRotLimit="40 40 40" playerJointTransLimit="5 5 5" /> <!-- componentChildNode="2>1" /> -->
         </grabPoints>
+
+         <effect fillTypes="liquidManure">
+            <effectNode effectNode="0>0|0|3|0" delay="0" materialType="hoseSystem" materialTypeId="1" fadeOutTime="0.1" fadeInTime="1" startDelay="0.2" stopDelay="0" />
+         </effect>
     </hoseSystem>
 	
-    <hose supportedFillTypeCategories="slurryTank">		
-		<attachComponent node="1>0" filename="liquidManureHoses/attachComponent.i3d" />		
-		
-		<grabPoints>
-            <grabPoint node="0>1" componentIndex="0" componentJointIndex="0" /> <!-- componentChildNode="0>3" /> -->
-            <grabPoint node="2>0" componentIndex="2" componentJointIndex="1" /> <!-- componentChildNode="2>1" /> -->
-		</grabPoints> 	
-		
-		<!-- <effect fillTypes="liquidManure"> -->
-			<!-- <effectNode effectNode="0>2|1" delay="0" materialType="hose" materialTypeId="1" fadeOutTime="0.1" fadeInTime="1" startDelay="0.2" stopDelay="0" /> -->
-		<!-- </effect> -->
-		
-		<emptyingSound node="0>2" file="$data/sounds/manureFillSound.wav" radius="3" innerRadius="2" pitchOffset="0.45" volume="0.6" />
-		
-        <!-- <targets> -->
-            <!-- <target ikChainName="rightArm" target="0>2|0|0" targetOffset="0.05 0.066 0">
-                <rotationNode id="1" rotation="90 -30 -20" />
-                <rotationNode id="2" rotation="0 0 -44" />
-                <rotationNode id="3" rotation="0 0 -10" />
-
-                <rotationNode id="4" rotation="0 0 -60" />
-                <rotationNode id="5" rotation="0 0 -110" />
-                <rotationNode id="6" rotation="0 0 0" />
-
-                <rotationNode id="7" rotation="0 0 -60" />
-                <rotationNode id="8" rotation="0 0 -110" />
-                <rotationNode id="9" rotation="0 0 0" />
-
-                <rotationNode id="10" rotation="0 0 -50" />
-                <rotationNode id="11" rotation="0 0 -110" />
-                <rotationNode id="12" rotation="0 0 0" />
-
-                <rotationNode id="13" rotation="0 0 -40" />
-                <rotationNode id="14" rotation="0 0 -100" />
-                <rotationNode id="15" rotation="0 0 0" />
-            </target> -->
-        <!-- </targets> -->
-
-		<joints rootJoint="0>0|0" numJoints="6"/>
-		
-		<!-- <componentJoints> -->
-			<!-- <joints grabPointIndice="1"> -->
-				<!-- <joint component1="2" component2="1" index="2>2" transLimit="0 0 0" rotLimit="40 40 0" rotDriveVelocity="0 0 0" maxRotDriveForce="0 0 0" rotLimitSpring="20 20 0" rotLimitDamping="11 11 0"/> -->
-				<!-- <joint component1="1" component2="0" index="1>2" transLimit="0 0 0" rotLimit="40 40 0" rotDriveVelocity="0 0 0" maxRotDriveForce="0 0 0" rotLimitSpring="20 20 0" rotLimitDamping="11 11 0"/>  -->
-			<!-- </joints> -->
-			<!-- <joints grabPointIndice="2"> -->
-				<!-- <joint component1="0" component2="1" index="0>4" transLimit="0 0 0" rotLimit="40 40 0" rotDriveVelocity="0 0 0" maxRotDriveForce="0 0 0" rotLimitSpring="20 20 0" rotLimitDamping="11 11 0"/> -->
-				<!-- <joint component1="1" component2="2" index="1>1" transLimit="0 0 0" rotLimit="40 40 0" rotDriveVelocity="0 0 0" maxRotDriveForce="0 0 0" rotLimitSpring="20 20 0" rotLimitDamping="11 11 0"/> -->
-			<!-- </joints> -->
-		<!-- </componentJoints> -->
-	</hose>
 	
 	<designConfigurations>
         <designConfiguration name="$l10n_configuration_nor_liquidManureHose" price="0" icon="$dataS2/menu/hud/configurations/config_edition.png">
@@ -103,10 +55,13 @@
         </designConfiguration>
     </designConfigurations>
 	
-	<!--<baseColorConfigurations useDefaultColors="true" defaultColorIndex="6" price="10" icon="$dataS2/menu/hud/configurations/config_color.png">-->
-        <!--<colorNode node="0>0|1" />-->
-        <!--<colorNode node="0>0|2" />-->
-    <!--</baseColorConfigurations>-->
+	<baseColorConfigurations price="0" icon="$dataS2/menu/hud/configurations/config_color.png">
+		<baseColorConfiguration color="0.004 0.061 0.117 1.0" />
+		<baseColorConfiguration color="0.013 0.013 0.013 1.0" />
+		<baseColorConfiguration color="0.047 0.195 0.138 1.0" />
+		<baseColorConfiguration color="0.118 0.028 0.021 1.0" />
+        <colorNode node="0>0|0|1" />
+    </baseColorConfigurations>
 	
 	<animations>
         <animation name="connect">
@@ -124,8 +79,8 @@
         <component2 centerOfMass="0 0 0" solverIterationCount="40" />
         <component3 centerOfMass="0 0 -0.25" solverIterationCount="40" />
 		<!-- We need to toggle the component joints on grab the hose is not reacting  -->
-		<joint component1="0" component2="1" index="0>4" transLimit="0 0 0" rotLimit="40 40 0" rotDriveVelocity="0 0 0" maxRotDriveForce="0 0 0" rotLimitSpring="20 20 0" rotLimitDamping="11 11 0"/>
-		<joint component1="1" component2="2" index="1>1" transLimit="0 0 0" rotLimit="40 40 0" rotDriveVelocity="0 0 0" maxRotDriveForce="0 0 0" rotLimitSpring="20 20 0" rotLimitDamping="11 11 0"/> 
+		<joint component1="0" component2="1" index="0>2" transLimit="0 0 0" rotLimit="50 40 0" rotDriveVelocity="0 0 0" maxRotDriveForce="0 0 0" rotLimitSpring="20 20 0" rotLimitDamping="11 11 0"/>
+		<joint component1="1" component2="2" index="1>1" transLimit="0 0 0" rotLimit="50 40 0" rotDriveVelocity="0 0 0" maxRotDriveForce="0 0 0" rotLimitSpring="20 20 0" rotLimitDamping="11 11 0"/> 
 		<!-- <collisionPair component1="0" component2="1" enabled="false" /> -->
 		<!-- <collisionPair component1="0" component2="2" enabled="false" /> -->
 	</components>
@@ -136,7 +91,7 @@
 
 <!-- 
 	------ Build structure of hose ------
-	All joints must have its Z axis forward
+	All joints must have its Z axis forward````
 	Component 1 need its pivot at start
 	Component "end" need its pivot at end
 	Movable "nodes" (not skinned node) must be placed as sub of the IK joint (attacherJoints need to be confirmed working here!)
