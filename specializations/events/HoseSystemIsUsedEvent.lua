@@ -24,7 +24,7 @@ function HoseSystemIsUsedEvent:new(object, index, isConnected, isCalledFromRefer
     event.isConnected = isConnected
     event.isCalledFromReference = isCalledFromReference
 
-    return self
+    return event
 end
 
 function HoseSystemIsUsedEvent:writeStream(streamId, connection)

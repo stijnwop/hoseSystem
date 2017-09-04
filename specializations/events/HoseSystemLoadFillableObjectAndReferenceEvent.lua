@@ -17,18 +17,19 @@ function HoseSystemLoadFillableObjectAndReferenceEvent:emptyNew()
     return event
 end
 
-function HoseSystemLoadFillableObjectAndReferenceEvent:new(liquidManureHose, vehicle, reference, isExtendable)
-    local self = HoseSystemLoadFillableObjectAndReferenceEvent:emptyNew()
-    self.liquidManureHose = liquidManureHose
-    self.vehicle = vehicle
-    self.reference = reference
-    self.isExtendable = isExtendable
+function HoseSystemLoadFillableObjectAndReferenceEvent:new(object, vehicle, reference, isExtendable)
+    local event = HoseSystemLoadFillableObjectAndReferenceEvent:emptyNew()
 
-    return self
+    event.object = object
+    event.vehicle = vehicle
+    event.reference = reference
+    event.isExtendable = isExtendable
+
+    return event
 end
 
 function HoseSystemLoadFillableObjectAndReferenceEvent:readStream(streamId, connection)
-    self.liquidManureHose = readNetworkNodeObject(streamId)
+    self.object = readNetworkNodeObject(streamId)
     self.vehicle = readNetworkNodeObjectId(streamId)
     self.reference = streamReadInt32(streamId)
     self.isExtendable = streamReadBool(streamId)
@@ -36,7 +37,7 @@ function HoseSystemLoadFillableObjectAndReferenceEvent:readStream(streamId, conn
 end
 
 function HoseSystemLoadFillableObjectAndReferenceEvent:writeStream(streamId, connection)
-    writeNetworkNodeObject(streamId, self.liquidManureHose)
+    writeNetworkNodeObject(streamId, self.object)
     writeNetworkNodeObjectId(streamId, self.vehicle)
     streamWriteInt32(streamId, self.reference)
     streamWriteBool(streamId, self.isExtendable)
@@ -44,24 +45,24 @@ end
 
 function HoseSystemLoadFillableObjectAndReferenceEvent:run(connection)
 	if not connection:getIsServer() then
-		g_server:broadcastEvent(self, false, connection, self.liquidManureHose)
+		g_server:broadcastEvent(self, false, connection, self.object)
 	end
 	
 	-- if not connection:getIsServer() then
-        -- g_server:broadcastEvent(HoseSystemLoadFillableObjectAndReferenceEvent:new(self.liquidManureHose, self.vehicle, self.reference, self.isExtendable), nil, connection, self.liquidManureHose)
+        -- g_server:broadcastEvent(HoseSystemLoadFillableObjectAndReferenceEvent:new(self.object, self.vehicle, self.reference, self.isExtendable), nil, connection, self.object)
     -- end
 	
-	if self.liquidManureHose ~= nil then
-		self.liquidManureHose:loadFillableObjectAndReference(self.vehicle, self.reference, self.isExtendable, true)
+	if self.object ~= nil then
+		self.object:loadFillableObjectAndReference(self.vehicle, self.reference, self.isExtendable, true)
 	end
 end
 
-function HoseSystemLoadFillableObjectAndReferenceEvent.sendEvent(liquidManureHose, vehicle, reference, isExtendable, noEventSend)
+function HoseSystemLoadFillableObjectAndReferenceEvent.sendEvent(object, vehicle, reference, isExtendable, noEventSend)
     if noEventSend == nil or noEventSend == false then
         if g_server ~= nil then
-            g_server:broadcastEvent(HoseSystemLoadFillableObjectAndReferenceEvent:new(liquidManureHose, vehicle, reference, isExtendable), nil, nil, liquidManureHose)
+            g_server:broadcastEvent(HoseSystemLoadFillableObjectAndReferenceEvent:new(object, vehicle, reference, isExtendable), nil, nil, object)
         else
-            g_client:getServerConnection():sendEvent(HoseSystemLoadFillableObjectAndReferenceEvent:new(liquidManureHose, vehicle, reference, isExtendable))
+            g_client:getServerConnection():sendEvent(HoseSystemLoadFillableObjectAndReferenceEvent:new(object, vehicle, reference, isExtendable))
         end
     end
 end
