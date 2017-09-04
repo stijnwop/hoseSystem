@@ -536,8 +536,8 @@ function HoseSystemConnectorReference:getValidFillObject()
                 if lastGrabPoint ~= nil then
                     -- check if the last grabPoint is connected
                     if HoseSystem:getIsConnected(lastGrabPoint.state) and not lastGrabPoint.connectable then
-                        local lastReference = lastGrabPoint.connectorVehicle.hoseSystemReferences[lastGrabPoint.connectorRefId]
-                        local lastVehicle = lastReference.isObject and lastGrabPoint.connectorVehicle.hoseSystemParent or lastGrabPoint.connectorVehicle
+                        local lastVehicle = HoseSystemReferences:getReferenceVehicle(lastGrabPoint.connectorVehicle)
+                        local lastReference = lastVehicle.hoseSystemReferences[lastGrabPoint.connectorRefId]
 
                         if lastReference ~= nil and lastVehicle ~= nil and lastVehicle.grabPoints == nil then -- checks if it's not a hose!
                             if lastReference.isUsed and lastReference.flowOpened and lastReference.isLocked then

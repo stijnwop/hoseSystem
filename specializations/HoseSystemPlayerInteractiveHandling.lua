@@ -442,7 +442,7 @@ function HoseSystemPlayerInteractiveHandling:setGrabPointIsUsed(index, isConnect
     local grabPoint = self.object.grabPoints[index]
 
     if grabPoint ~= nil then
-        local vehicle = grabPoint.connectorVehicle
+        local vehicle = HoseSystemReferences:getReferenceVehicle(grabPoint.connectorVehicle)
 
         grabPoint.state = isConnected and HoseSystem.STATE_CONNECTED or HoseSystem.STATE_DETACHED
         grabPoint.hasJointIndex = not isCalledFromReference and isConnected -- tell clients on which grabPoint to call the detach function on
