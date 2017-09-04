@@ -67,7 +67,7 @@ function HoseSystemPumpMotor:load(savegame)
     self.allowPumpStarted = HoseSystemPumpMotor.allowPumpStarted
     self.setPumpStarted = SpecializationUtil.callSpecializationsFunction('setPumpStarted')
     self.doPump = HoseSystemPumpMotor.doPump
-    self.doPump = HoseSystemPumpMotor.doFakePump
+    self.doFakePump = HoseSystemPumpMotor.doFakePump
     self.getIsTurnedOn = Utils.overwrittenFunction(self.getIsTurnedOn, HoseSystemPumpMotor.getIsTurnedOn)
     self.getIsTurnedOnAllowed = Utils.overwrittenFunction(self.getIsTurnedOnAllowed, HoseSystemPumpMotor.getIsTurnedOnAllowed)
     self.getPtoRpm = Utils.overwrittenFunction(self.getPtoRpm, HoseSystemPumpMotor.getPtoRpm)
