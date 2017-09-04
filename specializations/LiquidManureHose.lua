@@ -23,14 +23,14 @@ LiquidManureHose = {
 }
 
 source(string.format('%s/%s', LiquidManureHose.eventsDir, 'HoseSystemLoadFillableObjectAndReferenceEvent.lua'))
-source(string.format('%s/%s', LiquidManureHose.eventsDir, 'LiquidManureHoseAttachEvent.lua'))
-source(string.format('%s/%s', LiquidManureHose.eventsDir, 'LiquidManureHoseChainCountEvent.lua'))
-source(string.format('%s/%s', LiquidManureHose.eventsDir, 'LiquidManureHoseDetachEvent.lua'))
-source(string.format('%s/%s', LiquidManureHose.eventsDir, 'LiquidManureHoseDropEvent.lua'))
-source(string.format('%s/%s', LiquidManureHose.eventsDir, 'LiquidManureHoseGrabEvent.lua'))
-source(string.format('%s/%s', LiquidManureHose.eventsDir, 'LiquidManureHoseIsUsedEvent.lua'))
-source(string.format('%s/%s', LiquidManureHose.eventsDir, 'LiquidManureHoseSetOwnerEvent.lua'))
-source(string.format('%s/%s', LiquidManureHose.eventsDir, 'LiquidManureHoseToggleLockEvent.lua'))
+source(string.format('%s/%s', LiquidManureHose.eventsDir, 'HoseSystemAttachEvent.lua'))
+source(string.format('%s/%s', LiquidManureHose.eventsDir, 'HoseSystemChainCountEvent.lua'))
+source(string.format('%s/%s', LiquidManureHose.eventsDir, 'HoseSystemDetachEvent.lua'))
+source(string.format('%s/%s', LiquidManureHose.eventsDir, 'HoseSystemDropEvent.lua'))
+source(string.format('%s/%s', LiquidManureHose.eventsDir, 'HoseSystemGrabEvent.lua'))
+source(string.format('%s/%s', LiquidManureHose.eventsDir, 'HoseSystemIsUsedEvent.lua'))
+source(string.format('%s/%s', LiquidManureHose.eventsDir, 'HoseSystemSetOwnerEvent.lua'))
+source(string.format('%s/%s', LiquidManureHose.eventsDir, 'HoseSystemToggleLockEvent.lua'))
 
 ---
 -- @param specializations
@@ -1334,7 +1334,7 @@ end
 function LiquidManureHose:updateTick(dt)
     if self.isClient then
         -- self:setEmptyEffect(self.emptyEffects.showEmptyEffects, 27, 2)
-        self:setEmptyEffect(self.hoseEffects.isActive, FillUtil.FILLTYPE_LIQUIDMANURE, 2)
+        self:setEmptyEffect(self.hoseEffects.isActive, 2)
 
         if self.hoseEffects.isActive then
             SoundUtil.playSample(self.emptyingSound, 0, 0, nil)
@@ -2478,9 +2478,9 @@ function LiquidManureHose:hardConnect(grabPoint, vehicle, reference)
 
         --setIsCompound(vehicle.components[reference.componentIndex].node, true)
 
-        if not grabPoint.connectable and not reference.connectable then
+--        if not grabPoint.connectable and not reference.connectable then
             setIsCompoundChild(self.components[grabPoint.componentIndex].node, true)
-        end
+--        end
     end
 
     -- Todo: is this really needed?
@@ -2595,6 +2595,7 @@ function LiquidManureHose:hardDisconnect(grabPoint, vehicle, reference)
             end
         end
     end
+
     -- if table.getn(grabPoints) > 0 and not grabPoint.connectable and not reference.connectable then
     -- self:removeFromPhysicsPartly(grabPoints)
     -- else
@@ -3564,13 +3565,12 @@ function LiquidManureHose:updateOwnerInputParts(index, isGrab, isControlling)
     end
 end
 
-function LiquidManureHose:setEmptyEffect(activate, fillType, yDirectionSpeed)
+function LiquidManureHose:setEmptyEffect(activate, yDirectionSpeed)
     if self.hoseEffects ~= nil and self.hoseEffects.effects ~= nil then
         if activate then
             -- Make setFillType dynamic
             -- LiquidManureHose manure
             -- EffectManager:setFillType(self.emptyEffects.effect, FillUtil.FILLTYPE_CHAFF)
-            EffectManager:setFillType(self.hoseEffects.effects, fillType)
             EffectManager:startEffects(self.hoseEffects.effects)
         else
             EffectManager:stopEffects(self.hoseEffects.effects)
@@ -3578,7 +3578,7 @@ function LiquidManureHose:setEmptyEffect(activate, fillType, yDirectionSpeed)
     end
 end
 
-function LiquidManureHose:toggleEmptyingEffect(activate, yDirectionSpeed, index)
+function LiquidManureHose:toggleEmptyingEffect(activate, yDirectionSpeed, index, fillType)
     if self.hoseEffects ~= nil and self.hoseEffects.isActive ~= activate then
         self.hoseEffects.isActive = activate
 

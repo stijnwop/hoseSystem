@@ -7,10 +7,12 @@
 --
 
 HoseSystemPlayerInteractiveHandling = {}
-local HoseSystemPlayerInteractiveHandling_mt = Class(HoseSystemPlayerInteractiveHandling, HoseSystemPlayerInteractive);
+local HoseSystemPlayerInteractiveHandling_mt = Class(HoseSystemPlayerInteractiveHandling, HoseSystemPlayerInteractive)
 
 function HoseSystemPlayerInteractiveHandling:new(object, mt)
-    local interactiveHandling = HoseSystemPlayerInteractive:new(object, mt == nil and HoseSystemPlayerInteractiveHandling_mt or mt);
+    local interactiveHandling = HoseSystemPlayerInteractive:new(object, mt == nil and HoseSystemPlayerInteractiveHandling_mt or mt)
+
+    interactiveHandling.doNetworkObjectsIteration = false
 
     return interactiveHandling
 end
@@ -56,7 +58,7 @@ function HoseSystemPlayerInteractiveHandling:update(dt)
 
                         if InputBinding.hasEvent(InputBinding.attachHose) then
                             -- print(LiquidManureHose:print_r(self.fillableObject))
-                             self:attach(index, object, self.object.referenceIdToMountHoseSystem, self.object.referenceIsExtendable)
+                            self:attach(index, object, self.object.referenceIdToMountHoseSystem, self.object.referenceIsExtendable)
                         end
                     end
                 end
@@ -86,8 +88,8 @@ function HoseSystemPlayerInteractiveHandling:update(dt)
                             if InputBinding.hasEvent(InputBinding.detachHose) then
                                 --if self:allowsDetach(index) then
                                 local vehicle = grabPoint.connectorVehicle
---                                local reference = grabPoint.connectable and vehicle.grabPoints[grabPoint.connectorRefId] or vehicle.hoseSystemReferences[grabPoint.connectorRefId]
-                                local reference = HoseSystemReferences:getReference(vehicle, index, grabPoint)
+                                --                                local reference = grabPoint.connectable and vehicle.grabPoints[grabPoint.connectorRefId] or vehicle.hoseSystemReferences[grabPoint.connectorRefId]
+                                local reference = HoseSystemReferences:getReference(vehicle, grabPoint.connectorRefId, grabPoint)
 
                                 if reference ~= nil then
                                     local extenable = not reference.parkable and ((reference.connectable ~= nil and reference.connectable) or (grabPoint.connectable ~= nil and grabPoint.connectable))
@@ -135,10 +137,9 @@ function HoseSystemPlayerInteractiveHandling:grab(index, player, noEventSend)
 
             -- Todo: we call the function set owner
             -- But do not event it again since we already getting reloaded by the grab event
-            self:setGrabPointOwner(index, true, player)
+            self:setGrabPointOwner(index, true, player, true)
 
-            -- Todo: update visuals like gloves etc..
-            -- But do not event it again since we already getting reloaded by the grab event
+            player:setWoodWorkVisibility(true, false)
 
             self.object.walkingSpeed = player.walkingSpeed
             self.object.runningFactor = player.runningFactor
@@ -172,11 +173,19 @@ function HoseSystemPlayerInteractiveHandling:grab(index, player, noEventSend)
                 -- Since we cannot set non collidable objects for the CCT we just set the collision mask of the object
                 if grabPoint.componentIndex ~= nil then
                     setCollisionMask(self.object.components[grabPoint.componentIndex].node, HoseSystem.cctCollisionMask)
+                    setCollisionMask(self.object.components[(#self.object.components + 1) / 2].node, HoseSystem.cctCollisionMask)
                 end
 
                 for i, component in pairs(self.object.components) do
                     if i ~= grabPoint.componentIndex then
                         setPairCollision(player.hoseSystem.kinematicHelper.node, component.node, false)
+                    end
+                end
+
+                -- When there is a connected grabPoint we set the limit of the joint so we can move freely without pushing the connector vehicle
+                for index, gp in pairs(self.object.grabPoints) do
+                    if index ~= grabPoint.id and HoseSystem:getIsConnected(gp.state) then
+                        self:setJointRotAndTransLimit(gp.playerJointRotLimit, gp.playerJointTransLimit)
                     end
                 end
             end
@@ -197,8 +206,9 @@ function HoseSystemPlayerInteractiveHandling:drop(index, player, noEventSend)
         if player ~= nil then
             grabPoint.state = HoseSystem.STATE_DETACHED
 
-            self:setGrabPointOwner(index, false, player)
+            self:setGrabPointOwner(index, false, player, true)
 
+            player:setWoodWorkVisibility(false, false)
             player.walkingSpeed = self.object.walkingSpeed
             player.runningFactor = self.object.runningFactor
 
@@ -221,6 +231,15 @@ function HoseSystemPlayerInteractiveHandling:drop(index, player, noEventSend)
 
                         if grabPoint.componentIndex ~= nil then
                             setCollisionMask(self.object.components[grabPoint.componentIndex].node, HoseSystem.hoseCollisionMask)
+                            setCollisionMask(self.object.components[(#self.object.components + 1) / 2].node, HoseSystem.hoseCollisionMask)
+                        end
+
+                        -- set the joint limits back to zero
+                        for index, gp in pairs(self.object.grabPoints) do
+                            if index ~= grabPoint.id and HoseSystem:getIsConnected(gp.state) then
+                                -- set rot on 1 deg for some realistic movement
+                                self:setJointRotAndTransLimit({ 5, 0, 5 }, { 0, 0, 0 })
+                            end
                         end
                     end
                 end
@@ -246,8 +265,10 @@ function HoseSystemPlayerInteractiveHandling:attach(index, vehicle, referenceId,
             return
         end
 
-        local object = vehicle.hoseSystemReferences ~= nil and vehicle or vehicle.grabPoints ~= nil and vehicle or vehicle.hoseSystemParent -- this might be really tricky todo
-        local reference = isExtendable and object.grabPoints[referenceId] or object.hoseSystemReferences[referenceId]
+        --        local object = vehicle.hoseSystemReferences ~= nil and vehicle or vehicle.grabPoints ~= nil and vehicle or vehicle.hoseSystemParent -- this might be really tricky todo
+        --        local reference = (isExtendable or grabPoint.connectable) and object.grabPoints[referenceId] or object.hoseSystemReferences[referenceId]
+        local object = HoseSystemReferences:getReferenceVehicle(vehicle)
+        local reference = HoseSystemReferences:getReference(vehicle, referenceId, grabPoint)
 
         if reference ~= nil then
             local grabPoints = { grabPoint }
@@ -291,10 +312,10 @@ function HoseSystemPlayerInteractiveHandling:attach(index, vehicle, referenceId,
                 -- reference.grabPoints = self.grabPoints
                 -- reference.liquidManureHose = self
 
-                if isExtendable then
+                if (isExtendable or grabPoint.connectable) then
                     -- Set 2 way recognition
                     reference.connectorRefId = grabPoint.id -- current grabPoint
-                    reference.connectorVehicle = self
+                    reference.connectorVehicle = self.object
 
                     if grabPoint.connectable then
                         self.object:toggleLock(index, true) -- close lock
@@ -340,8 +361,10 @@ function HoseSystemPlayerInteractiveHandling:detach(index, vehicle, referenceId,
         end
 
         if vehicle ~= nil then
-            local object = vehicle.hoseSystemReferences ~= nil and vehicle or vehicle.grabPoints ~= nil and vehicle or vehicle.hoseSystemParent
-            local reference = isExtendable and object.grabPoints[referenceId] or object.hoseSystemReferences[referenceId]
+            --            local object = vehicle.hoseSystemReferences ~= nil and vehicle or vehicle.grabPoints ~= nil and vehicle or vehicle.hoseSystemParent
+            --            local reference = isExtendable and object.grabPoints[referenceId] or object.hoseSystemReferences[referenceId]
+            local object = HoseSystemReferences:getReferenceVehicle(vehicle)
+            local reference = HoseSystemReferences:getReference(vehicle, referenceId, grabPoint)
 
             if reference ~= nil then
                 local grabPoints = { grabPoint }
@@ -368,13 +391,13 @@ function HoseSystemPlayerInteractiveHandling:detach(index, vehicle, referenceId,
 
                 for _, grabPoint in pairs(grabPoints) do
                     if self.object.isServer then
-                        self:setGrabPointIsUsed(grabPoint.id, false, false)
+                        self:setGrabPointIsUsed(grabPoint.id, false, isExtendable)
 
                         setTranslation(grabPoint.node, unpack(grabPoint.nodeOrgTrans))
                         setRotation(grabPoint.node, unpack(grabPoint.nodeOrgRot))
                     end
 
-                    grabPoint.connectorRefId = nil
+                    grabPoint.connectorRefId = 0
                     grabPoint.connectorVehicle = nil
                 end
             end
@@ -387,18 +410,20 @@ end
 -- @param isOwned
 -- @param player
 --
-function HoseSystemPlayerInteractiveHandling:setGrabPointOwner(index, isOwned, player)
+function HoseSystemPlayerInteractiveHandling:setGrabPointOwner(index, state, player, noEventSend)
+    HoseSystemSetOwnerEvent.sendEvent(self.object, index, state, player, noEventSend)
+
     local grabPoint = self.object.grabPoints[index]
 
-    grabPoint.isOwned = isOwned
-    grabPoint.currentOwner = (isOwned and player ~= nil) and player or nil
+    grabPoint.isOwned = state
+    grabPoint.currentOwner = (state and player ~= nil) and player or nil
 
     if player.hoseSystem == nil then
         player.hoseSystem = {}
     end
 
-    player.hoseSystem.interactiveHandling = isOwned and self or nil
-    player.hoseSystem.index = isOwned and index or nil
+    player.hoseSystem.interactiveHandling = state and self or nil
+    player.hoseSystem.index = state and index or nil
 end
 
 
@@ -420,11 +445,12 @@ function HoseSystemPlayerInteractiveHandling:setGrabPointIsUsed(index, isConnect
         local vehicle = grabPoint.connectorVehicle
 
         grabPoint.state = isConnected and HoseSystem.STATE_CONNECTED or HoseSystem.STATE_DETACHED
-        grabPoint.hasJointIndex = isConnected -- tell clients on which grabPoint to call the detach function on
+        grabPoint.hasJointIndex = not isCalledFromReference and isConnected -- tell clients on which grabPoint to call the detach function on
 
         if vehicle ~= nil and not isCalledFromReference then
             -- Todo: get reference with the getReference function
-            local reference = isExtendable and vehicle.grabPoints[grabPoint.connectorRefId] or vehicle.hoseSystemReferences[grabPoint.connectorRefId]
+            --            local reference = isExtendable and vehicle.grabPoints[grabPoint.connectorRefId] or vehicle.hoseSystemReferences[grabPoint.connectorRefId]
+            local reference = HoseSystemReferences:getReference(vehicle, grabPoint.connectorRefId, grabPoint)
             -- Todo: not sure what to call here.. lookup
 
             if not isExtendable and not reference.connectable then
@@ -433,16 +459,11 @@ function HoseSystemPlayerInteractiveHandling:setGrabPointIsUsed(index, isConnect
 
             -- we have to call on depending objects to tell that we are connecting
             if self.object.isServer then
-                if reference.isObject then
-                    --
-                    vehicle.hoseSystemParent:setIsUsed(reference.id, isConnected)
+                -- call reference functions
+                if grabPoint.connectable or isExtendable then
+                    vehicle.poly.interactiveHandling:setGrabPointIsUsed(reference.id, isConnected, grabPoint.connectable, true)
                 else
-                    -- call reference functions
-                    if reference.connectable ~= nil and reference.connectable then
-                        vehicle.poly.interactiveHandling:setGrabPointIsUsed(reference.id, isConnected, isExtendable, true)
-                    else
-                        vehicle:setIsUsed(grabPoint.connectorRefId, isConnected)
-                    end
+                    vehicle:setIsUsed(reference.id, isConnected)
                 end
             end
         end
@@ -482,11 +503,11 @@ function HoseSystemPlayerInteractiveHandling:constructPlayerJoint(jointDesc, pla
     end
 
     local forceLimit = playerHoseDesc.mass * 25 -- only when stucked behind object
-    constructor:setBreakable(forceLimit, forceLimit)
+    --    constructor:setBreakable(forceLimit, forceLimit)
 
     playerHoseDesc.jointIndex = constructor:finalize()
 
-    addJointBreakReport(playerHoseDesc.jointIndex, 'onGrabJointBreak', self)
+    --    addJointBreakReport(playerHoseDesc.jointIndex, 'onGrabJointBreak', self)
 end
 
 function HoseSystemPlayerInteractiveHandling:constructReferenceJoints(jointDesc)
@@ -496,13 +517,13 @@ function HoseSystemPlayerInteractiveHandling:constructReferenceJoints(jointDesc)
     constructor:setJointTransforms(jointDesc.anchor1, jointDesc.anchor2)
     constructor:setEnableCollision(false)
 
-    local rotLimitSpring = {0, 0, 0}
-    local rotLimitDamping = {0, 0, 0}
-    local transLimitSpring = {0, 0, 0}
-    local translimitDamping = {0, 0, 0}
+    local rotLimitSpring = { 0, 0, 0 }
+    local rotLimitDamping = { 0, 0, 0 }
+    local transLimitSpring = { 0, 0, 0 }
+    local translimitDamping = { 0, 0, 0 }
 
     if jointDesc.isConnector then
-        local connectorMass = getMass(jointDesc.actor1) * 100 -- create a strong joint
+        local connectorMass = getMass(jointDesc.actor1) -- * 100 -- create a strong joint
 
         for i = 1, 3 do
             rotLimitSpring[i] = connectorMass
@@ -519,18 +540,28 @@ function HoseSystemPlayerInteractiveHandling:constructReferenceJoints(jointDesc)
         if jointDesc.isConnector then
             constructor:setRotationLimit(i, 0, 0)
         else
-            constructor:setRotationLimit(i, rotLimitSpring[i + 1] + 1, rotLimitSpring[i + 1])
+            constructor:setRotationLimit(i, rotLimitSpring[i + 1], rotLimitSpring[i + 1])
         end
 
         constructor:setTranslationLimit(i, true, 0, 0)
     end
 
-    --    if isRefAttacher ~= nil and isRefAttacher then
-    --        constructor:setRotationLimitForceLimit(10000000, 10000000, 10000000)
-    --        constructor:setTranslationLimitForceLimit(10000000, 10000000, 10000000)
-    --    end
-
     return constructor:finalize()
+end
+
+function HoseSystemPlayerInteractiveHandling:setJointRotAndTransLimit(rotLimit, transLimit)
+    if not self.object.isServer then
+        return
+    end
+
+    for i, jointDesc in pairs(self.object.componentJoints) do
+        if jointDesc.hoseJointIndex ~= nil then
+            for axis = 1, 3 do
+                setJointRotationLimit(jointDesc.hoseJointIndex, axis - 1, true, -rotLimit[axis], rotLimit[axis])
+                setJointTranslationLimit(jointDesc.hoseJointIndex, axis - 1, true, -transLimit[axis], transLimit[axis])
+            end
+        end
+    end
 end
 
 ---
@@ -538,11 +569,13 @@ end
 -- @param breakingImpulse
 --
 function HoseSystemPlayerInteractiveHandling:onGrabJointBreak(jointIndex, breakingImpulse)
-    --if self.isServer then
+    if not self.object.isServer then
+        return false
+    end
+
     if jointIndex == g_currentMission.player.hoseSystem.jointIndex then
         g_currentMission.player.hoseSystem.interactiveHandling:drop(g_currentMission.player.hoseSystem.index, g_currentMission.player)
     end
-    --end
 
     return false
 end
@@ -550,70 +583,67 @@ end
 function HoseSystemPlayerInteractiveHandling:hardConnect(grabPoint, vehicle, reference)
     -- Note: cause we delete the connector vehicle from physics we have to attach it back later on
     -- Todo: delete only the connectorVehicle from physics, unlink and remove joints from that one hose when attaching an exentable hose
-    local rootVehicle = vehicle:getRootAttacherVehicle()
+    --    local rootVehicle = vehicle:getRootAttacherVehicle()
     local grabPoints = {}
-    local connectableGrabPoints = {}
 
     for index, gp in pairs(self.object.grabPoints) do
         if gp.id ~= grabPoint.id and HoseSystem:getIsConnected(gp.state) then
             --if gp.connectable or gp.connectorRef.connectable then
-                --gp.connectorVehicle:hardDisconnect(gp, gp.connectorVehicle, gp.connectorRef)
+            -- local reference = HoseSystemReferences:getReference(gp.connectorVehicle, gp.connectorRefId, gp)
+
+            -- Todo: does this even make senese? Yes it seems or fucking not
+            -- if reference ~= nil then
+            -- if reference.connectable then
+            -- gp.connectorVehicle.poly.interactiveHandling:hardDisconnect(reference, self.object, gp)
+            -- elseif gp.connectable then
+            -- self:hardDisconnect(gp, gp.connectorVehicle, reference)
+            -- end
+            -- end
             --end
 
-            table.insert(grabPoints, gp)
-        end
-    end
+            -- call detach
+            -- self:detach(gp.id, gp.connectorVehicle, gp.connectorRefId, false, true)
 
-    if grabPoint.connectable or reference.connectable then
-        if vehicle.grabPoints ~= nil then
-            for index, gp in pairs(vehicle.grabPoints) do
-                if HoseSystem:getIsConnected(gp.state) and (gp.connectable or gp.connectorRef.connectable) then
-                    print('Vehicle has one connected gp index = ' .. index)
-                    print('gp.connectable = ' .. tostring(gp.connectable))
-                    --detach(index, state, vehicle, referenceId, isExtendable, noEventSend)
-                    table.insert(connectableGrabPoints, { index = gp.id, vehicle = gp.connectorVehicle, referenceId = gp.connectorRef.id })
-                    --vehicle:detach(gp.id, nil, gp.connectorVehicle, gp.connectorRef.id, true, true)
-                    --vehicle:hardDisconnect(gp, gp.connectorVehicle, gp.connectorRef)
-                end
-            end
+            table.insert(grabPoints, gp)
         end
     end
 
     print("component id of grabPoint before doing something with physics = " .. grabPoint.componentIndex)
     print("connectedGrabPoints before doing something with physics = " .. #grabPoints)
 
-    -- if we got connected grabPoints delete the joints
-    if #connectableGrabPoints > 0 then
+    for index, gp in pairs(grabPoints) do
+        -- gp.connectorVehicle:removeFromPhysics()
+
+        -- setIsCompoundChild(gp.connectorVehicle.components[gp.componentIndex].node, true)
     end
 
-    -- we always completely delete
+    -- we always completely delete the current handled hose
     self.object:removeFromPhysics()
 
---    if self.isServer then
---        for _, componentJoint in pairs(self.componentJoints) do
---            if componentJoint.hoseJointIndex ~= 0 and componentJoint.hoseJointIndex ~= nil then
---                removeJoint(componentJoint.hoseJointIndex)
---                componentJoint.hoseJointIndex = 0
---            end
---        end
---    end
-
-    for index, gp in pairs(connectableGrabPoints) do
-        gp.vehicle:removeFromPhysics()
-    end
-
     if not reference.isObject then
-        for i = #rootVehicle.attachedImplements, 1, -1 do
-            local implement = rootVehicle.attachedImplements[i]
-            implement.object:removeFromPhysics()
+        local currentVehicle = vehicle
+
+        while currentVehicle ~= nil do
+            currentVehicle:removeFromPhysics()
+            currentVehicle = currentVehicle.attacherVehicle
         end
 
-        rootVehicle:removeFromPhysics()
+        -- rootVehicle:removeFromPhysics()
 
-        if not grabPoint.connectable and not reference.connectable then
-            setIsCompoundChild(self.object.components[grabPoint.componentIndex].node, true)
-        end
+        -- for i = #rootVehicle.attachedImplements, 1, -1 do
+        -- local implement = rootVehicle.attachedImplements[i]
+        -- implement.object:removeFromPhysics()
+        -- end
+
+        -- Set solid base compound
+        --        if not grabPoint.connectable and not reference.connectable then
+        --        end
+    else
+        removeFromPhysics(vehicle.nodeId)
+        --        vehicle:removeFromPhysics() -- This is the hose system parent
     end
+
+    setIsCompoundChild(self.object.components[grabPoint.componentIndex].node, true)
 
     local linkComponent = function(vehicle, grabPoint, reference)
         local moveDir = grabPoint.id > 1 and -1 or 1
@@ -623,7 +653,7 @@ function HoseSystemPlayerInteractiveHandling:hardConnect(grabPoint, vehicle, ref
 
         setDirection(vehicle.components[grabPoint.componentIndex].node, direction[1], direction[2], direction[3], upVector[1], upVector[2], upVector[3])
 
-        local translation = { localToLocal(vehicle.components[grabPoint.componentIndex].node, grabPoint.node, 0, 0, 0) }
+        local translation = { localToLocal(vehicle.components[grabPoint.componentIndex].node, grabPoint.node, 0, 0, (grabPoint.connectable or reference.connectable) and -0.025 or 0) } -- Todo: make offset value dynamic
         setTranslation(vehicle.components[grabPoint.componentIndex].node, unpack(translation))
 
         link(reference.node, vehicle.components[grabPoint.componentIndex].node)
@@ -631,53 +661,103 @@ function HoseSystemPlayerInteractiveHandling:hardConnect(grabPoint, vehicle, ref
 
     linkComponent(self.object, grabPoint, reference)
 
-    if not grabPoint.connectable and not reference.connectable then
-        self:addToPhysicsParts(grabPoint, grabPoints, vehicle, reference, true) -- check what todo with this
---        self.object:addToPhysics()
+    -- This should be done before adding the controlling hose back to physics
+    for index, gp in pairs(grabPoints) do
+        -- gp.connectorVehicle:addToPhysics()
+    end
+
+    -- Only add the hose to physics partly when there are attached grabPoints
+    if reference.isObject ~= nil then
+        self:addToPhysicsParts(grabPoint, grabPoints, vehicle, reference, true)
     else
         self.object:addToPhysics()
     end
 
-    for index, gp in pairs(connectableGrabPoints) do
-        gp.vehicle:addToPhysics()
-    end
-
+    -- Add the vehicles back to physics but sync wheels after the joint creation.
     if not reference.isObject then
-        for i = #rootVehicle.attachedImplements, 1, -1 do
-            local implement = rootVehicle.attachedImplements[i]
-            implement.object:addToPhysics();
+        local currentVehicle = vehicle
+
+        while currentVehicle ~= nil do
+            currentVehicle:addToPhysics()
+            currentVehicle = currentVehicle.attacherVehicle
         end
 
-        rootVehicle:addToPhysics()
+        -- for i = #rootVehicle.attachedImplements, 1, -1 do
+        -- local implement = rootVehicle.attachedImplements[i]
+        -- implement.object:addToPhysics()
+        -- -- PhysicsUtil.addToPhysics(implement.object)
+        -- end
+
+        -- rootVehicle:addToPhysics()
+        -- PhysicsUtil.addToPhysics(rootVehicle)
+    else
+        addToPhysics(vehicle.nodeId)
+        --        vehicle:addToPhysics() -- This is the hose system parent
     end
 
-    local jointDesc = {
-        actor1 = vehicle.components[reference.componentIndex].node,
-        actor2 = self.object.components[grabPoint.componentIndex].node,
-        anchor1 = reference.node,
-        anchor2 = reference.node,
-        isConnector = true
-    }
+    if self.object.isServer then
+        --        local jointDesc = {
+        --            actor1 = vehicle.components[reference.componentIndex].node,
+        --            actor2 = self.object.components[grabPoint.componentIndex].node,
+        --            anchor1 = reference.node,
+        --            anchor2 = reference.node,
+        --            isConnector = true
+        --        }
 
-    grabPoint.jointIndex = HoseSystemPlayerInteractiveHandling:constructReferenceJoints(jointDesc)
+        -- do we need a joint on connectable hoses?
+        --        grabPoint.jointIndex = HoseSystemPlayerInteractiveHandling:constructReferenceJoints(jointDesc)
 
-    for index, gp in pairs(connectableGrabPoints) do
---        local jointDesc = {
---            actor1 = gp.vehicle.components[reference.componentIndex].node,
---            actor2 = self.object.components[gp.componentIndex].node,
---            anchor1 = reference.node,
---            anchor2 = reference.node,
---            isConnector = true
---        }
+        --        for i, component in pairs(self.object.components) do
+        --            print(i)
+        --            if i ~= grabPoint.componentIndex then
+        --                setPairCollision(component.node, vehicle.components[reference.componentIndex].node, false)
+        --            end
+        --        end
 
---        vehicle:createConnectJoints(vehicle.grabPoints[gp.index], gp.vehicle, gp.vehicle.grabPoints[gp.referenceId]) -- lookup? referenceId!?
-    end
+        -- for index, gp in pairs(grabPoints) do
+        -- local reference = HoseSystemReferences:getReference(gp.connectorVehicle, gp.connectorRefId, gp)
 
-    if self.object.isClient then
+        -- if reference ~= nil then
+        -- if reference.connectable then
+        -- gp.connectorVehicle.poly.interactiveHandling:hardConnect(reference, self.object, gp)
+        -- elseif gp.connectable then
+        -- self:hardConnect(gp, gp.connectorVehicle, reference)
+        -- end
+        -- end
+
+        -- local jointDesc = {
+        -- actor1 = gp.connectorVehicle.components[reference.componentIndex].node,
+        -- actor2 = self.object.components[gp.componentIndex].node,
+        -- anchor1 = reference.node,
+        -- anchor2 = reference.node,
+        -- isConnector = true
+        -- }
+
+        -- gp.jointIndex = HoseSystemPlayerInteractiveHandling:constructReferenceJoints(jointDesc)
+
+        -- old below
+        -- vehicle:createConnectJoints(vehicle.grabPoints[gp.index], gp.vehicle, gp.vehicle.grabPoints[gp.referenceId]) -- lookup? referenceId!?
+        -- end
+
+        -- if not reference.isObject then
+        -- for i = #rootVehicle.attachedImplements, 1, -1 do
+        -- local implement = rootVehicle.attachedImplements[i]
+        -- PhysicsUtil.syncWheels(implement.object)
+        -- end
+
+        -- PhysicsUtil.syncWheels(rootVehicle)
+        -- end
+
+        self:setJointRotAndTransLimit({ 5, 0, 5 }, { 0, 0, 0 })
         self.object:raiseDirtyFlags(self.object.vehicleDirtyFlag) -- set bit.. we update the server
 
         if not reference.isObject then
-            rootVehicle:raiseDirtyFlags(rootVehicle.vehicleDirtyFlag)
+            --            local currentVehicle = vehicle
+            --
+            --            while currentVehicle ~= nil do
+            --                currentVehicle.raiseDirtyFlags(currentVehicle.vehicleDirtyFlag)
+            --                currentVehicle = currentVehicle.attacherVehicle
+            --            end
         end
     end
 end
@@ -685,7 +765,7 @@ end
 
 function HoseSystemPlayerInteractiveHandling:hardDisconnect(grabPoint, vehicle, reference)
     --simulatePhysics(false) -- stop physics for wheel shapes
-    local rootVehicle = vehicle:getRootAttacherVehicle()
+    --    local rootVehicle = vehicle:getRootAttacherVehicle()
     local grabPoints = {}
 
     for index, gp in pairs(self.object.grabPoints) do
@@ -695,50 +775,46 @@ function HoseSystemPlayerInteractiveHandling:hardDisconnect(grabPoint, vehicle, 
         end
     end
 
-    print("HARDISCONNECT - id = " .. grabPoint.id)
-    print("HARDISCONNECT - component id of grabPoint before doing something with physics = " .. grabPoint.componentIndex)
+    --    print("HARDISCONNECT - id = " .. grabPoint.id)
+    --    print("HARDISCONNECT - component id of grabPoint before doing something with physics = " .. grabPoint.componentIndex)
     print("HARDISCONNECT - connectedGrabPoints before doing something with physics = " .. table.getn(grabPoints))
 
     self:deleteCustomComponentJoint()
 
-    if self.isServer then
+    local removeJoint = function(grabPoint)
         if grabPoint.jointIndex ~= nil then
             removeJoint(grabPoint.jointIndex)
             grabPoint.jointIndex = nil
         end
     end
 
-    self.object:removeFromPhysics()
+    if self.object.isServer then
+        removeJoint(grabPoint)
 
-    -- if table.getn(grabPoints) > 0 and not grabPoint.connectable and not reference.connectable then
-    -- self:removeFromPhysicsPartly(grabPoints)
-    -- else
-    -- if self.isServer then
-    -- for _, componentJoint in pairs(self.componentJoints) do
-    -- removeJoint(componentJoint.jointIndex)
-    -- end
-    -- end
-
-    -- self:removeFromPhysics()
-    -- end
-
-    if not reference.isObject then
-        for i = #rootVehicle.attachedImplements, 1, -1 do
-            local implement = rootVehicle.attachedImplements[i]
-            implement.object:removeFromPhysics();
-        end
-
-        rootVehicle:removeFromPhysics()
-
-        --        local currentVehicle = vehicle
-        --
-        --        while currentVehicle ~= nil do
-        --            currentVehicle:removeFromPhysics()
-        --            currentVehicle = currentVehicle.attacherVehicle
+        --        for index, gp in pairs(grabPoints) do
+        --            removeJoint(gp)
         --        end
     end
 
+    for index, gp in pairs(grabPoints) do
+        --        gp.connectorVehicle:removeFromPhysics()
+
+        -- setIsCompound(gp.connectorVehicle.components[gp.componentIndex].node, true)
+    end
+
+    self.object:removeFromPhysics()
+
+    if not reference.isObject then
+        local currentVehicle = vehicle
+
+        while currentVehicle ~= nil do
+            currentVehicle:removeFromPhysics()
+            currentVehicle = currentVehicle.attacherVehicle
+        end
+    end
+
     setIsCompound(self.object.components[grabPoint.componentIndex].node, true)
+
     -- setIsCompoundChild(self.components[grabPoint.componentIndex].node, true)
 
     -- local translation = {getWorldTranslation(self.components[grabPoint.componentIndex].node)}
@@ -763,50 +839,43 @@ function HoseSystemPlayerInteractiveHandling:hardDisconnect(grabPoint, vehicle, 
     link(getRootNode(), self.object.components[grabPoint.componentIndex].node)
 
     if not reference.isObject then
-        for i = #rootVehicle.attachedImplements, 1, -1 do
-            local implement = rootVehicle.attachedImplements[i]
-            implement.object:addToPhysics();
-        end
-
-        rootVehicle:addToPhysics()
-
-        --        local currentVehicle = vehicle
-        --
-        --        while currentVehicle ~= nil do
-        --            currentVehicle:addToPhysics()
-        --            currentVehicle = currentVehicle.attacherVehicle
-        --        end
-
         -- whenever the vehicle is an extenable hose
-        if reference.connectable then
-            setIsCompound(vehicle.components[reference.componentIndex].node, true)
+        --        if reference.connectable then
+        --            setIsCompound(vehicle.components[reference.componentIndex].node, true)
+        --        end
+        local currentVehicle = vehicle
+
+        while currentVehicle ~= nil do
+            currentVehicle:addToPhysics()
+            currentVehicle = currentVehicle.attacherVehicle
         end
     end
 
-    if table.getn(grabPoints) > 0 and not grabPoint.connectable and not reference.connectable then
+    -- only add the hose partly to physics when there are attached grabPoints
+    if #grabPoints > 0 and not grabPoint.connectable and not reference.connectable then
         self:addToPhysicsParts(grabPoint, grabPoints, vehicle, reference, false)
     else
-        print("HARDISCONNECT - We completly reset")
-        -- self.componentJoints = self.originalComponentJoints
-        -- self:addToPhysics()	-- add all whats not added
-        -- self:removeFromPhysics() -- remove the complete hose
         self.object:addToPhysics() -- add it back
     end
 
-    --self:addToPhysics()
+    --    for index, gp in pairs(grabPoints) do
+    --        gp.connectorVehicle:addToPhysics()
+    --        -- self:hardConnect(gp, gp.connectorVehicle, gp.connectorRef)
+    --
+    --        local reference = HoseSystemReferences:getReference(gp.connectorVehicle, gp.connectorRefId, gp)
+    --
+    --        local jointDesc = {
+    --            actor1 = gp.connectorVehicle.components[reference.componentIndex].node,
+    --            actor2 = self.object.components[gp.componentIndex].node,
+    --            anchor1 = reference.node,
+    --            anchor2 = reference.node,
+    --            isConnector = true
+    --        }
+    --
+    --        gp.jointIndex = HoseSystemPlayerInteractiveHandling:constructReferenceJoints(jointDesc)
+    --    end
 
-    -- for index, gp in pairs(grabPoints) do
-    -- --self:hardConnect(gp, gp.connectorVehicle, gp.connectorRef)
-
-    -- if not gp.connectorRef.isObject and gp.connectorVehicle ~= nil then
-    -- gp.connectorVehicle:raiseDirtyFlags(gp.connectorVehicle.vehicleDirtyFlag)
-    -- end
-    -- end
-
-    -- local endIndex = grabPoint.id > 1 and 1 or table.getn(self.grabPoints)
-    -- self:updateComponentJointMovement(endIndex, true)
-
-    if self.object.isClient then
+    if self.object.isServer then
         self.object:raiseDirtyFlags(self.object.vehicleDirtyFlag)
     end
 
@@ -820,15 +889,11 @@ function HoseSystemPlayerInteractiveHandling:hardParkHose(grabPoints, vehicle, r
         return
     end
 
-    local rootVehicle = vehicle:getRootAttacherVehicle()
+    local currentVehicle = vehicle
 
-    if not reference.isObject then
-        for i = #rootVehicle.attachedImplements, 1, -1 do
-            local implement = rootVehicle.attachedImplements[i]
-            implement.object:removeFromPhysics();
-        end
-
-        rootVehicle:removeFromPhysics()
+    while currentVehicle ~= nil do
+        currentVehicle:removeFromPhysics()
+        currentVehicle = currentVehicle.attacherVehicle
     end
 
     -- if not vehicle.isAddedToPhysics then
@@ -974,24 +1039,22 @@ function HoseSystemPlayerInteractiveHandling:hardParkHose(grabPoints, vehicle, r
     -- end
     -- end
 
-    if not reference.isObject then
-        for i = #rootVehicle.attachedImplements, 1, -1 do
-            local implement = rootVehicle.attachedImplements[i]
-            implement.object:addToPhysics();
-        end
+    local currentVehicle = vehicle
 
-        rootVehicle:addToPhysics()
+    while currentVehicle ~= nil do
+        currentVehicle:addToPhysics()
+        currentVehicle = currentVehicle.attacherVehicle
     end
 
     -- self:addToPhysics()
 
     if self.object.isServer then
         -- this should force and update on the components
-        self.object:raiseDirtyFlags(self.object.vehicleDirtyFlag)
+        --        self.object:raiseDirtyFlags(self.object.vehicleDirtyFlag)
 
         if not reference.isObject then
             -- fo
-            rootVehicle:raiseDirtyFlags(rootVehicle.vehicleDirtyFlag)
+            vehicle:raiseDirtyFlags(vehicle.vehicleDirtyFlag)
         end
     end
 end
@@ -1001,15 +1064,11 @@ function HoseSystemPlayerInteractiveHandling:hardUnparkHose(grabPoints, vehicle,
         return
     end
 
-    local rootVehicle = vehicle:getRootAttacherVehicle()
+    local currentVehicle = vehicle
 
-    if not reference.isObject then
-        for i = #rootVehicle.attachedImplements, 1, -1 do
-            local implement = rootVehicle.attachedImplements[i]
-            implement.object:removeFromPhysics();
-        end
-
-        rootVehicle:removeFromPhysics()
+    while currentVehicle ~= nil do
+        currentVehicle:removeFromPhysics()
+        currentVehicle = currentVehicle.attacherVehicle
     end
 
     self.object:removeFromPhysics()
@@ -1055,13 +1114,11 @@ function HoseSystemPlayerInteractiveHandling:hardUnparkHose(grabPoints, vehicle,
     delete(self.object.data.parkCenterTargetNode)
     delete(self.object.data.parkEndTargetNode)
 
-    if not reference.isObject then
-        for i = #rootVehicle.attachedImplements, 1, -1 do
-            local implement = rootVehicle.attachedImplements[i]
-            implement.object:addToPhysics();
-        end
+    local currentVehicle = vehicle
 
-        rootVehicle:addToPhysics()
+    while currentVehicle ~= nil do
+        currentVehicle:addToPhysics()
+        currentVehicle = currentVehicle.attacherVehicle
     end
 
     self.object:addToPhysics()
@@ -1072,9 +1129,9 @@ function HoseSystemPlayerInteractiveHandling:hardUnparkHose(grabPoints, vehicle,
 end
 
 function HoseSystemPlayerInteractiveHandling:addToPhysicsParts(grabPoint, connectedGrabPoints, vehicle, reference, isConnecting)
---    if self.object.isAddedToPhysics then
---       return true
---    end
+    --    if self.object.isAddedToPhysics then
+    --       return true
+    --    end
 
     local connectedComponentIndexes = {}
 
@@ -1091,9 +1148,9 @@ function HoseSystemPlayerInteractiveHandling:addToPhysicsParts(grabPoint, connec
                 -- we only add components that are not related to the grabpoint we want to connect
                 if gp.componentIndex ~= grabPoint.componentIndex and componentIndex == gp.componentIndex and not connectedComponentIndexes[componentIndex] then
                     -- it also does not exists in the connected table
-                    if HoseSystem.debugRendering then
-                        print('We only add component ' .. componentIndex .. ' to physics')
-                    end
+                    --                    if HoseSystem.debugRendering then
+                    print('We only add component ' .. componentIndex .. ' to physics')
+                    --                    end
 
                     addToPhysics(component.node)
                 end
@@ -1115,19 +1172,19 @@ function HoseSystemPlayerInteractiveHandling:addToPhysicsParts(grabPoint, connec
         return
     end
 
+    --    print('!===================> is this causing that again?')
+
     -- do joints
     -- if we disconnect the hose we need to create the joints on the other connected grabPoint
     local gp = grabPoint
     if not isConnecting then
-        local _, v = next(connectedGrabPoints, nil)
-        gp = v
+        gp = connectedGrabPoints[1]
     end
 
-    -- Todo: what if vehicle is an object?
-    local vehicle = not isConnecting and gp.connectorVehicle or vehicle
+    local object = not isConnecting and gp.connectorVehicle or vehicle
     local reference = not isConnecting and HoseSystemReferences:getReference(gp.connectorVehicle, gp.connectorRefId, gp) or reference
 
-    self:createCustomComponentJoint(gp, vehicle, reference)
+    self:createCustomComponentJoint(gp, object, reference)
 end
 
 function HoseSystemPlayerInteractiveHandling:deleteCustomComponentJoint()
@@ -1143,7 +1200,7 @@ function HoseSystemPlayerInteractiveHandling:deleteCustomComponentJoint()
     end
 end
 
-function HoseSystemPlayerInteractiveHandling:createCustomComponentJoint(grabPoint, vehicle, reference)
+function HoseSystemPlayerInteractiveHandling:createCustomComponentJoint(grabPoint, object, reference)
     for i, jointDesc in pairs(self.object.componentJoints) do
         -- how to put some logic into this one?
         if grabPoint.componentJointIndex == i then
@@ -1154,7 +1211,7 @@ function HoseSystemPlayerInteractiveHandling:createCustomComponentJoint(grabPoin
             -- create custom joint since we need the jointTransforms on this one
             jointDesc.hoseJointIndex = HoseSystemPlayerInteractiveHandling:constructReferenceJoints({
                 actor1 = self.object.components[grabPoint.componentIndex > 1 and 1 or self.object.jointSpline.endComponentId].node,
-                actor2 = vehicle.components[reference.componentIndex].node,
+                actor2 = object.components[reference.componentIndex].node,
                 anchor1 = reference.node,
                 anchor2 = reference.node,
                 isConnector = false

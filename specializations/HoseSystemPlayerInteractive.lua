@@ -39,12 +39,12 @@ function HoseSystemPlayerInteractive:getIsPlayerInGrabPointRange()
 
     if self.object.grabPoints ~= nil then
         local distance = math.huge
-        local playerTrans = {getWorldTranslation(g_currentMission.player.rootNode)}
+        local playerTrans = { getWorldTranslation(g_currentMission.player.rootNode) }
         local playerDistance = self.minDistance
 
         for index, grabPoint in pairs(self.object.grabPoints) do
             if grabPoint.node ~= nil then
-                local trans = {getWorldTranslation(grabPoint.node)}
+                local trans = { getWorldTranslation(grabPoint.node) }
                 local gpDistance = Utils.vector3Length(trans[1] - playerTrans[1], trans[2] - playerTrans[2], trans[3] - playerTrans[3])
 
                 playerDistance = Utils.getNoNil(grabPoint.playerDistance, self.minDistance)
@@ -117,13 +117,13 @@ function HoseSystemPlayerInteractive:playerOnLeave(superFunc)
         superFunc(self)
     end
 
---    if self.isServer then
-        if self.hoseSystem ~= nil then
-            if self.hoseSystem.interactiveHandling ~= nil and self.hoseSystem.interactiveHandling.drop ~= nil then
-                self.hoseSystem.interactiveHandling:drop(self.hoseSystem.index, self)
-            end
+    --    if self.isServer then
+    if self.hoseSystem ~= nil then
+        if self.hoseSystem.interactiveHandling ~= nil and self.hoseSystem.interactiveHandling.drop ~= nil then
+            self.hoseSystem.interactiveHandling:drop(self.hoseSystem.index, self)
         end
---    end
+    end
+    --    end
 end
 
 ---

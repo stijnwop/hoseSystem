@@ -7,7 +7,7 @@
 
 AnimatedObjectExtension = {}
 
-function AnimatedObjectExtension:load(superFunc, nodeId)	
+function AnimatedObjectExtension:load(superFunc, nodeId)
 	if superFunc(self, nodeId) then
 		if g_currentMission.animatedObjects == nil then
 			g_currentMission.animatedObjects = {}
@@ -17,7 +17,7 @@ function AnimatedObjectExtension:load(superFunc, nodeId)
 		
 		return true
 	end
-	
+
 	return false
 end
 

@@ -20,7 +20,7 @@ function HoseSystemReferences:new(object, mt)
     references.object.referenceIdToMountHoseSystem = 0
     references.object.referenceIsExtendable = false
 
-    references.queueNetworkObjects = false
+    references.doNetworkObjectsIteration = false
 
     if object.isServer then
         references.vehicleToMountHoseSystemSend = nil
@@ -46,12 +46,13 @@ function HoseSystemReferences:writeStream(streamId, connection)
     local referenceIsExtendable = streamReadBool(streamId)
 
     self:loadFillableObjectAndReference(vehicleToMountHoseSystem, referenceIdToMountHoseSystem, referenceIsExtendable, true)
-    self.queueNetworkObjects = true
+    self.doNetworkObjectsIteration = true
 end
 
 function HoseSystemReferences:update(dt)
-    if self.queueNetworkObjects then
-        self:doNetworkQueue()
+    -- iterate over grabPoints to sync the vehicles with all clients
+    if self.doNetworkObjectsIteration then
+        self:iterateNetworkObjects()
     end
 
     if not self.object.isServer then
@@ -81,10 +82,10 @@ function HoseSystemReferences:loadFillableObjectAndReference(vehicle, referenceI
                 g_server:broadcastEvent(HoseSystemLoadFillableObjectAndReferenceEvent:new(self, self.object.vehicleToMountHoseSystem, self.object.referenceIdToMountHoseSystem, self.object.referenceIsExtendable))
             end
 
---            print('Send event')
---            print('vehicleToMountHoseSystem ' .. tostring(self.vehicleToMountHoseSystem))
---            print('referenceIdToMountHoseSystem ' .. tostring(self.object.referenceIdToMountHoseSystem))
---            print('referenceIsExtendable ' .. tostring(self.referenceIsExtendable))
+            --            print('Send event')
+            --            print('vehicleToMountHoseSystem ' .. tostring(self.vehicleToMountHoseSystem))
+            --            print('referenceIdToMountHoseSystem ' .. tostring(self.object.referenceIdToMountHoseSystem))
+            --            print('referenceIsExtendable ' .. tostring(self.referenceIsExtendable))
 
             self.vehicleToMountHoseSystemSend = self.object.vehicleToMountHoseSystem
             self.referenceIdToMountHoseSystemSend = self.object.referenceIdToMountHoseSystem
@@ -93,19 +94,19 @@ function HoseSystemReferences:loadFillableObjectAndReference(vehicle, referenceI
     end
 end
 
-function HoseSystemReferences:doNetworkQueue()
+function HoseSystemReferences:iterateNetworkObjects()
     if self.object.grabPoints ~= nil then
         for index, grabPoint in pairs(self.object.grabPoints) do
             -- Todo: lookup better solution
-            local vehicle = networkGetObject(grabPoint.connectorVehicleId)
+            if grabPoint.connectorVehicleId ~= nil then
+                local vehicle = networkGetObject(grabPoint.connectorVehicleId)
 
-            if vehicle ~= nil and grabPoint.connectorRefId ~= 0 then
-                grabPoint.connectorVehicle = vehicle
-                grabPoint.connectorRef = grabPoint.connectorRefConnectable and vehicle.grabPoints[grabPoint.connectorRefId] or vehicle.hoseSystemReferences[grabPoint.connectorRefId]
-                grabPoint.connectorVehicleId = 0
-                grabPoint.connectorRefId = 0
+                if vehicle ~= nil then
+                    grabPoint.connectorVehicle = vehicle
+                    grabPoint.connectorVehicleId = nil
 
-                self:syncIsUsed(index, HoseSystem:getIsConnected(grabPoint.attachState), grabPoint.hasExtenableJointIndex, true)
+                    self:syncIsUsed(index, HoseSystem:getIsConnected(grabPoint.attachState), grabPoint.hasExtenableJointIndex, true)
+                end
             end
         end
     end
@@ -230,6 +231,11 @@ function HoseSystemReferences:getHasReferenceInRange(object)
 end
 
 function HoseSystemReferences:getReference(object, index, grabPoint)
+    -- When we are dealing with map objects change the object to the parent that holds the rigid body node
+    if object.hoseSystemParent ~= nil then
+        object = object.hoseSystemParent
+    end
+
     if not grabPoint.connectable and object.hoseSystemReferences ~= nil then
         return object.hoseSystemReferences[index]
     end
@@ -241,15 +247,47 @@ function HoseSystemReferences:getReference(object, index, grabPoint)
     return nil
 end
 
+
+function HoseSystemReferences:getReferenceVehicle(object)
+    if object.hoseSystemParent ~= nil then
+        return object.hoseSystemParent
+    end
+
+    return object
+end
+
 function HoseSystemReferences:getAllowsDetach(object, index)
     local grabPoint = object.grabPoints[index]
 
     if grabPoint ~= nil then
         if grabPoint.connectorRefId ~= nil then
-            local reference = HoseSystemReferences:getReference(grabPoint.connectorVehicle, grabPoint.connectorRefId, grabPoint)
+            local vehicle = grabPoint.connectorVehicle
+            local reference = HoseSystemReferences:getReference(vehicle, grabPoint.connectorRefId, grabPoint)
 
             if reference ~= nil then
-                if reference.flowOpened or reference.isLocked or reference.connectable then
+                local flowOpened = reference.flowOpened
+                local isLocked = reference.isLocked
+
+                -- when dealing with an object that has no visual handlings allow detach.
+                if reference.isObject then
+                    if reference.lockAnimatedObjectSaveId == nil then
+                        isLocked = false
+                    end
+
+                    if reference.manureFlowAnimatedObjectSaveId == nil then
+                        flowOpened = false
+                    end
+                else
+                    if reference.lockAnimationName == nil then
+                        isLocked = false
+                    end
+
+                    if reference.manureFlowAnimationName == nil then
+                        flowOpened = false
+                    end
+                end
+
+                if flowOpened or isLocked or reference.connectable then
                     return false
                 end
 

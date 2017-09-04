@@ -21,11 +21,15 @@ local files = {
     ('%s/%s'):format(eventDirectory, 'HoseSystemAttachEvent'),
     ('%s/%s'):format(eventDirectory, 'HoseSystemDetachEvent'),
     ('%s/%s'):format(eventDirectory, 'HoseSystemIsUsedEvent'),
+    ('%s/%s'):format(eventDirectory, 'HoseSystemSetOwnerEvent'),
     ('%s/%s'):format(eventDirectory, 'HoseSystemToggleLockEvent'),
     ('%s/%s'):format(eventDirectory, 'HoseSystemLoadFillableObjectAndReferenceEvent'),
+    --    ('%s/%s'):format(eventDirectory, 'HoseSystemChainCountEvent'),
     -- Classes
     ('%s/%s'):format(srcDirectory, 'HoseSystemPlayerInteractive'),
     ('%s/%s'):format(srcDirectory, 'HoseSystemPlayerInteractiveHandling'),
+    ('%s/%s'):format(srcDirectory, 'HoseSystemPlayerInteractiveRestrictions'),
+    ('%s/%s'):format(srcDirectory, 'HoseSystemFillTriggerInteractive'),
     ('%s/%s'):format(srcDirectory, 'HoseSystemReferences'),
 }
 
@@ -56,6 +60,8 @@ function HoseSystem:preLoad(savegame)
     self.loadGrabPoints = HoseSystem.loadGrabPoints
     self.updateSpline = HoseSystem.updateSpline
     self.toggleLock = HoseSystem.toggleLock
+    self.setEmptyEffect = HoseSystem.setEmptyEffect
+    self.toggleEmptyingEffect = HoseSystem.toggleEmptyingEffect
 
     self.loadObjectChangeValuesFromXML = Utils.overwrittenFunction(self.loadObjectChangeValuesFromXML, HoseSystem.loadObjectChangeValuesFromXML)
     self.setObjectChangeValues = Utils.overwrittenFunction(self.setObjectChangeValues, HoseSystem.setObjectChangeValues)
@@ -69,15 +75,13 @@ function HoseSystem:load(savegame)
     self.grabPoints = {}
     self.nodesToGrabPoints = {}
 
---    self.hoseSystemActivatable = HoseSystemActivatable:new(self)
-
     self:loadHoseJoints(self.xmlFile, 'vehicle.hoseSystem.jointSpline')
     self:loadGrabPoints(self.xmlFile, 'vehicle.hoseSystem.grabPoints')
 
---    print(HoseSystem:print_r(self.grabPoints))
+    --    print(HoseSystem:print_r(self.grabPoints))
 
-    local startTrans = {getWorldTranslation(self.components[1].node)}
-    local endTrans = {getWorldTranslation(self.components[self.jointSpline.endComponentId].node)}
+    local startTrans = { getWorldTranslation(self.components[1].node) }
+    local endTrans = { getWorldTranslation(self.components[self.jointSpline.endComponentId].node) }
 
     self.data = {
         length = Utils.vector3Length(endTrans[1] - startTrans[1], endTrans[2] - startTrans[2], endTrans[3] - startTrans[3]),
@@ -100,15 +104,31 @@ function HoseSystem:load(savegame)
         end
     end
 
+    if self.isClient then
+        local effects = EffectManager:loadEffect(self.xmlFile, 'vehicle.hoseSystem.effect', self.components, self)
+
+        if effects ~= nil then
+            local effect = {
+                effects = effects,
+                isActive = false
+            }
+
+            self.hoseEffects = effect
+        end
+    end
+
     self.polymorphismClasses = {}
 
     -- in case we need to access it later we setup callbacks here
     self.poly = {
-        interactiveHandling = HoseSystemPlayerInteractiveHandling:new(self)
+        interactiveHandling = HoseSystemPlayerInteractiveHandling:new(self),
+        interactiveFillTrigger = HoseSystemFillTriggerInteractive:new(self)
     }
 
     table.insert(self.polymorphismClasses, self.poly.interactiveHandling)
+    table.insert(self.polymorphismClasses, self.poly.interactiveFillTrigger)
     table.insert(self.polymorphismClasses, HoseSystemReferences:new(self))
+    table.insert(self.polymorphismClasses, HoseSystemPlayerInteractiveRestrictions:new(self))
 end
 
 function HoseSystem:loadHoseJoints(xmlFile, baseString)
@@ -135,7 +155,7 @@ function HoseSystem:loadHoseJoints(xmlFile, baseString)
     entry.curveControllerTrans = Utils.getNoNil(Utils.getVectorNFromString(getXMLString(xmlFile, ('%s#curveControllerTrans'):format(baseString)), 3), { 0, 0, 7.5 }) -- set curve "controller" trans relative to grabPoints
     entry.numJoints = #entry.hoseJoints
     entry.endComponentId = #self.components
-    entry.lastPosition = {{ 0, 0, 0 }, { 0, 0, 0 }}
+    entry.lastPosition = { { 0, 0, 0 }, { 0, 0, 0 } }
     entry.firstRunUpdates = 0
     entry.firstNumRunUpdates = Utils.getNoNil(getXMLInt(xmlFile, ('%s#firstNumRunUpdates'):format(baseString)), 7)
     entry.length = getXMLFloat(xmlFile, 'vehicle.size#length')
@@ -164,18 +184,24 @@ function HoseSystem:loadGrabPoints(xmlFile, baseString)
 
         local node = Utils.indexToObject(self.components, getXMLString(xmlFile, key .. '#node'))
 
+        local rx, ry, rz = Utils.getVectorFromString(getXMLString(xmlFile, key .. '#playerJointRotLimit'))
+        local tx, ty, tz = Utils.getVectorFromString(getXMLString(xmlFile, key .. '#playerJointTransLimit'))
+
         if node ~= nil then
             local entry = {
                 id = i + 1, -- Table index
                 node = node,
+                raycastNode = Utils.indexToObject(self.components, getXMLString(xmlFile, key .. '#raycastNode')),
                 nodeOrgTrans = { getRotation(node) },
                 nodeOrgRot = { getRotation(node) },
+                playerJointRotLimit = { Utils.getNoNil(rx, 0), Utils.getNoNil(ry, 0), Utils.getNoNil(rz, 0) },
+                playerJointTransLimit = { Utils.getNoNil(tx, 0), Utils.getNoNil(ty, 0), Utils.getNoNil(tz, 0) },
                 jointIndex = 0,
                 centerJointIndex = 0,
                 hasJointIndex = false, -- We don't sync the actual JointIndex it's server sided
                 hasExtenableJointIndex = false, -- We don't sync the actual JointIndex it's server sided
-                componentIndex = Utils.getNoNil(getXMLFloat(xmlFile, key .. '#componentIndex'), 0) + 1,
-                componentJointIndex = Utils.getNoNil(getXMLFloat(xmlFile, key .. '#componentJointIndex'), 1),
+                componentIndex = Utils.getNoNil(getXMLInt(xmlFile, key .. '#componentIndex'), 0) + 1,
+                componentJointIndex = Utils.getNoNil(getXMLInt(xmlFile, key .. '#componentJointIndex'), 1),
                 componentChildNode = Utils.indexToObject(self.components, getXMLString(xmlFile, key .. '#componentChildNode')),
                 connectable = Utils.getNoNil(getXMLBool(xmlFile, key .. '#connectable'), false),
                 connectableAnimation = nil,
@@ -183,17 +209,16 @@ function HoseSystem:loadGrabPoints(xmlFile, baseString)
                 state = HoseSystem.STATE_DETACHED,
                 connectorRef = nil,
                 connectorRefId = 0,
-                connectorRefConnectable = false,
                 connectorVehicle = nil,
-                connectorVehicleId = 0,
+                connectorVehicleId = nil,
                 currentOwner = nil,
                 isOwned = false
             }
 
---            table.insert(self.playerInRangeTool, {
---                node = node,
---                playerDistance = 2
---            })
+            --            table.insert(self.playerInRangeTool, {
+            --                node = node,
+            --                playerDistance = 2
+            --            })
 
             table.insert(self.grabPoints, entry)
             self.nodesToGrabPoints[entry.node] = entry
@@ -225,7 +250,42 @@ function HoseSystem:postLoad(savegame)
     end
 end
 
+function HoseSystem:preDelete()
+    if self.isServer then
+        if self.grabPoints ~= nil then
+            for index, grabPoint in pairs(self.grabPoints) do
+                if HoseSystem:getIsAttached(grabPoint.state) then
+                    if grabPoint.isOwned and grabPoint.currentOwner ~= nil then
+                        self.poly.interactiveHandling:drop(index, grabPoint.currentOwner, true)
+                    end
+                elseif HoseSystem:getIsConnected(grabPoint.state) then
+                    if grabPoint.connectorVehicle ~= nil and grabPoint.connectorRefId ~= nil then
+                        local reference = HoseSystemReferences:getReference(grabPoint.connectorVehicle, grabPoint.connectorRefId, grabPoint)
+
+                        self.poly.interactiveHandling:detach(index, grabPoint.connectorVehicle, grabPoint.connectorRefId, reference.connectable ~= nil and reference.connectable, true)
+                    end
+                end
+            end
+        end
+    end
+end
+
 function HoseSystem:delete()
+    if g_currentMission.hoseSystemHoses ~= nil then
+        for index = 1, #g_currentMission.hoseSystemHoses do
+            if g_currentMission.hoseSystemHoses[index] == self then
+                table.remove(g_currentMission.hoseSystemHoses, index)
+                break
+            end
+        end
+    end
+
+    if self.isClient then
+        if self.hoseEffects ~= nil and self.hoseEffects.effect ~= nil then
+            EffectManager:deleteEffects(self.hoseEffects.effect)
+        end
+    end
+
     if self.polymorphismClasses ~= nil and #self.polymorphismClasses > 0 then
         for _, class in pairs(self.polymorphismClasses) do
             if class.delete ~= nil then
@@ -236,6 +296,22 @@ function HoseSystem:delete()
 end
 
 function HoseSystem:writeStream(streamId, connection)
+    streamWriteInt8(streamId, #self.grabPoints)
+
+    for index = 1, #self.grabPoints do
+        local grabPoint = self.grabPoints[index]
+
+        if grabPoint ~= nil then
+            streamWriteInt8(streamId, grabPoint.state)
+            writeNetworkNodeObjectId(streamId, networkGetObjectId(grabPoint.connectorVehicle))
+            streamWriteInt32(streamId, grabPoint.connectorRefId)
+            streamWriteBool(streamId, grabPoint.isOwned)
+            writeNetworkNodeObject(streamId, grabPoint.currentOwner)
+            streamWriteBool(streamId, grabPoint.hasJointIndex)
+            streamWriteBool(streamId, grabPoint.hasExtenableJointIndex)
+        end
+    end
+
     if self.polymorphismClasses ~= nil and #self.polymorphismClasses > 0 then
         for _, class in pairs(self.polymorphismClasses) do
             if class.writeStream ~= nil then
@@ -246,6 +322,34 @@ function HoseSystem:writeStream(streamId, connection)
 end
 
 function HoseSystem:readStream(streamId, connection)
+    local numGrabPoints = streamReadInt8(streamId)
+
+    for index = 1, numGrabPoints do
+        local grabPoint = self.grabPoints[index]
+
+        if grabPoint ~= nil then
+            grabPoint.state = streamReadInt8(streamId)
+            grabPoint.connectorVehicleId = readNetworkNodeObjectId(streamId)
+            grabPoint.connectorRefId = streamReadInt32(streamId)
+
+            if HoseSystem:getIsConnected(grabPoint.state) then
+                if grabPoint.connectable then
+                    self:toggleLock(true, true) -- close lock
+                end
+            end
+
+            local isOwned = streamReadBool(streamId)
+            local player = readNetworkNodeObject(streamId)
+
+            self.poly.interactiveHandling:setGrabPointOwner(index, isOwned, player, true)
+
+            grabPoint.hasJointIndex = streamReadBool(streamId)
+            grabPoint.hasExtenableJointIndex = streamReadBool(streamId)
+
+            self.poly.interactiveHandling:setGrabPointIsUsed(index, HoseSystem:getIsConnected(grabPoint.state), grabPoint.hasExtenableJointIndex, false, true)
+        end
+    end
+
     if self.polymorphismClasses ~= nil and #self.polymorphismClasses > 0 then
         for _, class in pairs(self.polymorphismClasses) do
             if class.readStream ~= nil then
@@ -264,7 +368,32 @@ function HoseSystem:getSaveAttributesAndNodes(nodeIdent)
                 nodes = nodes .. "\n"
             end
 
-            nodes = nodes .. nodeIdent .. ('<grabPoint id="%s" lockState="%s" />'):format(index, grabPoint.isLocked)
+            nodes = nodes .. nodeIdent .. ('<grabPoint id="%s" lockState="%s"'):format(index, grabPoint.isLocked)
+
+            if HoseSystem:getIsConnected(grabPoint.state) then
+                if grabPoint.connectorVehicle ~= nil and grabPoint.connectorRefId ~= nil then
+                    local vehicleId = 0
+                    local reference = HoseSystemReferences:getReference(grabPoint.connectorVehicle, grabPoint.connectorRefId, grabPoint)
+
+                    for i, vehicle in pairs(g_currentMission.hoseSystemReferences) do
+
+                        if vehicle == grabPoint.connectorVehicle then
+                            vehicleId = i
+                            break
+                        end
+                    end
+
+                    if not reference.connectable then -- check if we don't have an extendable hose on the reference
+                        nodes = nodes .. (' connectorVehicleId="%s" referenceId="%s" extenable="%s"'):format(vehicleId, grabPoint.connectorRefId, tostring(grabPoint.connectable))
+                    end
+
+                    if reference.parkable then -- We are saving a parked hose.. we don't need to save the other references.
+                        break
+                    end
+                end
+            end
+
+            nodes = nodes .. ' />'
         end
     end
 
@@ -295,6 +424,14 @@ function HoseSystem:update(dt)
         end
     end
 end
+
+
+function HoseSystem:updateTick(dt)
+    if self.isClient then
+        self:setEmptyEffect(self.hoseEffects.isActive, dt)
+    end
+end
+
 
 function HoseSystem:draw()
 end
@@ -457,6 +594,85 @@ function HoseSystem:toggleLock(index, shouldLock, noEventSend)
         end
 
         HoseSystemToggleLockEvent.sendEvent(self, index, shouldLock, noEventSend)
+    end
+end
+
+---
+-- @param activate
+-- @param yDirectionSpeed
+-- @param index
+--
+function HoseSystem:toggleEmptyingEffect(activate, yDirectionSpeed, index, fillType)
+    if self.hoseEffects ~= nil and self.hoseEffects.isActive ~= activate then
+        self.hoseEffects.isActive = activate
+
+        if activate then
+            EffectManager:setFillType(self.hoseEffects.effects, fillType)
+
+            if self.hoseEffects.effects ~= nil then
+                local grabPoint = self.grabPoints[index]
+                local trans = { getWorldTranslation(grabPoint.node) }
+
+                for _, effect in pairs(self.hoseEffects.effects) do
+                    local rot = { getRotation(effect.node) }
+                    rot[2] = grabPoint.id == 1 and math.rad(0) or math.rad(180)
+
+                    setWorldTranslation(effect.node, unpack(trans))
+                    setRotation(effect.node, unpack(rot))
+                end
+            end
+        end
+    end
+end
+
+function HoseSystem:setEmptyEffect(activate, dt)
+    if self.hoseEffects ~= nil and self.hoseEffects.effects ~= nil then
+        if activate then
+            EffectManager:startEffects(self.hoseEffects.effects)
+
+            -- Set the direction of the effect always in toward the dection node
+            if self.hoseEffects.effects ~= nil then
+                if self.lastRaycastDistance ~= 0 then
+                    local target = { getWorldTranslation(self.lastRaycastObject.detectionNode) }
+                    local targetRot = 0
+
+                    for _, effect in pairs(self.hoseEffects.effects) do
+                        if effect.curRotation == nil then
+                            effect.orgRotation = { getRotation(effect.node) }
+                            effect.curRotation = { getRotation(effect.node) }
+                        end
+
+                        for i = 1, 3 do
+                            if i == 1 then -- x axis
+                                local x, y, z = getWorldTranslation(effect.node)
+                                local _, y, z = worldDirectionToLocal(getParent(effect.node), target[1] - x, target[2] - y, target[3] - z)
+                                targetRot = -math.atan2(y, z) -- x axis
+
+                                targetRot = Utils.normalizeRotationForShortestPath(targetRot, effect.curRotation[i])
+                            end
+
+                            if math.abs(effect.curRotation[i] - targetRot) > 0.000001 then
+                                if effect.curRotation[i] < targetRot then
+                                    effect.curRotation[i] = math.min(effect.curRotation[i] + dt, targetRot)
+                                else
+                                    effect.curRotation[i] = math.max(effect.curRotation[i] - dt, targetRot)
+                                end
+
+                                if effect.curRotation[i] > 2 * math.pi then
+                                    effect.curRotation[i] = effect.curRotation[i] - 2 * math.pi
+                                elseif effect.curRotation[i] < -2 * math.pi then
+                                    effect.curRotation[i] = effect.curRotation[i] + 2 * math.pi
+                                end
+                            end
+                        end
+
+                        setRotation(effect.node, effect.curRotation[1], effect.orgRotation[2], effect.orgRotation[3])
+                    end
+                end
+            end
+        else
+            EffectManager:stopEffects(self.hoseEffects.effects)
+        end
     end
 end
 
