@@ -2,7 +2,7 @@
 
 <i3D name="materialHolder" version="1.6" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://i3d.giants.ch/schema/i3d-1.6.xsd">
   <Asset>
-    <Export program="GIANTS Editor 64bit" version="7.0.2"/>
+    <Export program="GIANTS Editor 64bit" version="7.1.0"/>
   </Asset>
 
   <Files>
@@ -13,7 +13,7 @@
 
 
   <Materials>
-    <Material name="liquidManure_mat" materialId="7" diffuseColor="0.498039 0.498039 0.498039 1" ambientColor="1 1 1" cosPower="255" specularColor="0.05 0.05 0.05" alphaBlending="true" customShaderId="4">
+    <Material name="liquidManure_mat" materialId="7" diffuseColor="0.494118 0.494118 0.494118 1" ambientColor="1 1 1" cosPower="255" specularColor="0.05 0.05 0.05" alphaBlending="true" customShaderId="4">
       <Normalmap fileId="2"/>
       <Reflectionmap fileId="3" wrap="false" lodDistanceScaling="0.5" viewDistanceScaling="0.5" type="cube" scaling="1" refractiveIndex="1" bumpScale="0.1" shapesObjectMask="4294967295" lightsObjectMask="4294967295"/>
       <CustomParameter name="fadeProgress" value="1 1 0 0"/>
@@ -37,10 +37,10 @@
   </Scene>
 
   <UserAttributes>
-    <UserAttribute nodeId="12">
+    <UserAttribute nodeId="12">	  
       <Attribute name="onCreate" type="scriptCallback" value="MaterialUtil.onCreateMaterial"/>
-	  <Attribute name="fillType" type="string" value="liquidManure"/>
-      <Attribute name="materialType" type="string" value="hose"/>
+      <Attribute name="fillType" type="string" value="liquidManure"/>
+      <Attribute name="materialType" type="string" value="hoseSystem"/>
       <Attribute name="materialId" type="string" value="1"/>
     </UserAttribute>
   </UserAttributes>
