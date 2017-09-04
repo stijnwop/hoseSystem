@@ -2,7 +2,8 @@
 
 <CustomShader version="3" classRequirement = "">
     <Parameters>
-        <Parameter name = "RDT"             target = "RDT"             type = "float4"  defaultValue = "1.0 1.0 20.0 20.0"     minValue = "0.0 0.0 0.0 0.0"          maxValue = "1.0 1.0 50.0 50.0"/>
+        <Parameter name = "RDT"             target = "RDT"             type = "float4"  defaultValue = "1.0 1.0 20.0 20.0"     minValue = "-1.0 0.0 0.0 0.0"          maxValue = "1.0 1.0 50.0 50.0"/>
+        <Parameter name = "RDTDirection"    target = "RDTDirection"    type = "float4"  defaultValue = "1.0 1.0 0.0 0.0"     minValue = "0.0 -1.0 0.0 0.0"          maxValue = "1.0 0.0 0.0 0.0"/>
         <Parameter name = "offsetUV"        target = "offsetUV"        type = "float4"  defaultValue = "0 0 0 0"               minValue = "-10.0 -10.0 -10.0 -10.0"  maxValue = "10.0 10.0 10.0 10.0"/>
         <Parameter name = "uvCenterSize"    target = "uvCenterSize"    type = "float4"  defaultValue = "0.5 0.5 1.0 1.0"       minValue = "-1.0 -1.0 0.0 0.0"        maxValue = "1.0 1.0 50.0 50.0"/>
         <Parameter name = "colorScale"      target = "colorScale"      type = "float4"  defaultValue = "0.8 0.55 0.055 1.0"    minValue = "0.0 0.0 0.0 0.0"          maxValue = "1.0 1.0 1.0 1.0"/>
@@ -139,6 +140,7 @@
     RDT.z - Dirt Texture Tile
 */
     uniform float4 RDT;
+    uniform float4 RDTDirection;
 #if defined( MESH_SCROLL )
 /*
     Assumption fisrt_circle.radius == second_circle.radius, see example file how to use it
@@ -633,12 +635,15 @@ glossMap.b - dirt mask
 glossMap.a - color mask ( if enabled )
 */
 	//float2 mOutgoingUV = getDefaultTexCoords(In);
-	float affectedVertices = max(0.0,  0.5-In.vs.GLOSSMAP_TEXCOORD.y ); // when turning the values around the affected direction will change! (the 0.5 will be a parameter)
+	float factor = RDT.x * (In.vs.GLOSSMAP_TEXCOORD.y - 0.5) * 3.5;
+	//factor +=  (In.vs.GLOSSMAP_TEXCOORD.y - 0.5) * RDTDirection.y;
+	float affectedVertices = max(0.0,  factor == 0 ? 1 : factor); // when turning the values around the affected direction will change! (the 0.5 will be a parameter)
+	//float affectedVertices = max(0.0,  factor); // when turning the values around the affected direction will change! (the 0.5 will be a parameter)
 	float affectedVerticesX = max(1 - In.vs.GLOSSMAP_TEXCOORD.x, 0.0);
     globals.gGloss = tex2D( glossMap, In.vs.GLOSSMAP_TEXCOORD).rgba;
     globals.gAO    = globals.gGloss.g;
-	float texDirt  = 1 - 1 * affectedVertices; //globals.gGloss.b
-    globals.gDirt  = saturate( (texDirt*affectedVerticesX - (RDT.g - 0.5)) * 2 );// texDirt; Note: the affectedVerticesX is not really impacting .. lookup later
+	float texDirt  = 1 - 1 * affectedVertices; //globals.gGloss.b;
+    globals.gDirt  = saturate( (texDirt - (RDT.g - 0.5)) * 6 );// texDirt; Note: the affectedVerticesX is not really impacting .. lookup later
 #else
     globals.gGloss = 0;
     globals.gAO = 0;

@@ -42,7 +42,7 @@
     */
     uniform float4 fadeProgress;
 ]]>
-            </CodeInjection>
+            </CodeInjection>			
             <CodeInjection position="LIB_FUNCTION_FS">
 <![CDATA[
 float getDepthFade(FS_INPUT In, FS_GLOBALS globals, float fadeDistance)
@@ -175,12 +175,12 @@ float getDepthFade(FS_INPUT In, FS_GLOBALS globals, float fadeDistance)
     return mRes;
 #endif
 ]]>
-            </CodeInjection>
+            </CodeInjection>			
             <CodeInjection position="ALPHA_FS">
 <![CDATA[
     alpha = globals.gAlpha;
     #if GPU_PROFILE >= GPU_PROFILE_HIGH
-        alpha *= getDepthFade(In, globals, 0.5);
+        alpha *= getDepthFade(In, globals, 0.05); // since we have way more pressure on the hose just fade it a little bit
     #endif
 ]]>
             </CodeInjection>
