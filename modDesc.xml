@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" standalone="no" ?>
-<modDesc descVersion="33">
+<modDesc descVersion="37">
     <author>Wopster and Xentro</author>
-    <version>1.0.0.0 RC1</version>
+    <version>1.0.0.0</version>
     <title>
         <en>Hose system</en>
         <de>Schlauch system</de>
@@ -10,15 +10,12 @@
         <en><![CDATA[With a liquid manure hose you are able to pump a liquid fill type from source to target. If applicable you could extend the liquid manure hose to reach larger ranges.]]></en>
         <de><![CDATA[With a liquid manure hose you are able to pump a liquid fill type from source to target. If applicable you could extend the liquid manure hose to reach larger ranges.]]></de>
     </description>
-    <iconFilename>shared/store.dds</iconFilename>
+    <iconFilename>store.dds</iconFilename>
     <multiplayer supported="true" />
 	<extraSourceFiles>
-		<sourceFile filename="specializations/AnimatedObjectExtension.lua" />
-		<sourceFile filename="specializations/HoseSystemLiquidManureFillTrigger.lua" />
-		<sourceFile filename="specializations/LoadMaterialHolder.lua" />
-		<sourceFile filename="specializations/HoseSystemUtil.lua" />
-		<!--<sourceFile filename="specializations/playerInRangeTool.lua" />-->
-		<!-- <sourceFile filename="specializations/LiquidManureHoseHandler.lua" /> -->
+		<sourceFile filename="specializations/HoseSystemRegister.lua" />
+		<sourceFile filename="specializations/objects/AnimatedObjectExtension.lua" />
+		<sourceFile filename="specializations/objects/HoseSystemLiquidManureFillTrigger.lua" />
 	</extraSourceFiles>		
 	<specializations>
 		<specialization name="hoseSystem" className="HoseSystem" filename="specializations/HoseSystem.lua" />
@@ -35,7 +32,9 @@
 	</vehicleTypes>
 	<inputBindings>	
 		<input name="attachHose" category="VEHICLE" key1="" key2="" button="" device="0" mouse="MOUSE_BUTTON_LEFT" />
-		<input name="detachHose" category="VEHICLE" key1="" key2="" button="" device="0" mouse="MOUSE_BUTTON_RIGHT" />
+		<input name="detachHose" category="VEHICLE" key1="" key2="" button="" device="0" mouse="MOUSE_BUTTON_RIGHT" />		
+		<input name="toggleManureFlow" category="VEHICLE" key1="" key2="" button="" device="0" mouse="MOUSE_BUTTON_RIGHT" />
+		<input name="toggleLock" category="VEHICLE" key1="" key2="" button="" device="0" mouse="MOUSE_BUTTON_LEFT" />
 	</inputBindings>
     <storeItems>
         <storeItem xmlFilename="liquidManureHoses/3m/liquidManureHose3m.xml"/>
@@ -44,8 +43,7 @@
 		<text name="function_liquidManureHose">
             <en>With a liquid manure hose you are able to pump a liquid fill type from source to target. If applicable you could extend the liquid manure hose to reach larger ranges.</en>
             <de>With a liquid manure hose you are able to pump a liquid fill type from source to target. If applicable you could extend the liquid manure hose to reach larger ranges.</de>	
-        </text>
-		
+        </text>		
 		<text name="configuration_ext_liquidManureHose">
             <en>Extendable</en>
             <de>Extendable</de>	
@@ -98,6 +96,76 @@
 		<text name="input_detachHose">
             <en>Detach liquid manure hose</en>
             <de>Detach liquid manure hose</de>
+        </text>
+		
+		<!-- Hose system pump notor -->
+		<text name="pumpMotor_changeDirection">
+            <en>Change pump direction to %s</en>
+            <de>Pumprichtung in %s wechseln</de>
+        </text>
+		<text name="pumpMotor_directionOut">
+            <en>Out</en>
+            <de>entleeren</de>
+        </text>
+		<text name="pumpMotor_directionIn">
+            <en>In</en>
+            <de>befüllen</de>
+        </text>		
+		<text name="pumpMotor_activatePump">
+            <en>Activate pump</en>
+            <de>Pumpe einschalten</de>
+        </text>
+		<text name="pumpMotor_deactivatePump">
+            <en>Deactivate pump</en>
+            <de>Pumpe ausschalten</de>
+        </text>		
+		<text name="pumpMotor_warningPowerDown">
+            <en>Turn motor on!</en>
+            <de>Motor einschalten!</de>
+        </text>
+		<text name="pumpMotor_warningTurnOffFirst">
+            <en>Turn pump off!</en>
+            <de>Pumpe zuerst ausschalten!</de>
+        </text>
+				
+		<!-- Hose system connector references -->
+		<text name="input_toggleManureFlow">
+            <en>Toggle manure flow</en>
+            <de>Toggle manure flow</de>
+        </text>
+		<text name="input_toggleLock">
+            <en>Toggle lock</en>
+            <de>Toggle lock</de>
+        </text>
+
+        <text name="action_mouseInteract">
+            <en>Press mouse button %s to</en>
+            <de>Press mouse button %s to</de>
+        </text>
+		<text name="TOGGLE_LOCK_HOSE">
+            <en>%s manure hose</en>
+            <de>%s manure hose</de>
+        </text>
+		<text name="LOCK_HOSE_STATE_LOCK">
+            <en>Lock</en>
+            <de>Lock</de>
+        </text>
+		<text name="LOCK_HOSE_STATE_UNLOCK">
+            <en>Unlock</en>
+            <de>Unlock</de>
+        </text>
+		
+		<text name="TOGGLE_MANUREFLOW_HOSE">
+            <en>%s manure flow</en>
+            <de>%s manure flow</de>
+        </text>
+		<text name="MANUREFLOW_HOSE_STATE_OPEN">
+            <en>Open</en>
+            <de>Open</de>
+        </text>
+		<text name="MANUREFLOW_HOSE_STATE_CLOSE">
+            <en>Close</en>
+            <de>Close</de>
         </text>
 	</l10n>
 </modDesc>
