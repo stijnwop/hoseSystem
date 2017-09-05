@@ -364,10 +364,6 @@ function HoseSystem:getSaveAttributesAndNodes(nodeIdent)
 
     if self.grabPoints ~= nil then
         for index, grabPoint in pairs(self.grabPoints) do
-            if nodes ~= "" then
-                nodes = nodes .. "\n"
-            end
-
             nodes = nodes .. nodeIdent .. ('<grabPoint id="%s" lockState="%s"'):format(index, grabPoint.isLocked)
 
             if HoseSystem:getIsConnected(grabPoint.state) then
@@ -376,7 +372,6 @@ function HoseSystem:getSaveAttributesAndNodes(nodeIdent)
                     local reference = HoseSystemReferences:getReference(grabPoint.connectorVehicle, grabPoint.connectorRefId, grabPoint)
 
                     for i, vehicle in pairs(g_currentMission.hoseSystemReferences) do
-
                         if vehicle == grabPoint.connectorVehicle then
                             vehicleId = i
                             break
@@ -393,7 +388,7 @@ function HoseSystem:getSaveAttributesAndNodes(nodeIdent)
                 end
             end
 
-            nodes = nodes .. ' />'
+            nodes = nodes .. " />\n"
         end
     end
 
@@ -577,6 +572,51 @@ end
 --
 function HoseSystem:getIsConnected(state)
     return state == HoseSystem.STATE_CONNECTED
+end
+
+---
+-- @return int
+--
+function HoseSystem:getConnectedGrabPointsAmount(object)
+    local count = 0
+
+    for index, grabPoint in pairs(object.grabPoints) do
+        if HoseSystem:getIsConnected(grabPoint.state) then
+            count = count + 1
+        end
+    end
+
+    return count
+end
+
+---
+-- @return table
+--
+function HoseSystem:getConnectedGrabPoints(object)
+    local grabPoints = {}
+
+    for index, grabPoint in pairs(object.grabPoints) do
+        if HoseSystem:getIsConnected(grabPoint.state) then
+            table.insert(grabPoints, grabPoint)
+        end
+    end
+
+    return grabPoints
+end
+
+---
+-- @return table
+--
+function HoseSystem:getConnectedReferenceGrabPoints(object, referenceId)
+    local grabPoints = {}
+
+    for index, grabPoint in pairs(object.grabPoints) do
+        if HoseSystem:getIsConnected(grabPoint.state) and grabPoint.connectorRefId == referenceId then
+            table.insert(grabPoints, grabPoint)
+        end
+    end
+
+    return grabPoints
 end
 
 ---
