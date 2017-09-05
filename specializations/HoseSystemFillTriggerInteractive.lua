@@ -35,12 +35,6 @@ function HoseSystemFillTriggerInteractive:update(dt)
         if self.object.grabPoints ~= nil then
             for _, gp in pairs(self.object.grabPoints) do -- Todo: make rayCastNodes as child for grabPoint.node
                 if HoseSystem:getIsDetached(gp.state) then
-                    --                    local rayCastNode = clone(gp.node, true, false, true)
-                    --
-                    --                    if gp.id > 1 then
-                    --                        setRotation(rayCastNode, 0, math.rad(180), 0)
-                    --                    end
-
                     local x, y, z = getWorldTranslation(gp.raycastNode)
                     local dx, dy, dz = localDirectionToWorld(gp.raycastNode, 0, 0, -1)
 
@@ -49,13 +43,7 @@ function HoseSystemFillTriggerInteractive:update(dt)
 
                     raycastClosest(x, y, z, dx, dy, dz, 'fillableObjectRaycastCallback', 2, self)
 
-                    local xyz = { worldToLocal(gp.raycastNode, x, y, z) }
-                    xyz[3] = xyz[3] - 2
-                    xyz = { localToWorld(gp.raycastNode, xyz[1], xyz[2], xyz[3]) }
-                    local color = { 1, 0 }
-
                     if self.object.lastRaycastDistance ~= 0 then
-                        color = { 0, 1 }
                         -- Todo: set is Underplane on grabPoint so we don't have to raycast (EVENT)
                         local isUnderFillplane, planeY = self.object.lastRaycastObject:checkPlaneY(y)
 
@@ -90,9 +78,18 @@ function HoseSystemFillTriggerInteractive:update(dt)
                         end
                     end
 
-                    drawDebugLine(x, y, z, color[1], color[2], 0, xyz[1], xyz[2], xyz[3], color[1], color[2], 0)
+                    if HoseSystem.debugRendering then
+                        local xyz = { worldToLocal(gp.raycastNode, x, y, z) }
+                        xyz[3] = xyz[3] - 2
+                        xyz = { localToWorld(gp.raycastNode, xyz[1], xyz[2], xyz[3]) }
+                        local color = { 1, 0 }
 
-                    --                    delete(rayCastNode)
+                        if self.object.lastRaycastDistance ~= 0 then
+                            color = { 0, 1 }
+                        end
+
+                        drawDebugLine(x, y, z, color[1], color[2], 0, xyz[1], xyz[2], xyz[3], color[1], color[2], 0)
+                    end
                 end
             end
         end
