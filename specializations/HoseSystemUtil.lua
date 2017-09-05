@@ -43,7 +43,8 @@ function HoseSystemUtil:addHoseSystemToPhysics(grabPoint, reference)
     local hoseSystem = HoseSystemUtil:getHoseSystemFromReference(reference)
 
     if hoseSystem ~= nil then
-        hoseSystem.poly.interactiveHandling:addToPhysicsParts(grabPoint, {}, grabPoint.connectorVehicle, reference, true)
+        local vehicle = HoseSystemReferences:getReferenceVehicle(grabPoint.connectorVehicle)
+        hoseSystem.poly.interactiveHandling:addToPhysicsParts(grabPoint, {}, vehicle, reference, true)
     end
 end
 
