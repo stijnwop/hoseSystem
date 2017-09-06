@@ -76,17 +76,17 @@
             <en>detach liquid manure hose</en>
             <de>detach liquid manure hose</de>
         </text>
-        <text name="HOSE_RANGERESTRICTION">
+        <text name="info_hoseRangeRestriction">
             <en>The liquid manure hose range restriction won't allow you to go any further</en>
             <de>The liquid manure hose range restriction won't allow you to go any further</de>
         </text>
-		<text name="HOSE_PARKINGPLACE_TO_SHORT">
+        <text name="info_hoseRangeRestrictionChainToLong">
+            <en>You are not a super human!</en>
+            <de>You are not a super human!</de>
+        </text>
+		<text name="info_hoseParkingPlaceToShort">
             <en>The %sm parking place is to small for the %sm hose!</en>
             <de>The %sm parking place is to small for the %sm hose!</de>
-        </text>
-		<text name="HOSE_TAKE_ENDS">
-            <en>Take the first or last grab point of the hose!</en>
-            <de>Take the first or last grab point of the hose!</de>
         </text>
 		<!-- Input below -->
 		<text name="input_attachHose">

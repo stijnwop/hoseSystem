@@ -41,7 +41,7 @@ function HoseSystemPlayerInteractiveRestrictions:update(dt)
                 if grabPoint.isOwned then
                     self:restrictPlayerDistance(dt, grabPoint)
                 else
-                    --                    self:restrictReferenceDistance(dt, grabPoint)
+                    self:restrictReferenceDistance(dt, grabPoint)
                 end
             end
         end
@@ -130,7 +130,7 @@ function HoseSystemPlayerInteractiveRestrictions:restrictPlayerDistance(dt, grab
 
                                     if not self.rangeRestrictionMessageShown and player == g_currentMission.player then
                                         self.rangeRestrictionMessageShown = true
-                                        g_currentMission:showBlinkingWarning(g_i18n:getText('HOSE_RANGERESTRICTION'), 5000)
+                                        g_currentMission:showBlinkingWarning(g_i18n:getText('info_hoseRangeRestriction'), 5000)
                                     end
                                     -- end
                                 end
@@ -148,7 +148,7 @@ function HoseSystemPlayerInteractiveRestrictions:restrictPlayerDistance(dt, grab
 
             if not self.playerRestrictionChainToLongShown and player == g_currentMission.player then
                 self.playerRestrictionChainToLongShown = true
-                g_currentMission:showBlinkingWarning('You are not a super human!', 5000)
+                g_currentMission:showBlinkingWarning(g_i18n:getText('info_hoseRangeRestrictionChainToLong'), 5000)
             end
         else
             player.walkingIsLocked = false
@@ -162,4 +162,38 @@ function HoseSystemPlayerInteractiveRestrictions:restrictPlayerDistance(dt, grab
 end
 
 function HoseSystemPlayerInteractiveRestrictions:restrictReferenceDistance(dt, grabPoint)
+    if HoseSystem:getIsConnected(grabPoint.state) then
+        local dependentGrabpoint
+
+        for _, gp in pairs(self.object.grabPoints) do
+            if gp.id ~= grabPoint.id then
+                if HoseSystem:getIsConnected(gp.state) then
+                    dependentGrabpoint = gp
+                    break
+                end
+            end
+        end
+
+        if dependentGrabpoint ~= nil then
+            if grabPoint.connectorVehicle ~= nil then
+                local reference = HoseSystemReferences:getReference(grabPoint.connectorVehicle, grabPoint.connectorRefId, grabPoint)
+
+                if reference ~= nil and not reference.connectable and not reference.parkable then
+                    local ax, ay, az = getWorldTranslation(self.object.components[grabPoint.componentIndex].node)
+                    local bx, by, bz = getWorldTranslation(self.object.components[dependentGrabpoint.componentIndex].node)
+                    local distance = Utils.vector3Length(bx - ax, by - ay, bz - az)
+                    local allowedDistance = not HoseSystem:getIsDetached(dependentGrabpoint.state) and self.object.data.length or self.object.data.length * 1.2
+
+                    if distance > allowedDistance or distance < (allowedDistance - 1) then
+                        if HoseSystem.debugRendering then
+                            print('HoseSystemPlayerInteractiveRestrictions - debug: detach distance: ' .. distance)
+                        end
+
+                        -- Todo: when moving the wheel shape can not be found.. which gives physics warnings
+                        self.object.poly.interactiveHandling:detach(grabPoint.id, grabPoint.connectorVehicle, grabPoint.connectorRefId, reference.connectable)
+                    end
+                end
+            end
+        end
+    end
 end
