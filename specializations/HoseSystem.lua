@@ -364,7 +364,11 @@ function HoseSystem:getSaveAttributesAndNodes(nodeIdent)
 
     if self.grabPoints ~= nil then
         for index, grabPoint in pairs(self.grabPoints) do
-            nodes = nodes .. nodeIdent .. ('<grabPoint id="%s" lockState="%s"'):format(index, grabPoint.isLocked)
+            if index > 1 then
+                nodes = nodes .. "\n"
+            end
+
+            nodes = nodes .. nodeIdent .. ('<grabPoint id="%s" lockState="%s" '):format(index, grabPoint.isLocked)
 
             if HoseSystem:getIsConnected(grabPoint.state) then
                 if grabPoint.connectorVehicle ~= nil and grabPoint.connectorRefId ~= nil then
@@ -379,7 +383,7 @@ function HoseSystem:getSaveAttributesAndNodes(nodeIdent)
                     end
 
                     if not reference.connectable then -- check if we don't have an extendable hose on the reference
-                        nodes = nodes .. (' connectorVehicleId="%s" referenceId="%s" extenable="%s"'):format(vehicleId, grabPoint.connectorRefId, tostring(grabPoint.connectable))
+                        nodes = nodes .. (' connectorVehicleId="%s" referenceId="%s" extenable="%s" '):format(vehicleId, grabPoint.connectorRefId, tostring(grabPoint.connectable))
                     end
 
                     if reference.parkable then -- We are saving a parked hose.. we don't need to save the other references.
@@ -388,7 +392,7 @@ function HoseSystem:getSaveAttributesAndNodes(nodeIdent)
                 end
             end
 
-            nodes = nodes .. " />\n"
+            nodes = nodes .. "/>"
         end
     end
 
