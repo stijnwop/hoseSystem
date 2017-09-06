@@ -31,7 +31,7 @@ function HoseSystemPlayerInteractive:draw()
 end
 
 function HoseSystemPlayerInteractive:getIsPlayerInGrabPointRange()
-    if not self:getIsPlayerValid() then
+    if not self:getIsPlayerValid(true) then
         return false, nil
     end
 
@@ -64,10 +64,12 @@ function HoseSystemPlayerInteractive:getIsPlayerInGrabPointRange()
     return false, nil
 end
 
-function HoseSystemPlayerInteractive:getIsPlayerValid()
+function HoseSystemPlayerInteractive:getIsPlayerValid(strict)
     if g_currentMission.player.hoseSystem == nil then
         g_currentMission.player.hoseSystem = {}
     end
+
+    strict = strict and g_currentMission.player.hoseSystem.closestIndex == nil or true
 
     return g_currentMission.controlPlayer and
             g_currentMission.player ~= nil and

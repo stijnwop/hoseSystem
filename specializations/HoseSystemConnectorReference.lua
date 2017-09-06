@@ -292,7 +292,7 @@ function HoseSystemConnectorReference:keyEvent(unicode, sym, modifier, isDown)
 end
 
 function HoseSystemConnectorReference:update(dt)
-    if HoseSystemPlayerInteractive:getIsPlayerValid() then
+    if HoseSystemPlayerInteractive:getIsPlayerValid(false) then
         local x, y, z = getWorldTranslation(g_currentMission.player.rootNode)
         local nearestDisSequence = 1.5
 
