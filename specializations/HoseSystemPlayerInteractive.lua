@@ -71,14 +71,14 @@ function HoseSystemPlayerInteractive:getIsPlayerValid(strict)
 
     strict = strict and g_currentMission.player.hoseSystem.closestIndex == nil or true
 
-    return g_currentMission.controlPlayer and
+    return strict and
+            g_currentMission.controlPlayer and
             g_currentMission.player ~= nil and
             g_gui.currentGui == nil and
             not g_currentMission.isPlayerFrozen and
             not g_currentMission.player.hasHPWLance and
             g_currentMission.player.currentTool == nil and
             g_currentMission.player.hoseSystem.index == nil and
-            g_currentMission.player.hoseSystem.closestIndex == nil and
             not g_currentMission.player.isCarryingObject
 end
 
