@@ -1,22 +1,18 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
 <i3D name="materialHolder" version="1.6" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://i3d.giants.ch/schema/i3d-1.6.xsd">
-  <Asset>
-    <Export program="GIANTS Editor 64bit" version="7.1.0"/>
-  </Asset>
 
   <Files>
-    <File fileId="3" filename="cubemap02.dds" relativePath="true"/>
-    <File fileId="2" filename="slurryTanker01_normal.dds" relativePath="true"/>
-    <File fileId="4" filename="../shaders/slurryShader.xml" relativePath="true"/>
+    <File fileId="1" filename="../shared/dirt_normal.dds" relativePath="true"/>
+    <File fileId="2" filename="cubemap02.dds" relativePath="true"/>
+    <File fileId="3" filename="../shaders/slurryShader.xml" relativePath="true"/>
   </Files>
 
-
   <Materials>
-    <Material name="liquidManure_mat" materialId="7" diffuseColor="0.494118 0.494118 0.494118 1" ambientColor="1 1 1" cosPower="255" specularColor="0.05 0.05 0.05" alphaBlending="true" customShaderId="4">
-      <Normalmap fileId="2"/>
-      <Reflectionmap fileId="3" wrap="false" lodDistanceScaling="0.5" viewDistanceScaling="0.5" type="cube" scaling="1" refractiveIndex="1" bumpScale="0.1" shapesObjectMask="4294967295" lightsObjectMask="4294967295"/>
-      <CustomParameter name="fadeProgress" value="1 1 0 0"/>
+    <Material name="slurry_mat" materialId="1" diffuseColor="0.5 0.5 0.5 1" cosPower="255" specularColor="0.05 0.05 0.05" ambientColor="1 1 1" alphaBlending="true" customShaderId="3" customShaderVariation="VS_HORIZONTAL">
+      <CustomParameter name="fadeProgress" value="1.0 1.0 0.0 0.0"/>
+      <Normalmap fileId="1"/>
+      <Reflectionmap fileId="2" type="cube" wrap="false" refractiveIndex="1" bumpScale="0.1"/>
     </Material>
   </Materials>
 
@@ -24,25 +20,38 @@
   <Shapes externalShapesFile="materialHolder.i3d.shapes">
   </Shapes>
 
-
-  <Dynamics>
-  </Dynamics>
-
   <Scene>
-    <TransformGroup name="hose" nodeId="10">
-      <TransformGroup name="liquidManure" nodeId="11">
-        <Shape shapeId="1" name="liquidManure1_materialHolder" clipDistance="50" nodeId="12" materialIds="7" castsShadows="true" receiveShadows="true"/>
+    <TransformGroup name="hoseSystem" nodeId="1">
+      <TransformGroup name="liquidManure" nodeId="2">
+        <Shape name="liquidManure1_materialHolder" shapeId="1" castsShadows="true" receiveShadows="true" materialIds="1" clipDistance="10" nodeId="3"/>
+      </TransformGroup>
+      <TransformGroup name="digestate" nodeId="4">
+        <Shape name="digestate_materialHolder" shapeId="2" castsShadows="true" receiveShadows="true" materialIds="1" clipDistance="10" nodeId="5"/>
+      </TransformGroup>
+      <TransformGroup name="water" nodeId="6">
+        <Shape name="water_materialHolder" shapeId="3" castsShadows="true" receiveShadows="true" materialIds="1" clipDistance="10" nodeId="7"/>
       </TransformGroup>
     </TransformGroup>
   </Scene>
 
   <UserAttributes>
-    <UserAttribute nodeId="12">	  
+    <UserAttribute nodeId="3">	  
       <Attribute name="onCreate" type="scriptCallback" value="MaterialUtil.onCreateMaterial"/>
       <Attribute name="fillType" type="string" value="liquidManure"/>
       <Attribute name="materialType" type="string" value="hoseSystem"/>
       <Attribute name="materialId" type="string" value="1"/>
-    </UserAttribute>
+	</UserAttribute>
+    <UserAttribute nodeId="5">	  
+      <Attribute name="onCreate" type="scriptCallback" value="MaterialUtil.onCreateMaterial"/>
+      <Attribute name="fillType" type="string" value="digestate"/>
+      <Attribute name="materialType" type="string" value="hoseSystem"/>
+      <Attribute name="materialId" type="string" value="1"/>
+	</UserAttribute>
+    <UserAttribute nodeId="7">	  
+      <Attribute name="onCreate" type="scriptCallback" value="MaterialUtil.onCreateMaterial"/>
+      <Attribute name="fillType" type="string" value="water"/>
+      <Attribute name="materialType" type="string" value="hoseSystem"/>
+      <Attribute name="materialId" type="string" value="1"/>
+	</UserAttribute>
   </UserAttributes>
-
 </i3D>
