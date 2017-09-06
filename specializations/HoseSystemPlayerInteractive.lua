@@ -65,12 +65,18 @@ function HoseSystemPlayerInteractive:getIsPlayerInGrabPointRange()
 end
 
 function HoseSystemPlayerInteractive:getIsPlayerValid()
+    if g_currentMission.player.hoseSystem == nil then
+        g_currentMission.player.hoseSystem = {}
+    end
+
     return g_currentMission.controlPlayer and
             g_currentMission.player ~= nil and
             g_gui.currentGui == nil and
             not g_currentMission.isPlayerFrozen and
             not g_currentMission.player.hasHPWLance and
             g_currentMission.player.currentTool == nil and
+            g_currentMission.player.hoseSystem.index == nil and
+            g_currentMission.player.hoseSystem.closestIndex == nil and
             not g_currentMission.player.isCarryingObject
 end
 
