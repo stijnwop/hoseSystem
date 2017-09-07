@@ -34,7 +34,7 @@ function HoseSystemPlayerInteractiveHandling:update(dt)
         local grabPoint = self.object.grabPoints[index]
 
         if grabPoint ~= nil then
-            if HoseSystem:getIsAttached(grabPoint.state) then
+            if HoseSystem:getIsAttached(grabPoint.state) and grabPoint.isOwned then
                 g_currentMission:addExtraPrintText(g_i18n:getText('input_mouseInteract'):format(string.lower(MouseHelper.getButtonName(Input.MOUSE_BUTTON_RIGHT))) .. ' ' .. g_i18n:getText('action_dropHose'))
 
                 if InputBinding.hasEvent(InputBinding.detachHose) then
@@ -120,28 +120,41 @@ end
 function HoseSystemPlayerInteractiveHandling:draw()
 end
 
-function HoseSystemPlayerInteractiveHandling:grab(index, player, noEventSend)
+function HoseSystemPlayerInteractiveHandling:grab(index, player, syncState, noEventSend)
     if self.object.grabPoints ~= nil then
-        HoseSystemGrabEvent.sendEvent(self.object, index, player, noEventSend)
+        if not noEventSend and syncState == nil then
+            HoseSystemGrabEvent.sendEvent(self.object, index, player, HoseSystemUtil.eventHelper.STATE_CLIENT, noEventSend)
+        end
 
         local grabPoint = self.object.grabPoints[index]
 
-        if grabPoint == nil then
+        if grabPoint == nil or player == nil then
             return
         end
 
-        if player ~= nil then
-            grabPoint.state = HoseSystem.STATE_ATTACHED
+        grabPoint.state = HoseSystem.STATE_ATTACHED
 
-            -- But do not event it again since we already getting reloaded by the grab event
-            self:setGrabPointOwner(index, true, player, true)
-
+        if syncState == nil then
             player:setWoodWorkVisibility(true, false)
 
             self.object.walkingSpeed = player.walkingSpeed
             self.object.runningFactor = player.runningFactor
 
             if self.object.isServer then
+                self:grab(index, player, HoseSystemUtil.eventHelper.STATE_SERVER, noEventSend)
+            else
+                HoseSystemGrabEvent.sendEvent(self.object, index, player, HoseSystemUtil.eventHelper.STATE_SERVER, self.object.isServer)
+            end
+        elseif syncState == HoseSystemUtil.eventHelper.STATE_CLIENT then
+            if player ~= g_currentMission.player then
+                --print('Grab hose: other clients are getting other infos')
+                player:setWoodWorkVisibility(true, false)
+            end
+        elseif syncState == HoseSystemUtil.eventHelper.STATE_SERVER then
+            if self.object.isServer then
+                -- But do not event it again since we already getting reloaded by the grab event
+                self:setGrabPointOwner(index, true, player)
+
                 -- Todo: calculate mass of hose components.. save it in self on game load.
                 -- For now just set 4kg for every meter.
                 player.hoseSystem.mass = (0.004 * self.object.data.length) * 100
@@ -159,19 +172,12 @@ function HoseSystemPlayerInteractiveHandling:grab(index, player, noEventSend)
                 setRotation(player.hoseSystem.kinematicHelper.node, 0, yRot, 0)
 
                 -- Todo: check if we still have to set the joint orientation?
-                HoseSystemPlayerInteractiveHandling:constructPlayerJoint({
+                player.hoseSystem.jointIndex = HoseSystemPlayerInteractiveHandling:constructPlayerJoint({
                     actor1 = player.hoseSystem.kinematicHelper.node,
                     actor2 = self.object.components[grabPoint.componentIndex].node,
                     anchor1 = player.hoseSystem.kinematicHelper.node,
                     anchor2 = grabPoint.node
                 }, player.hoseSystem)
-
-                -- Set collision mask on hose components to disable collision with CCT
-                -- Since we cannot set non collidable objects for the CCT we just set the collision mask of the object
-                if grabPoint.componentIndex ~= nil then
-                    setCollisionMask(self.object.components[grabPoint.componentIndex].node, HoseSystem.cctCollisionMask)
-                    setCollisionMask(self.object.components[(#self.object.components + 1) / 2].node, HoseSystem.cctCollisionMask)
-                end
 
                 for i, component in pairs(self.object.components) do
                     if i ~= grabPoint.componentIndex then
@@ -186,60 +192,93 @@ function HoseSystemPlayerInteractiveHandling:grab(index, player, noEventSend)
                     end
                 end
             end
+
+            -- Set collision mask on hose components to disable collision with CCT
+            -- Since we cannot set non collidable objects for the CCT we just set the collision mask of the object
+            if grabPoint.componentIndex ~= nil then
+                setCollisionMask(self.object.components[grabPoint.componentIndex].node, HoseSystem.cctCollisionMask)
+                setCollisionMask(self.object.components[(#self.object.components + 1) / 2].node, HoseSystem.cctCollisionMask)
+            end
         end
     end
 end
 
-function HoseSystemPlayerInteractiveHandling:drop(index, player, noEventSend)
+function HoseSystemPlayerInteractiveHandling:drop(index, player, syncState, noEventSend)
     if self.object.grabPoints ~= nil then
-        HoseSystemDropEvent.sendEvent(self.object, index, player, noEventSend)
+        if not noEventSend and syncState == nil then
+            HoseSystemDropEvent.sendEvent(self.object, index, player, HoseSystemUtil.eventHelper.STATE_CLIENT, noEventSend)
+        end
+
+        --        if noEventSend == nil or noEventSend == false then
+        --            if g_server ~= nil then
+        --                g_server:broadcastEvent(HoseSystemDropEvent:new(self.object, index, connectionEventState, player), nil, nil, self.object)
+        --            else
+        --                -- Send drop request to server and return
+        --                g_client:getServerConnection():sendEvent(HoseSystemDropEvent:new(self.object, index, connectionEventState, player))
+        --
+        --                return
+        --            end
+        --        end
+
+        --        HoseSystemDropEvent.sendEvent(self.object, index, player, HoseSystemUtil.eventHelper.STATE_CLIENT, noEventSend)
 
         local grabPoint = self.object.grabPoints[index]
 
-        if grabPoint == nil then
+        if grabPoint == nil or player == nil then
             return
         end
 
-        if player ~= nil then
-            grabPoint.state = HoseSystem.STATE_DETACHED
+        grabPoint.state = HoseSystem.STATE_DETACHED
 
-            self:setGrabPointOwner(index, false, player, true)
-
+        if syncState == nil then
             player:setWoodWorkVisibility(false, false)
             player.walkingSpeed = self.object.walkingSpeed
             player.runningFactor = self.object.runningFactor
 
             if self.object.isServer then
+                self:drop(index, player, HoseSystemUtil.eventHelper.STATE_SERVER, noEventSend)
+            else
+                HoseSystemDropEvent.sendEvent(self.object, index, player, HoseSystemUtil.eventHelper.STATE_SERVER, self.object.isServer)
+            end
+        elseif syncState == HoseSystemUtil.eventHelper.STATE_CLIENT then
+            if player ~= g_currentMission.player then
+                player:setWoodWorkVisibility(false, false)
+            end
+        elseif syncState == HoseSystemUtil.eventHelper.STATE_SERVER then
+            if self.object.isServer then
+                self:setGrabPointOwner(index, false, player)
+
+                print('this drop only happends on the server')
                 if player.hoseSystem ~= nil then
-                    if player.hoseSystem.jointIndex ~= nil then
+                    if player.hoseSystem.jointIndex ~= 0 then
                         removeJoint(player.hoseSystem.jointIndex)
+                    end
 
-                        setTranslation(grabPoint.node, unpack(grabPoint.nodeOrgTrans))
-                        setRotation(grabPoint.node, unpack(grabPoint.nodeOrgRot))
+                    setTranslation(grabPoint.node, unpack(grabPoint.nodeOrgTrans))
+                    setRotation(grabPoint.node, unpack(grabPoint.nodeOrgRot))
 
-                        -- Player
-                        if player.hoseSystem.kinematicHelper.node ~= nil then
-                            unlink(player.hoseSystem.kinematicHelper.node)
-                            delete(player.hoseSystem.kinematicHelper.node)
-                        end
+                    -- Player
+                    if player.hoseSystem.kinematicHelper.node ~= nil then
+                        unlink(player.hoseSystem.kinematicHelper.node)
+                        delete(player.hoseSystem.kinematicHelper.node)
+                    end
 
-                        player.hoseSystem.jointIndex = nil
-                        player.hoseSystem.kinematicHelper.node = nil
+                    player.hoseSystem.jointIndex = 0
+                    player.hoseSystem.kinematicHelper.node = nil
 
-                        if grabPoint.componentIndex ~= nil then
-                            setCollisionMask(self.object.components[grabPoint.componentIndex].node, HoseSystem.hoseCollisionMask)
-                            setCollisionMask(self.object.components[(#self.object.components + 1) / 2].node, HoseSystem.hoseCollisionMask)
-                        end
-
-                        -- set the joint limits back to zero
-                        for index, gp in pairs(self.object.grabPoints) do
-                            if index ~= grabPoint.id and HoseSystem:getIsConnected(gp.state) then
-                                -- set rot on 1 deg for some realistic movement
-                                self:setJointRotAndTransLimit({ 5, 0, 5 }, { 0, 0, 0 })
-                            end
+                    -- set the joint limits back to the state that it only rotates on the connector
+                    for index, gp in pairs(self.object.grabPoints) do
+                        if index ~= grabPoint.id and HoseSystem:getIsConnected(gp.state) then
+                            -- set rot on 5 deg for some realistic movement
+                            self:setJointRotAndTransLimit({ 5, 0, 5 }, { 0, 0, 0 })
                         end
                     end
                 end
+            end
+
+            if grabPoint.componentIndex ~= nil then
+                setCollisionMask(self.object.components[grabPoint.componentIndex].node, HoseSystem.hoseCollisionMask)
+                setCollisionMask(self.object.components[(#self.object.components + 1) / 2].node, HoseSystem.hoseCollisionMask)
             end
         end
     end
@@ -503,9 +542,9 @@ function HoseSystemPlayerInteractiveHandling:constructPlayerJoint(jointDesc, pla
     local forceLimit = playerHoseDesc.mass * 25 -- only when stucked behind object
     --    constructor:setBreakable(forceLimit, forceLimit)
 
-    playerHoseDesc.jointIndex = constructor:finalize()
-
     --    addJointBreakReport(playerHoseDesc.jointIndex, 'onGrabJointBreak', self)
+
+    return constructor:finalize()
 end
 
 function HoseSystemPlayerInteractiveHandling:constructReferenceJoints(jointDesc)
@@ -579,7 +618,7 @@ function HoseSystemPlayerInteractiveHandling:hardConnect(grabPoint, vehicle, ref
     -- Get all the hoses that are connected to a references from the Vehicle
     local connectedRreferences = HoseSystemUtil:getReferencesWithSingleConnection(vehicle, reference.id)
 
---    print('all the attached references with single connection = ' .. #connectedRreferences)
+    --    print('all the attached references with single connection = ' .. #connectedRreferences)
 
     for index, gp in pairs(self.object.grabPoints) do
         if gp.id ~= grabPoint.id and HoseSystem:getIsConnected(gp.state) then

@@ -14,6 +14,11 @@ HoseSystemUtil = {
     end
 }
 
+HoseSystemUtil.eventHelper = {
+    STATE_CLIENT = 1,
+    STATE_SERVER = 2
+}
+
 ---
 -- @param vehicle
 --
