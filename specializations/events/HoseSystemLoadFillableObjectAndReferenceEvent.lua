@@ -53,7 +53,7 @@ function HoseSystemLoadFillableObjectAndReferenceEvent:run(connection)
     -- end
 	
 	if self.object ~= nil then
-		self.object:loadFillableObjectAndReference(self.vehicle, self.reference, self.isExtendable, true)
+		self.object.poly.references:loadFillableObjectAndReference(self.vehicle, self.reference, self.isExtendable, true)
 	end
 end
 

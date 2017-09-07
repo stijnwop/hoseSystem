@@ -122,12 +122,13 @@ function HoseSystem:load(savegame)
     -- in case we need to access it later we setup callbacks here
     self.poly = {
         interactiveHandling = HoseSystemPlayerInteractiveHandling:new(self),
-        interactiveFillTrigger = HoseSystemFillTriggerInteractive:new(self)
+        interactiveFillTrigger = HoseSystemFillTriggerInteractive:new(self),
+        references = HoseSystemReferences:new(self)
     }
 
     table.insert(self.polymorphismClasses, self.poly.interactiveHandling)
     table.insert(self.polymorphismClasses, self.poly.interactiveFillTrigger)
-    table.insert(self.polymorphismClasses, HoseSystemReferences:new(self))
+    table.insert(self.polymorphismClasses, self.poly.references)
     table.insert(self.polymorphismClasses, HoseSystemPlayerInteractiveRestrictions:new(self))
 end
 
@@ -312,13 +313,17 @@ function HoseSystem:writeStream(streamId, connection)
         end
     end
 
-    if self.polymorphismClasses ~= nil and #self.polymorphismClasses > 0 then
-        for _, class in pairs(self.polymorphismClasses) do
-            if class.writeStream ~= nil then
-                class:writeStream(streamId, connection)
-            end
-        end
-    end
+    writeNetworkNodeObjectId(streamId, self.vehicleToMountHoseSystem)
+    streamWriteInt32(streamId, self.referenceIdToMountHoseSystem)
+    streamWriteBool(streamId, self.referenceIsExtendable)
+
+--    if self.polymorphismClasses ~= nil and #self.polymorphismClasses > 0 then
+--        for _, class in pairs(self.polymorphismClasses) do
+--            if class.writeStream ~= nil then
+--                class:writeStream(streamId, connection)
+--            end
+--        end
+--    end
 end
 
 function HoseSystem:readStream(streamId, connection)
@@ -350,13 +355,20 @@ function HoseSystem:readStream(streamId, connection)
         end
     end
 
-    if self.polymorphismClasses ~= nil and #self.polymorphismClasses > 0 then
-        for _, class in pairs(self.polymorphismClasses) do
-            if class.readStream ~= nil then
-                class:readStream(streamId, connection)
-            end
-        end
-    end
+    local vehicleToMountHoseSystem = readNetworkNodeObjectId(streamId)
+    local referenceIdToMountHoseSystem = streamReadInt32(streamId)
+    local referenceIsExtendable = streamReadBool(streamId)
+
+    self.poly.references:loadFillableObjectAndReference(vehicleToMountHoseSystem, referenceIdToMountHoseSystem, referenceIsExtendable, true)
+    self.doNetworkObjectsIteration = true
+
+--    if self.polymorphismClasses ~= nil and #self.polymorphismClasses > 0 then
+--        for _, class in pairs(self.polymorphismClasses) do
+--            if class.readStream ~= nil then
+--                class:readStream(streamId, connection)
+--            end
+--        end
+--    end
 end
 
 function HoseSystem:getSaveAttributesAndNodes(nodeIdent)

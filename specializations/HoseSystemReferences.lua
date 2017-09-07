@@ -16,11 +16,10 @@ function HoseSystemReferences:new(object, mt)
 
     setmetatable(references, mt == nil and HoseSystemReferences_mt or mt)
 
-    references.object.vehicleToMountHoseSystem = 0
-    references.object.referenceIdToMountHoseSystem = 0
-    references.object.referenceIsExtendable = false
-
-    references.doNetworkObjectsIteration = false
+    object.vehicleToMountHoseSystem = 0
+    object.referenceIdToMountHoseSystem = 0
+    object.referenceIsExtendable = false
+    object.doNetworkObjectsIteration = false
 
     if object.isServer then
         references.vehicleToMountHoseSystemSend = nil
@@ -35,23 +34,15 @@ function HoseSystemReferences:delete()
 end
 
 function HoseSystemReferences:readStream(streamId, connection)
-    writeNetworkNodeObjectId(streamId, self.object.vehicleToMountHoseSystem)
-    streamWriteInt32(streamId, self.object.referenceIdToMountHoseSystem)
-    streamWriteBool(streamId, self.object.referenceIsExtendable)
+
 end
 
 function HoseSystemReferences:writeStream(streamId, connection)
-    local vehicleToMountHoseSystem = readNetworkNodeObjectId(streamId)
-    local referenceIdToMountHoseSystem = streamReadInt32(streamId)
-    local referenceIsExtendable = streamReadBool(streamId)
-
-    self:loadFillableObjectAndReference(vehicleToMountHoseSystem, referenceIdToMountHoseSystem, referenceIsExtendable, true)
-    self.doNetworkObjectsIteration = true
 end
 
 function HoseSystemReferences:update(dt)
     -- iterate over grabPoints to sync the vehicles with all clients
-    if self.doNetworkObjectsIteration then
+    if self.object.doNetworkObjectsIteration then
         self:iterateNetworkObjects()
     end
 
@@ -79,10 +70,10 @@ function HoseSystemReferences:loadFillableObjectAndReference(vehicle, referenceI
     if self.object.isServer then
         if (self.object.vehicleToMountHoseSystem ~= self.vehicleToMountHoseSystemSend) or (self.object.referenceIdToMountHoseSystem ~= self.referenceIdToMountHoseSystemSend) or (self.object.referenceIsExtendable ~= self.referenceIsExtendableSend) then
             if noEventSend == nil or not noEventSend then
-                g_server:broadcastEvent(HoseSystemLoadFillableObjectAndReferenceEvent:new(self, self.object.vehicleToMountHoseSystem, self.object.referenceIdToMountHoseSystem, self.object.referenceIsExtendable))
+                g_server:broadcastEvent(HoseSystemLoadFillableObjectAndReferenceEvent:new(self.object, self.object.vehicleToMountHoseSystem, self.object.referenceIdToMountHoseSystem, self.object.referenceIsExtendable))
             end
 
-            --            print('Send event')
+            print('Send update on reference objects')
             --            print('vehicleToMountHoseSystem ' .. tostring(self.vehicleToMountHoseSystem))
             --            print('referenceIdToMountHoseSystem ' .. tostring(self.object.referenceIdToMountHoseSystem))
             --            print('referenceIsExtendable ' .. tostring(self.referenceIsExtendable))
@@ -105,13 +96,13 @@ function HoseSystemReferences:iterateNetworkObjects()
                     grabPoint.connectorVehicle = vehicle
                     grabPoint.connectorVehicleId = nil
 
-                    self:syncIsUsed(index, HoseSystem:getIsConnected(grabPoint.attachState), grabPoint.hasExtenableJointIndex, true)
+--                    self:syncIsUsed(index, HoseSystem:getIsConnected(grabPoint.attachState), grabPoint.hasExtenableJointIndex, true)
                 end
             end
         end
     end
 
-    self.queueNetworkObjects = false
+    self.object.queueNetworkObjects = false
 end
 
 
