@@ -190,7 +190,7 @@ function HoseSystemPlayerInteractiveRestrictions:restrictReferenceDistance(dt, g
                         end
 
                         -- Todo: when moving the wheel shape can not be found.. which gives physics warnings
-                        self.object.poly.interactiveHandling:detach(grabPoint.id, grabPoint.connectorVehicle, grabPoint.connectorRefId, reference.connectable)
+                        self.object.poly.interactiveHandling:detach(grabPoint.id, grabPoint.connectorVehicle, grabPoint.connectorRefId, reference.connectable ~= nil and reference.connectable)
                     end
                 end
             end
