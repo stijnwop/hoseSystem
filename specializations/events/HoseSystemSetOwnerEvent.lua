@@ -44,7 +44,7 @@ function HoseSystemSetOwnerEvent:readStream(streamId, connection)
 end
 
 function HoseSystemSetOwnerEvent:run(connection)
-    self.object:setOwner(self.index, self.state, self.player, true)
+    self.object.poly.interactiveHandling:setGrabPointOwner(self.index, self.state, self.player, true)
 
     if not connection:getIsServer() then
         g_server:broadcastEvent(HoseSystemSetOwnerEvent:new(self.object, self.index, self.state, self.player), nil, connection, self.object)

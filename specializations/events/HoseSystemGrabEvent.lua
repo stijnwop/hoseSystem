@@ -44,8 +44,8 @@ function HoseSystemGrabEvent:run(connection)
 	if not connection:getIsServer() then
 		g_server:broadcastEvent(self, false, connection, self.object)
 	end
-	
-	self.object:grab(self.index, self.player, self.state, true)
+
+    self.object.poly.interactiveHandling:grab(self.index, self.player, self.state, true)
 end
 
 function HoseSystemGrabEvent.sendEvent(object, index, player, noEventSend)

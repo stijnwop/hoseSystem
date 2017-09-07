@@ -44,7 +44,7 @@ function HoseSystemDropEvent:run(connection)
 		g_server:broadcastEvent(self, false, connection, self.object)
 	end
 
-	self.object:drop(self.index, self.player, true)
+	self.object.poly.interactiveHandling:drop(self.index, self.player, true)
 end
 
 function HoseSystemDropEvent.sendEvent(object, index, player, noEventSend)

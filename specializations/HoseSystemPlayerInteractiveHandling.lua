@@ -122,7 +122,7 @@ end
 
 function HoseSystemPlayerInteractiveHandling:grab(index, player, noEventSend)
     if self.object.grabPoints ~= nil then
-        HoseSystemGrabEvent.sendEvent(self, index, player, noEventSend)
+        HoseSystemGrabEvent.sendEvent(self.object, index, player, noEventSend)
 
         local grabPoint = self.object.grabPoints[index]
 
@@ -192,7 +192,7 @@ end
 
 function HoseSystemPlayerInteractiveHandling:drop(index, player, noEventSend)
     if self.object.grabPoints ~= nil then
-        HoseSystemDropEvent.sendEvent(self, index, player, noEventSend)
+        HoseSystemDropEvent.sendEvent(self.object, index, player, noEventSend)
 
         local grabPoint = self.object.grabPoints[index]
 
@@ -254,7 +254,7 @@ end
 --
 function HoseSystemPlayerInteractiveHandling:attach(index, vehicle, referenceId, isExtendable, noEventSend)
     if self.object.grabPoints ~= nil then
-        HoseSystemAttachEvent.sendEvent(self, index, vehicle, referenceId, isExtendable, noEventSend)
+        HoseSystemAttachEvent.sendEvent(self.object, index, vehicle, referenceId, isExtendable, noEventSend)
 
         local grabPoint = self.object.grabPoints[index]
 
@@ -349,7 +349,7 @@ end
 --
 function HoseSystemPlayerInteractiveHandling:detach(index, vehicle, referenceId, isExtendable, noEventSend)
     if self.object.grabPoints ~= nil then
-        HoseSystemDetachEvent.sendEvent(self, index, vehicle, referenceId, isExtendable, noEventSend)
+        HoseSystemDetachEvent.sendEvent(self.object, index, vehicle, referenceId, isExtendable, noEventSend)
 
         local grabPoint = self.object.grabPoints[index]
 
@@ -415,6 +415,10 @@ function HoseSystemPlayerInteractiveHandling:setGrabPointOwner(index, state, pla
     grabPoint.isOwned = state
     grabPoint.currentOwner = (state and player ~= nil) and player or nil
 
+    if player == nil then
+        return
+    end
+
     if player.hoseSystem == nil then
         player.hoseSystem = {}
     end
@@ -434,7 +438,7 @@ function HoseSystemPlayerInteractiveHandling:setGrabPointIsUsed(index, isConnect
     end
 
     -- event
-    HoseSystemIsUsedEvent.sendEvent(self, index, isConnected, isExtendable, isCalledFromReference, noEventSend)
+    HoseSystemIsUsedEvent.sendEvent(self.object, index, isConnected, isExtendable, isCalledFromReference, noEventSend)
 
     local grabPoint = self.object.grabPoints[index]
 
@@ -967,9 +971,9 @@ function HoseSystemPlayerInteractiveHandling:addToPhysicsParts(grabPoint, connec
                 -- we only add components that are not related to the grabpoint we want to connect
                 if gp.componentIndex ~= grabPoint.componentIndex and componentIndex == gp.componentIndex and not connectedComponentIndexes[componentIndex] then
                     -- it also does not exists in the connected table
-                    --                    if HoseSystem.debugRendering then
-                    print('We only add component ' .. componentIndex .. ' to physics')
-                    --                    end
+                    if HoseSystem.debugRendering then
+                        print('We only add component ' .. componentIndex .. ' to physics')
+                    end
 
                     addToPhysics(component.node)
                 end

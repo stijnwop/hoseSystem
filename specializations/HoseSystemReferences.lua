@@ -232,7 +232,7 @@ end
 
 function HoseSystemReferences:getReference(object, index, grabPoint)
     -- When we are dealing with map objects change the object to the parent that holds the rigid body node
-    if object.hoseSystemParent ~= nil then
+    if object ~= nil and object.hoseSystemParent ~= nil then
         object = object.hoseSystemParent
     end
 
@@ -249,7 +249,7 @@ end
 
 
 function HoseSystemReferences:getReferenceVehicle(object)
-    if object.hoseSystemParent ~= nil then
+    if object ~= nil and object.hoseSystemParent ~= nil then
         return object.hoseSystemParent
     end
 

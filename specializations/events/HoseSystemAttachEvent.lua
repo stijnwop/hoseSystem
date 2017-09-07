@@ -46,8 +46,8 @@ function HoseSystemAttachEvent:readStream(streamId, connection)
 end
 
 function HoseSystemAttachEvent:run(connection)
-	self.object:attach(self.index, self.vehicle, self.reference, self.isExtendable, true)
-	
+	self.object.poly.interactiveHandling:attach(self.index, self.vehicle, self.reference, self.isExtendable, true)
+
 	if not connection:getIsServer() then
 		g_server:broadcastEvent(self, nil, connection, self.object)
 	end

@@ -46,8 +46,8 @@ function HoseSystemDetachEvent:readStream(streamId, connection)
 end
 
 function HoseSystemDetachEvent:run(connection)
-	self.object:detach(self.index, self.vehicle, self.reference, self.isExtendable, true)
-	
+	self.object.poly.interactiveHandling:detach(self.index, self.vehicle, self.reference, self.isExtendable, true)
+
 	if not connection:getIsServer() then
 		g_server:broadcastEvent(self, nil, connection, self.object)
 	end
