@@ -60,11 +60,11 @@ function HoseSystemPlayerInteractiveRestrictions:restrictPlayerDistance(dt, grab
 
                 if grabPoint.id == player.hoseSystem.index then
                     if HoseSystem:getIsAttached(grabPoint.state) then
-                        local dependentGrabpoint
+                        local dependentGrabpoint = HoseSystemUtil:getDependentGrabPoint(self.object.grabPoints, grabPoint.id)
 
                         --                        self:setChainCount(1) -- We're always 1 behind cause we are counting the jointIndexes!
 
-                        for _, gp in pairs(self.object.grabPoints) do
+--                        for _, gp in pairs(self.object.grabPoints) do
                             --                            local _, count = self:getLastGrabpointRecursively(gp, self.currentChainCount)
                             --
                             --                            self:setChainCount(count)
@@ -72,13 +72,13 @@ function HoseSystemPlayerInteractiveRestrictions:restrictPlayerDistance(dt, grab
 
                             --self:calculateChainRecursively(gp)
 
-                            if gp.id ~= grabPoint.id then
-                                if HoseSystem:getIsConnected(gp.state) or HoseSystem:getIsAttached(gp.state) then
-                                    dependentGrabpoint = gp
-                                    break
-                                end
-                            end
-                        end
+--                            if gp.id ~= grabPoint.id then
+--                                if HoseSystem:getIsConnected(gp.state) or HoseSystem:getIsAttached(gp.state) then
+--                                    dependentGrabpoint = gp
+--                                    break
+--                                end
+--                            end
+--                        end
 
                         if dependentGrabpoint ~= nil then
                             if dependentGrabpoint.connectorRefId ~= nil then
