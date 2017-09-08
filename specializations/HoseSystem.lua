@@ -221,11 +221,6 @@ function HoseSystem:loadGrabPoints(xmlFile, baseString)
                 isOwned = false
             }
 
-            --            table.insert(self.playerInRangeTool, {
-            --                node = node,
-            --                playerDistance = 2
-            --            })
-
             table.insert(self.grabPoints, entry)
             self.nodesToGrabPoints[entry.node] = entry
         else
