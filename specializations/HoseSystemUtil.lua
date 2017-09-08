@@ -107,4 +107,16 @@ function HoseSystemUtil:getHoseSystemFromReference(reference)
     return nil
 end
 
+function HoseSystemUtil:getDependentGrabPoint(grabPoints, id)
+    for _, grabPoint in pairs(grabPoints) do
+        if grabPoint.id ~= id then
+            if HoseSystem:getIsConnected(grabPoint.state) then
+                return grabPoint
+            end
+        end
+    end
+
+    return nil
+end
+
 addConsoleCommand("gsToggleHoseSystemDebugRendering", "Toggles the debug rendering of the HoseSystem", "consoleCommandToggleHoseSystemDebugRendering", HoseSystemUtil)

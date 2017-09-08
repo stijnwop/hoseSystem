@@ -154,8 +154,8 @@ function HoseSystemPlayerInteractiveRestrictions:restrictPlayerDistance(dt, grab
             player.walkingIsLocked = false
 
             if self.currentChainCount > 1 then
-                player.walkingSpeed = self.walkingSpeed / ((self.hose.length / self.hose.length) * self.currentChainCount)
-                player.runningFactor = self.runningFactor / ((self.hose.length / self.hose.length) * self.currentChainCount)
+                player.walkingSpeed = self.walkingSpeed / ((self.object.data.length / self.object.data.length) * self.currentChainCount)
+                player.runningFactor = self.runningFactor / ((self.object.data.length / self.object.data.length) * self.currentChainCount)
             end
         end
     end
@@ -163,19 +163,10 @@ end
 
 function HoseSystemPlayerInteractiveRestrictions:restrictReferenceDistance(dt, grabPoint)
     if HoseSystem:getIsConnected(grabPoint.state) then
-        local dependentGrabpoint
-
-        for _, gp in pairs(self.object.grabPoints) do
-            if gp.id ~= grabPoint.id then
-                if HoseSystem:getIsConnected(gp.state) then
-                    dependentGrabpoint = gp
-                    break
-                end
-            end
-        end
+        local dependentGrabpoint = HoseSystemUtil:getDependentGrabPoint(self.object.grabPoints, grabPoint.id)
 
         if dependentGrabpoint ~= nil then
-            if grabPoint.connectorVehicle ~= nil then
+            if grabPoint.connectorVehicle ~= nil and grabPoint.connectorVehicle.getLastSpeed ~= nil and grabPoint.connectorVehicle:getLastSpeed() > 1 then -- only detach from the speeding side
                 local reference = HoseSystemReferences:getReference(grabPoint.connectorVehicle, grabPoint.connectorRefId, grabPoint)
 
                 if reference ~= nil and not reference.connectable and not reference.parkable then
