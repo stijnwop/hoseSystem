@@ -30,14 +30,14 @@ end
 
 function HoseSystemGrabEvent:writeStream(streamId, connection)
     writeNetworkNodeObject(streamId, self.object)
-    streamWriteInt32(streamId, self.index)
+    streamWriteUIntN(streamId, self.index, HoseSystemUtil.eventHelper.GRABPOINTS_NUM_SEND_BITS)
     writeNetworkNodeObject(streamId, self.player)
     streamWriteUIntN(streamId, self.syncState, 3)
 end
 
 function HoseSystemGrabEvent:readStream(streamId, connection)
     self.object = readNetworkNodeObject(streamId)
-    self.index = streamReadInt32(streamId)
+    self.index = streamReadUIntN(streamId, HoseSystemUtil.eventHelper.GRABPOINTS_NUM_SEND_BITS)
     self.player = readNetworkNodeObject(streamId)
     self.syncState = streamReadUIntN(streamId, 3)
     self:run(connection)

@@ -183,6 +183,11 @@ function HoseSystem:loadGrabPoints(xmlFile, baseString)
             break
         end
 
+        if #self.grabPoints == 2 ^ HoseSystemUtil.eventHelper.GRABPOINTS_NUM_SEND_BITS then
+            print(('HoseSystem warning - Max number of grabpoints is %s!'):format(2 ^ HoseSystemUtil.eventHelper.GRABPOINTS_NUM_SEND_BITS))
+            break
+        end
+
         local node = Utils.indexToObject(self.components, getXMLString(xmlFile, key .. '#node'))
 
         local rx, ry, rz = Utils.getVectorFromString(getXMLString(xmlFile, key .. '#playerJointRotLimit'))
@@ -317,13 +322,13 @@ function HoseSystem:writeStream(streamId, connection)
     streamWriteInt32(streamId, self.referenceIdToMountHoseSystem)
     streamWriteBool(streamId, self.referenceIsExtendable)
 
---    if self.polymorphismClasses ~= nil and #self.polymorphismClasses > 0 then
---        for _, class in pairs(self.polymorphismClasses) do
---            if class.writeStream ~= nil then
---                class:writeStream(streamId, connection)
---            end
---        end
---    end
+    --    if self.polymorphismClasses ~= nil and #self.polymorphismClasses > 0 then
+    --        for _, class in pairs(self.polymorphismClasses) do
+    --            if class.writeStream ~= nil then
+    --                class:writeStream(streamId, connection)
+    --            end
+    --        end
+    --    end
 end
 
 function HoseSystem:readStream(streamId, connection)
@@ -362,13 +367,13 @@ function HoseSystem:readStream(streamId, connection)
     self.poly.references:loadFillableObjectAndReference(vehicleToMountHoseSystem, referenceIdToMountHoseSystem, referenceIsExtendable, true)
     self.doNetworkObjectsIteration = true
 
---    if self.polymorphismClasses ~= nil and #self.polymorphismClasses > 0 then
---        for _, class in pairs(self.polymorphismClasses) do
---            if class.readStream ~= nil then
---                class:readStream(streamId, connection)
---            end
---        end
---    end
+    --    if self.polymorphismClasses ~= nil and #self.polymorphismClasses > 0 then
+    --        for _, class in pairs(self.polymorphismClasses) do
+    --            if class.readStream ~= nil then
+    --                class:readStream(streamId, connection)
+    --            end
+    --        end
+    --    end
 end
 
 function HoseSystem:getSaveAttributesAndNodes(nodeIdent)

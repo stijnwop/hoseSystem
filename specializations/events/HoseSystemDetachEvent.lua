@@ -16,13 +16,13 @@ function HoseSystemDetachEvent:emptyNew()
     return event
 end
 
-function HoseSystemDetachEvent:new(object, index, vehicle, reference, isExtendable)
+function HoseSystemDetachEvent:new(object, index, vehicle, referenceId, isExtendable)
     local event = HoseSystemDetachEvent:emptyNew()
 
     event.object = object
     event.index = index
     event.vehicle = vehicle
-    event.reference = reference
+    event.referenceId = referenceId
     event.isExtendable = isExtendable
 	
     return event
@@ -30,35 +30,38 @@ end
 
 function HoseSystemDetachEvent:writeStream(streamId, connection)
     writeNetworkNodeObject(streamId, self.object)
-    streamWriteInt32(streamId, self.index)
+    streamWriteUIntN(streamId, self.index, HoseSystemUtil.eventHelper.GRABPOINTS_NUM_SEND_BITS)
     writeNetworkNodeObject(streamId, self.vehicle)
-    streamWriteInt32(streamId, self.reference)
+    streamWriteUIntN(streamId, self.referenceId, HoseSystemUtil.eventHelper.REFERENCES_NUM_SEND_BITS)
     streamWriteBool(streamId, self.isExtendable)
 end
 
 function HoseSystemDetachEvent:readStream(streamId, connection)
     self.object = readNetworkNodeObject(streamId)
-    self.index = streamReadInt32(streamId)
+    self.index = streamReadUIntN(streamId, HoseSystemUtil.eventHelper.GRABPOINTS_NUM_SEND_BITS)
 	self.vehicle = readNetworkNodeObject(streamId)
-    self.reference = streamReadInt32(streamId)
+    self.referenceId = streamReadUIntN(streamId, HoseSystemUtil.eventHelper.REFERENCES_NUM_SEND_BITS)
     self.isExtendable = streamReadBool(streamId)
     self:run(connection)
 end
 
 function HoseSystemDetachEvent:run(connection)
-	self.object.poly.interactiveHandling:detach(self.index, self.vehicle, self.reference, self.isExtendable, true)
+--	self.object.poly.interactiveHandling:detach(self.index, self.vehicle, self.referenceId, self.isExtendable, true)
 
 	if not connection:getIsServer() then
-		g_server:broadcastEvent(self, nil, connection, self.object)
+--		g_server:broadcastEvent(self, nil, connection, self.object)
+        self.object.poly.interactiveHandling:detach(self.index, self.vehicle, self.referenceId, self.isExtendable)
+    else
+        self.object.poly.interactiveHandling:detach(self.index, self.vehicle, self.referenceId, self.isExtendable, true)
 	end
 end
 
-function HoseSystemDetachEvent.sendEvent(object, index, vehicle, reference, isExtendable, noEventSend)
+function HoseSystemDetachEvent.sendEvent(object, index, vehicle, referenceId, isExtendable, noEventSend)
     if noEventSend == nil or noEventSend == false then
         if g_server ~= nil then
-            g_server:broadcastEvent(HoseSystemDetachEvent:new(object, index, vehicle, reference, isExtendable), nil, nil, object)
+            g_server:broadcastEvent(HoseSystemDetachEvent:new(object, index, vehicle, referenceId, isExtendable), nil, nil, object)
         else
-            g_client:getServerConnection():sendEvent(HoseSystemDetachEvent:new(object, index, vehicle, reference, isExtendable))
+            g_client:getServerConnection():sendEvent(HoseSystemDetachEvent:new(object, index, vehicle, referenceId, isExtendable))
         end
     end
 end

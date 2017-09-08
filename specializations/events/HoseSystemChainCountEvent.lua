@@ -27,6 +27,7 @@ end
 
 function HoseSystemChainCountEvent:writeStream(streamId, connection)
 	writeNetworkNodeObject(streamId, self.object)
+    -- Todo: write max number bit probably go for int8 or int16 (signed 8 bit could hold to 127)
     streamWriteInt32(streamId, self.count)
 end
 

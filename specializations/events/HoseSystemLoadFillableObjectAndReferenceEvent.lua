@@ -17,30 +17,30 @@ function HoseSystemLoadFillableObjectAndReferenceEvent:emptyNew()
     return event
 end
 
-function HoseSystemLoadFillableObjectAndReferenceEvent:new(object, vehicle, reference, isExtendable)
+function HoseSystemLoadFillableObjectAndReferenceEvent:new(object, vehicle, referenceId, isExtendable)
     local event = HoseSystemLoadFillableObjectAndReferenceEvent:emptyNew()
 
     event.object = object
     event.vehicle = vehicle
-    event.reference = reference
+    event.referenceId = referenceId
     event.isExtendable = isExtendable
 
     return event
 end
 
-function HoseSystemLoadFillableObjectAndReferenceEvent:readStream(streamId, connection)
-    self.object = readNetworkNodeObject(streamId)
-    self.vehicle = readNetworkNodeObjectId(streamId)
-    self.reference = streamReadInt32(streamId)
-    self.isExtendable = streamReadBool(streamId)
-    self:run(connection)
-end
-
 function HoseSystemLoadFillableObjectAndReferenceEvent:writeStream(streamId, connection)
     writeNetworkNodeObject(streamId, self.object)
     writeNetworkNodeObjectId(streamId, self.vehicle)
-    streamWriteInt32(streamId, self.reference)
+    streamWriteUIntN(streamId, self.referenceId, HoseSystemUtil.eventHelper.REFERENCES_NUM_SEND_BITS)
     streamWriteBool(streamId, self.isExtendable)
+end
+
+function HoseSystemLoadFillableObjectAndReferenceEvent:readStream(streamId, connection)
+    self.object = readNetworkNodeObject(streamId)
+    self.vehicle = readNetworkNodeObjectId(streamId)
+    self.referenceId = streamReadUIntN(streamId, HoseSystemUtil.eventHelper.REFERENCES_NUM_SEND_BITS)
+    self.isExtendable = streamReadBool(streamId)
+    self:run(connection)
 end
 
 function HoseSystemLoadFillableObjectAndReferenceEvent:run(connection)
@@ -53,16 +53,16 @@ function HoseSystemLoadFillableObjectAndReferenceEvent:run(connection)
     -- end
 	
 	if self.object ~= nil then
-		self.object.poly.references:loadFillableObjectAndReference(self.vehicle, self.reference, self.isExtendable, true)
+		self.object.poly.references:loadFillableObjectAndReference(self.vehicle, self.referenceId, self.isExtendable, true)
 	end
 end
 
-function HoseSystemLoadFillableObjectAndReferenceEvent.sendEvent(object, vehicle, reference, isExtendable, noEventSend)
+function HoseSystemLoadFillableObjectAndReferenceEvent.sendEvent(object, vehicle, referenceId, isExtendable, noEventSend)
     if noEventSend == nil or noEventSend == false then
         if g_server ~= nil then
-            g_server:broadcastEvent(HoseSystemLoadFillableObjectAndReferenceEvent:new(object, vehicle, reference, isExtendable), nil, nil, object)
+            g_server:broadcastEvent(HoseSystemLoadFillableObjectAndReferenceEvent:new(object, vehicle, referenceId, isExtendable), nil, nil, object)
         else
-            g_client:getServerConnection():sendEvent(HoseSystemLoadFillableObjectAndReferenceEvent:new(object, vehicle, reference, isExtendable))
+            g_client:getServerConnection():sendEvent(HoseSystemLoadFillableObjectAndReferenceEvent:new(object, vehicle, referenceId, isExtendable))
         end
     end
 end

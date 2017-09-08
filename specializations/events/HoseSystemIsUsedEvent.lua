@@ -30,7 +30,7 @@ end
 
 function HoseSystemIsUsedEvent:writeStream(streamId, connection)
     writeNetworkNodeObject(streamId, self.object)
-    streamWriteInt32(streamId, self.index)
+    streamWriteUIntN(streamId, self.index, HoseSystemUtil.eventHelper.GRABPOINTS_NUM_SEND_BITS)
     streamWriteBool(streamId, self.isConnected)
     streamWriteBool(streamId, self.isExtendable)
     streamWriteBool(streamId, self.isCalledFromReference)
@@ -38,7 +38,7 @@ end
 
 function HoseSystemIsUsedEvent:readStream(streamId, connection)
     self.object = readNetworkNodeObject(streamId)
-    self.index = streamReadInt32(streamId)
+    self.index = streamReadUIntN(streamId, HoseSystemUtil.eventHelper.GRABPOINTS_NUM_SEND_BITS)
     self.isConnected = streamReadBool(streamId)
     self.isExtendable = streamReadBool(streamId)
     self.isCalledFromReference = streamReadBool(streamId)

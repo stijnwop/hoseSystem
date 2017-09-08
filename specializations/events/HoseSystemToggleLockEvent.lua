@@ -28,13 +28,13 @@ end
 
 function HoseSystemToggleLockEvent:writeStream(streamId, connection)
     streamWriteInt32(streamId, networkGetObjectId(self.object))
-    streamWriteInt32(streamId, self.index)
+    streamWriteUIntN(streamId, self.index, HoseSystemUtil.eventHelper.GRABPOINTS_NUM_SEND_BITS)
     streamWriteBool(streamId, self.bool)
 end
 
 function HoseSystemToggleLockEvent:readStream(streamId, connection)
     self.object = networkGetObject(streamReadInt32(streamId))
-    self.index = streamReadInt32(streamId)
+    self.index = streamReadUIntN(streamId, HoseSystemUtil.eventHelper.GRABPOINTS_NUM_SEND_BITS)
     self.bool = streamReadBool(streamId)
     self:run(connection)
 end

@@ -16,7 +16,9 @@ HoseSystemUtil = {
 
 HoseSystemUtil.eventHelper = {
     STATE_CLIENT = 1,
-    STATE_SERVER = 2
+    STATE_SERVER = 2,
+    GRABPOINTS_NUM_SEND_BITS = 2, -- Max 2^2
+    REFERENCES_NUM_SEND_BITS = 4  -- Max 2^4
 }
 
 ---
