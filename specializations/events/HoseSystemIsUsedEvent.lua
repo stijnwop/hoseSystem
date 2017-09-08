@@ -30,7 +30,7 @@ end
 
 function HoseSystemIsUsedEvent:writeStream(streamId, connection)
     writeNetworkNodeObject(streamId, self.object)
-    streamWriteUIntN(streamId, self.index, HoseSystemUtil.eventHelper.GRABPOINTS_NUM_SEND_BITS)
+    streamWriteUIntN(streamId, self.index - 1, HoseSystemUtil.eventHelper.GRABPOINTS_NUM_SEND_BITS)
     streamWriteBool(streamId, self.isConnected)
     streamWriteBool(streamId, self.isExtendable)
     streamWriteBool(streamId, self.isCalledFromReference)
@@ -38,7 +38,7 @@ end
 
 function HoseSystemIsUsedEvent:readStream(streamId, connection)
     self.object = readNetworkNodeObject(streamId)
-    self.index = streamReadUIntN(streamId, HoseSystemUtil.eventHelper.GRABPOINTS_NUM_SEND_BITS)
+    self.index = streamReadUIntN(streamId, HoseSystemUtil.eventHelper.GRABPOINTS_NUM_SEND_BITS) + 1
     self.isConnected = streamReadBool(streamId)
     self.isExtendable = streamReadBool(streamId)
     self.isCalledFromReference = streamReadBool(streamId)
@@ -46,7 +46,7 @@ function HoseSystemIsUsedEvent:readStream(streamId, connection)
 end
 
 function HoseSystemIsUsedEvent:run(connection)
-	self.object.poly.interactiveHandling:setGrabPointIsUsed(self.index, self.isConnected, self.isExtendable, self.isCalledFromReference, true)
+    self.object.poly.interactiveHandling:setGrabPointIsUsed(self.index, self.isConnected, self.isExtendable, self.isCalledFromReference, true)
 
     if not connection:getIsServer() then
         g_server:broadcastEvent(self, false, connection, self.object)

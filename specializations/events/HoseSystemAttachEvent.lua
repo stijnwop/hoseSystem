@@ -30,17 +30,17 @@ end
 
 function HoseSystemAttachEvent:writeStream(streamId, connection)
     writeNetworkNodeObject(streamId, self.object)
-    streamWriteUIntN(streamId, self.index, HoseSystemUtil.eventHelper.GRABPOINTS_NUM_SEND_BITS)
+    streamWriteUIntN(streamId, self.index - 1, HoseSystemUtil.eventHelper.GRABPOINTS_NUM_SEND_BITS)
     writeNetworkNodeObject(streamId, self.vehicle)
-    streamWriteUIntN(streamId, self.referenceId, HoseSystemUtil.eventHelper.REFERENCES_NUM_SEND_BITS)
+    streamWriteUIntN(streamId, self.referenceId - 1, HoseSystemUtil.eventHelper.REFERENCES_NUM_SEND_BITS)
     streamWriteBool(streamId, self.isExtendable)
 end
 
 function HoseSystemAttachEvent:readStream(streamId, connection)
     self.object = readNetworkNodeObject(streamId)
-    self.index = streamReadUIntN(streamId, HoseSystemUtil.eventHelper.GRABPOINTS_NUM_SEND_BITS)
+    self.index = streamReadUIntN(streamId, HoseSystemUtil.eventHelper.GRABPOINTS_NUM_SEND_BITS) + 1
     self.vehicle = readNetworkNodeObject(streamId)
-    self.referenceId = streamReadUIntN(streamId, HoseSystemUtil.eventHelper.REFERENCES_NUM_SEND_BITS)
+    self.referenceId = streamReadUIntN(streamId, HoseSystemUtil.eventHelper.REFERENCES_NUM_SEND_BITS) + 1
     self.isExtendable = streamReadBool(streamId)
     self:run(connection)
 end
