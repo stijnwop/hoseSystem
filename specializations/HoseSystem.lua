@@ -117,6 +117,9 @@ function HoseSystem:load(savegame)
         end
     end
 
+    self.componentRunUpdates = 0
+    self.componentNumRunUpdates = 5
+
     self.polymorphismClasses = {}
 
     -- in case we need to access it later we setup callbacks here
@@ -380,7 +383,7 @@ function HoseSystem:getSaveAttributesAndNodes(nodeIdent)
                 nodes = nodes .. "\n"
             end
 
-            nodes = nodes .. nodeIdent .. ('<grabPoint id="%s" lockState="%s" '):format(index, grabPoint.isLocked)
+            local string = ('<grabPoint id="%s" lockState="%s"'):format(index, grabPoint.isLocked)
 
             if HoseSystem:getIsConnected(grabPoint.state) then
                 if grabPoint.connectorVehicle ~= nil and grabPoint.connectorRefId ~= nil then
@@ -395,7 +398,7 @@ function HoseSystem:getSaveAttributesAndNodes(nodeIdent)
                     end
 
                     if not reference.connectable then -- check if we don't have an extendable hose on the reference
-                        nodes = nodes .. (' connectorVehicleId="%s" referenceId="%s" extenable="%s" '):format(vehicleId, grabPoint.connectorRefId, tostring(grabPoint.connectable))
+                        string = string .. (' connectorVehicleId="%s" referenceId="%s" extenable="%s"'):format(vehicleId, grabPoint.connectorRefId, tostring(grabPoint.connectable))
                     end
 
                     if reference.parkable then -- We are saving a parked hose.. we don't need to save the other references.
@@ -404,7 +407,7 @@ function HoseSystem:getSaveAttributesAndNodes(nodeIdent)
                 end
             end
 
-            nodes = nodes .. "/>"
+            nodes = nodes .. nodeIdent .. string .. " />"
         end
     end
 
@@ -438,6 +441,16 @@ end
 
 
 function HoseSystem:updateTick(dt)
+    if self.isServer and self.forceCompontentUpdate then
+        if self.componentRunUpdates < self.componentNumRunUpdates then
+            self.componentRunUpdates = self.componentRunUpdates + 1
+            self:raiseDirtyFlags(self.vehicleDirtyFlag)
+        else
+            self.componentRunUpdates = 0
+            self.forceCompontentUpdate = not self.forceCompontentUpdate
+        end
+    end
+
     if self.isClient then
         self:setEmptyEffect(self.hoseEffects.isActive, dt)
     end
