@@ -255,19 +255,17 @@ function HoseSystem:postLoad(savegame)
 end
 
 function HoseSystem:preDelete()
-    if self.isServer then
-        if self.grabPoints ~= nil then
-            for index, grabPoint in pairs(self.grabPoints) do
-                if HoseSystem:getIsAttached(grabPoint.state) then
-                    if grabPoint.isOwned and grabPoint.currentOwner ~= nil then
-                        self.poly.interactiveHandling:drop(index, grabPoint.currentOwner, true)
-                    end
-                elseif HoseSystem:getIsConnected(grabPoint.state) then
-                    if grabPoint.connectorVehicle ~= nil and grabPoint.connectorRefId ~= nil then
-                        local reference = HoseSystemReferences:getReference(grabPoint.connectorVehicle, grabPoint.connectorRefId, grabPoint)
+    if self.grabPoints ~= nil then
+        for index, grabPoint in pairs(self.grabPoints) do
+            if HoseSystem:getIsAttached(grabPoint.state) then
+                if grabPoint.isOwned and grabPoint.currentOwner ~= nil then
+                    self.poly.interactiveHandling:drop(index, grabPoint.currentOwner, nil, true)
+                end
+            elseif HoseSystem:getIsConnected(grabPoint.state) then
+                if grabPoint.connectorVehicle ~= nil and grabPoint.connectorRefId ~= nil then
+                    local reference = HoseSystemReferences:getReference(grabPoint.connectorVehicle, grabPoint.connectorRefId, grabPoint)
 
-                        self.poly.interactiveHandling:detach(index, grabPoint.connectorVehicle, grabPoint.connectorRefId, reference.connectable ~= nil and reference.connectable, true)
-                    end
+                    self.poly.interactiveHandling:detach(index, grabPoint.connectorVehicle, grabPoint.connectorRefId, reference.connectable ~= nil and reference.connectable, true)
                 end
             end
         end
