@@ -400,6 +400,7 @@ function HoseSystem:getSaveAttributesAndNodes(nodeIdent)
                     end
 
                     if reference.parkable then -- We are saving a parked hose.. we don't need to save the other references.
+                        nodes = nodes .. nodeIdent .. string .. " />"
                         break
                     end
                 end
