@@ -107,10 +107,10 @@ function HoseSystemUtil:getHoseSystemFromReference(reference)
     return nil
 end
 
-function HoseSystemUtil:getDependentGrabPoint(grabPoints, id)
+function HoseSystemUtil:getDependentGrabPoint(grabPoints, id, allowPlayer)
     for _, grabPoint in pairs(grabPoints) do
         if grabPoint.id ~= id then
-            if HoseSystem:getIsConnected(grabPoint.state) then
+            if HoseSystem:getIsConnected(grabPoint.state) or allowPlayer and HoseSystem:getIsAttached(grabPoint.state) then
                 return grabPoint
             end
         end

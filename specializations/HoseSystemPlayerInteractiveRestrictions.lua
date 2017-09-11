@@ -54,86 +54,70 @@ end
 function HoseSystemPlayerInteractiveRestrictions:restrictPlayerDistance(dt, grabPoint)
     local player = grabPoint.currentOwner
 
-    if player ~= nil then
-        if player.positionIsDirty then
-            if player.hoseSystem.interactiveHandling ~= nil then
+    if player ~= nil and player.positionIsDirty then
+        if player.hoseSystem.interactiveHandling ~= nil then
+            if grabPoint.id == player.hoseSystem.index then
+                if HoseSystem:getIsAttached(grabPoint.state) then
+                    local dependentGrabpoint = HoseSystemUtil:getDependentGrabPoint(self.object.grabPoints, grabPoint.id, true)
 
-                if grabPoint.id == player.hoseSystem.index then
-                    if HoseSystem:getIsAttached(grabPoint.state) then
-                        local dependentGrabpoint = HoseSystemUtil:getDependentGrabPoint(self.object.grabPoints, grabPoint.id)
+                    --                        self:setChainCount(1) -- We're always 1 behind cause we are counting the jointIndexes!
 
-                        --                        self:setChainCount(1) -- We're always 1 behind cause we are counting the jointIndexes!
+                    --                        for _, gp in pairs(self.object.grabPoints) do
+                    --                            local _, count = self:getLastGrabpointRecursively(gp, self.currentChainCount)
+                    --
+                    --                            self:setChainCount(count)
+                    -- print(count)
 
---                        for _, gp in pairs(self.object.grabPoints) do
-                            --                            local _, count = self:getLastGrabpointRecursively(gp, self.currentChainCount)
-                            --
-                            --                            self:setChainCount(count)
-                            -- print(count)
+                    --self:calculateChainRecursively(gp)
 
-                            --self:calculateChainRecursively(gp)
+                    --                            if gp.id ~= grabPoint.id then
+                    --                                if HoseSystem:getIsConnected(gp.state) or HoseSystem:getIsAttached(gp.state) then
+                    --                                    dependentGrabpoint = gp
+                    --                                    break
+                    --                                end
+                    --                            end
+                    --                        end
 
---                            if gp.id ~= grabPoint.id then
---                                if HoseSystem:getIsConnected(gp.state) or HoseSystem:getIsAttached(gp.state) then
---                                    dependentGrabpoint = gp
---                                    break
---                                end
---                            end
---                        end
+                    if dependentGrabpoint ~= nil then
+                        -- If we have a player use the grabpoint as reference
+                        local reference = HoseSystem:getIsConnected(dependentGrabpoint.state) and HoseSystemReferences:getReference(dependentGrabpoint.connectorVehicle, dependentGrabpoint.connectorRefId, dependentGrabpoint) or dependentGrabpoint
 
-                        if dependentGrabpoint ~= nil then
-                            if dependentGrabpoint.connectorRefId ~= nil then
-                                local reference = HoseSystemReferences:getReference(dependentGrabpoint.connectorVehicle, dependentGrabpoint.connectorRefId, dependentGrabpoint)
+                        if reference == nil then
+                            return
+                        end
 
-                                if reference == nil then
-                                    return
-                                end
+                        local x, _, z = getWorldTranslation(reference.node)
+                        local px, _, pz = getWorldTranslation(player.rootNode)
+                        local dx, dz = px - x, pz - z
+                        local radius = dx * dx + dz * dz
+                        local length = self.object.data.length
+                        --                                local actionRadius = self.currentChainCount > 1 and (length * length) * 1.2 or length * length -- give it some space when moving a chain because well..
+                        local actionRadius = length * length
 
-                                local x, y, z = getWorldTranslation(reference.node)
-                                local px, py, pz = getWorldTranslation(player.rootNode)
-                                local dx, dz = px - x, pz - z
-                                local radius = dx * dx + dz * dz
-                                local length = self.object.data.length
+                        if radius < actionRadius then
+                            self.lastInRangePosition = { getTranslation(player.rootNode) }
+                        else
+                            -- local x, y, z = getWorldTranslation(player.rootNode)
+                            -- local gx, gy, gz = getWorldTranslation(dependentGrabpoint.node)
+                            -- local distance = Utils.vector3Length(x - gx, y - gy, z - gz)
 
-                                --local inRange = false
-                                -- local actionRadius = (self.hose.length * self.hose.length) * (self.currentChainCount - 1)
+                            -- if distance > self.hose.length then
+                            local kx, _, kz = getWorldTranslation(reference.node)
+                            local px, py, pz = getWorldTranslation(player.rootNode)
+                            local distance = Utils.vector2Length(px - kx, pz - kz)
+                            local x, y, z = unpack(self.lastInRangePosition)
 
-                                --                                local actionRadius = self.currentChainCount > 1 and (length * length) * 1.2 or length * length -- give it some space when moving a chain because well..
-                                local actionRadius = length * length -- give it some space when moving a chain because well..
+                            x = kx + ((px - kx) / distance) * (length - 0.00001 * dt)
+                            -- x = kx + ((px - kx) / distance) * (self.hose.length * (self.currentChainCount - 1) - 0.00001 * dt)
+                            z = kz + ((pz - kz) / distance) * (length - 0.00001 * dt)
+                            -- z = kz + ((pz - kz) / distance) * (self.hose.length * (self.currentChainCount - 1) - 0.00001 * dt)
 
-                                -- print(" New " .. actionRadius)
-                                -- print("Radius " .. radius)
+                            player:moveToAbsoluteInternal(x, py, z)
+                            self.lastInRangePosition = { x, y, z }
 
-                                -- if radius < actionRadius then
-                                -- inRange = true
-                                -- end
-
-                                if radius < actionRadius then
-                                    self.lastInRangePosition = { getTranslation(player.rootNode) }
-                                else
-                                    -- local x, y, z = getWorldTranslation(player.rootNode)
-                                    -- local gx, gy, gz = getWorldTranslation(dependentGrabpoint.node)
-                                    -- local distance = Utils.vector3Length(x - gx, y - gy, z - gz)
-
-                                    -- if distance > self.hose.length then
-                                    local kx, _, kz = getWorldTranslation(reference.node)
-                                    local px, py, pz = getWorldTranslation(player.rootNode)
-                                    local distance = Utils.vector2Length(px - kx, pz - kz)
-                                    local x, y, z = unpack(self.lastInRangePosition)
-
-                                    x = kx + ((px - kx) / distance) * (length - 0.00001 * dt)
-                                    -- x = kx + ((px - kx) / distance) * (self.hose.length * (self.currentChainCount - 1) - 0.00001 * dt)
-                                    z = kz + ((pz - kz) / distance) * (length - 0.00001 * dt)
-                                    -- z = kz + ((pz - kz) / distance) * (self.hose.length * (self.currentChainCount - 1) - 0.00001 * dt)
-
-                                    player:moveToAbsoluteInternal(x, py, z)
-                                    self.lastInRangePosition = { x, y, z }
-
-                                    if not self.rangeRestrictionMessageShown and player == g_currentMission.player then
-                                        self.rangeRestrictionMessageShown = true
-                                        g_currentMission:showBlinkingWarning(g_i18n:getText('info_hoseRangeRestriction'), 5000)
-                                    end
-                                    -- end
-                                end
+                            if not self.rangeRestrictionMessageShown and player == g_currentMission.player then
+                                self.rangeRestrictionMessageShown = true
+                                g_currentMission:showBlinkingWarning(g_i18n:getText('info_hoseRangeRestriction'), 5000)
                             end
                         end
                     end
