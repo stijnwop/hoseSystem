@@ -217,6 +217,10 @@ function HoseSystemPumpMotor:updateTick(dt)
         end
 
         if self.pumpIsStarted then
+            if not self.fillObjectFound then -- if we lost the object stop pump
+                self:setPumpStarted(false, true)
+            end
+
             if self.pumpEfficiency.currentScale < self.pumpEfficiency.scaleLimit then
                 if self.warningMessage.currentId == HoseSystemPumpMotor.POWER_DOWN then
                     self.warningMessage.currentId = HoseSystemPumpMotor.NONE

@@ -279,6 +279,10 @@ function HoseSystemLiquidManureFillTrigger:update(superFunc, dt)
             end
         end
     end
+
+    if not self.shaderOnIdle and self.lastFillLevelChangeTime < g_currentMission.time then
+        self:updateShaderPlane(false)
+    end
 end
 
 function HoseSystemLiquidManureFillTrigger:getNearestReference(playerTrans)
