@@ -70,7 +70,7 @@ function HoseSystemPumpMotor:load(savegame)
     self.doFakePump = HoseSystemPumpMotor.doFakePump
     self.getIsTurnedOn = Utils.overwrittenFunction(self.getIsTurnedOn, HoseSystemPumpMotor.getIsTurnedOn)
     self.getIsTurnedOnAllowed = Utils.overwrittenFunction(self.getIsTurnedOnAllowed, HoseSystemPumpMotor.getIsTurnedOnAllowed)
-    self.getPtoRpm = Utils.overwrittenFunction(self.getPtoRpm, HoseSystemPumpMotor.getPtoRpm)
+    self.getConsumedPtoTorque = Utils.overwrittenFunction(self.getConsumedPtoTorque, HoseSystemPumpMotor.getConsumedPtoTorque)
     -- self.setIsTurnedOn = Utils.overwrittenFunction(self.setIsTurnedOn, HoseSystemPumpMotor.setIsTurnedOn)
 
     self.attacherMotor = {
@@ -487,11 +487,11 @@ function HoseSystemPumpMotor:getIsTurnedOnAllowed(superFunc, isTurnedOn)
     return superFunc(self)
 end
 
-function HoseSystemPumpMotor:getPtoRpm(superFunc)
+function HoseSystemPumpMotor:getConsumedPtoTorque(superFunc)
     if self.pumpIsStarted then
-        local rpm = superFunc(self)
+        local rpm = superFunc(self) * 3
 
-        return rpm + rpm * self.pumpEfficiency.currentScale
+        return rpm * self.pumpEfficiency.currentScale
     end
 
     return superFunc(self)
