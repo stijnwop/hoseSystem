@@ -186,7 +186,7 @@ function HoseSystemReferences:getCanConnect(x, y, z, sequence, grabPoint, refere
     local dist = Utils.vector2LengthSq(x - rx, z - rz)
 
     if dist < sequence then
-        if math.abs(y - ry) < 1.3 then
+        if math.abs(y - ry) < reference.inRangeDistance then
             local cosAngle = HoseSystem:calculateCosAngle(reference.node, grabPoint.node)
 
             if not reference.parkable then

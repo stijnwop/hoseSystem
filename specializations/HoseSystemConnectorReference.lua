@@ -141,7 +141,24 @@ function HoseSystemConnectorReference.loadHoseReferences(self, xmlFile, base, re
             break
         end
 
-        local node = Utils.indexToObject(self.components, getXMLString(xmlFile, key .. '#index'))
+        local createNode = Utils.getNoNil(getXMLBool(xmlFile, key .. '#createNode'), false)
+        local node = not createNode and Utils.indexToObject(self.components, getXMLString(xmlFile, key .. '#index')) or createTransformGroup(('hoseSystemReference_node_%d'):format(i + 1))
+
+        if createNode then
+            local linkNode = Utils.indexToObject(self.components, Utils.getNoNil(getXMLString(xmlFile, key .. '#linkNode'), '0>'))
+
+            local translation = {Utils.getVectorFromString(getXMLString(self.xmlFile, key .. '#position'))}
+            if translation[1] ~= nil and translation[2] ~= nil and translation[3] ~= nil then
+                setTranslation(node, unpack(translation))
+            end
+
+            local rotation = {Utils.getVectorFromString(getXMLString(self.xmlFile, key .. '#rotation'))}
+            if rotation[1] ~= nil and rotation[2] ~= nil and rotation[3] ~= nil then
+                setRotation(node, Utils.degToRad(rotation[1]), Utils.degToRad(rotation[2]), Utils.degToRad(rotation[3]))
+            end
+
+            link(linkNode, node)
+        end
 
         if node ~= nil then
             local entry = {
@@ -154,6 +171,7 @@ function HoseSystemConnectorReference.loadHoseReferences(self, xmlFile, base, re
                 grabPoints = nil,
                 isObject = false,
                 componentIndex = Utils.getNoNil(getXMLFloat(xmlFile, key .. 'componentIndex'), 0) + 1,
+                inRangeDistance = Utils.getNoNil(getXMLFloat(xmlFile, key .. 'inRangeDistance'), 1.3),
                 parkable = Utils.getNoNil(getXMLBool(xmlFile, key .. '#parkable'), false),
                 lockAnimationName = Utils.getNoNil(getXMLString(xmlFile, key .. '#lockAnimationName'), nil),
                 manureFlowAnimationName = Utils.getNoNil(getXMLString(xmlFile, key .. '#manureFlowAnimationName'), nil)
@@ -171,7 +189,7 @@ function HoseSystemConnectorReference.loadHoseReferences(self, xmlFile, base, re
                 -- entry.startRotOffset = Utils.getNoNil(Utils.getVectorNFromString(getXMLString(xmlFile, key .. '#parkTransOffset'), 3), {0, 0, 0})
                 -- entry.parkTransOffset = Utils.getNoNil(Utils.getVectorNFromString(getXMLString(xmlFile, key .. '#parkTransOffset'), 3), {0, 0, 0})
                 -- entry.parkRotOffset = Utils.getNoNil(Utils.getVectorNFromString(getXMLString(xmlFile, key .. '#parkRotOffset'), 3), {0, 0, 0})
-                local maxNode = createTransformGroup(('maxNode%d'):format(entry.id))
+                local maxNode = createTransformGroup(('hoseSystemReference_park_maxNode_%d'):format(entry.id))
                 link(entry.node, maxNode)
                 local trans = { localToWorld(node, 0, 0, entry.offsetDirection ~= 1 and -entry.parkLength or entry.parkLength) }
                 setWorldTranslation(maxNode, unpack(trans))
