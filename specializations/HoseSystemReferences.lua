@@ -16,10 +16,10 @@ function HoseSystemReferences:new(object, mt)
 
     setmetatable(references, mt == nil and HoseSystemReferences_mt or mt)
 
-    object.vehicleToMountHoseSystem = 0
-    object.referenceIdToMountHoseSystem = 0
-    object.referenceIsExtendable = false
-    object.doNetworkObjectsIteration = false
+    references.object.vehicleToMountHoseSystem = 0
+    references.object.referenceIdToMountHoseSystem = 0
+    references.object.referenceIsExtendable = false
+    references.object.doNetworkObjectsIteration = false
 
     if object.isServer then
         references.vehicleToMountHoseSystemSend = nil
@@ -73,7 +73,6 @@ function HoseSystemReferences:loadFillableObjectAndReference(vehicle, referenceI
                 g_server:broadcastEvent(HoseSystemLoadFillableObjectAndReferenceEvent:new(self.object, self.object.vehicleToMountHoseSystem, self.object.referenceIdToMountHoseSystem, self.object.referenceIsExtendable))
             end
 
-            print('Send update on reference objects')
             --            print('vehicleToMountHoseSystem ' .. tostring(self.vehicleToMountHoseSystem))
             --            print('referenceIdToMountHoseSystem ' .. tostring(self.object.referenceIdToMountHoseSystem))
             --            print('referenceIsExtendable ' .. tostring(self.referenceIsExtendable))
@@ -223,16 +222,19 @@ end
 
 function HoseSystemReferences:getReference(object, index, grabPoint)
     -- When we are dealing with map objects change the object to the parent that holds the rigid body node
-    if object ~= nil and object.hoseSystemParent ~= nil then
-        object = object.hoseSystemParent
-    end
+    if object ~= nil then
+        if object.hoseSystemParent ~= nil then
+            object = object.hoseSystemParent
+        end
 
-    if not grabPoint.connectable and object.hoseSystemReferences ~= nil then
-        return object.hoseSystemReferences[index]
-    end
+        if not grabPoint.connectable and object.hoseSystemReferences ~= nil then
+            return object.hoseSystemReferences[index]
+        end
 
-    if grabPoint.connectable and object.grabPoints ~= nil or object.grabPoints ~= nil then
-        return object.grabPoints[index]
+        if grabPoint.connectable and object.grabPoints ~= nil or object.grabPoints ~= nil then
+            return object.grabPoints[index]
+        end
+
     end
 
     return nil
