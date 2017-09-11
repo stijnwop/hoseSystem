@@ -703,11 +703,15 @@ function HoseSystemConnectorReference:toggleLock(index, state, force, noEventSen
     local reference = self.hoseSystemReferences[index]
 
     if reference ~= nil then
-        local dir = state and 1 or -1
-        local shouldPlay = force or not self:getIsAnimationPlaying(reference.lockAnimationName)
+        if reference.lockAnimationName ~= nil then
+            local dir = state and 1 or -1
+            local shouldPlay = force or not self:getIsAnimationPlaying(reference.lockAnimationName)
 
-        if shouldPlay then
-            self:playAnimation(reference.lockAnimationName, dir, nil, true)
+            if shouldPlay then
+                self:playAnimation(reference.lockAnimationName, dir, nil, true)
+                reference.isLocked = state
+            end
+        else
             reference.isLocked = state
         end
     end
@@ -719,11 +723,15 @@ function HoseSystemConnectorReference:toggleManureFlow(index, state, force, noEv
     local reference = self.hoseSystemReferences[index]
 
     if reference ~= nil then
-        local dir = state and 1 or -1
-        local shouldPlay = force or not self:getIsAnimationPlaying(reference.manureFlowAnimationName)
+        if reference.manureFlowAnimationName ~= nil then
+            local dir = state and 1 or -1
+            local shouldPlay = force or not self:getIsAnimationPlaying(reference.manureFlowAnimationName)
 
-        if shouldPlay then
-            self:playAnimation(reference.manureFlowAnimationName, dir, nil, true)
+            if shouldPlay then
+                self:playAnimation(reference.manureFlowAnimationName, dir, nil, true)
+                reference.flowOpened = state
+            end
+        else
             reference.flowOpened = state
         end
     end
@@ -753,22 +761,26 @@ function HoseSystemConnectorReference:setIsUsed(index, bool, noEventSend)
         if reference ~= nil then
             reference.isUsed = bool
 
+            if reference.lockAnimationName == nil then
+                self:toggleLock(index, bool, true)
+            end
+
+            if reference.manureFlowAnimationName == nil then
+                self:toggleManureFlow(index, bool, true)
+            end
+
             -- When detaching while on gameload we do need to sync the animations
             if not bool then
-                if reference.lockAnimationName ~= nil then
-                    if reference.isLocked then
-                        self:toggleLock(index, not reference.isLocked, false)
-                    end
+                if reference.isLocked then
+                    self:toggleLock(index, not reference.isLocked, false)
                 end
 
-                if reference.manureFlowAnimationName ~= nil then
-                    if reference.flowOpened then
-                        self:toggleManureFlow(index, not reference.flowOpened, false)
-                    end
+                if reference.flowOpened then
+                    self:toggleManureFlow(index, not reference.flowOpened, false)
                 end
             end
 
-            if reference.parkable then
+            if reference.parkable and reference.parkAnimationName ~= nil then
                 local dir = bool and 1 or -1
 
                 if not self:getIsAnimationPlaying(reference.parkAnimationName) then
