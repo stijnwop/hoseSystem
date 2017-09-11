@@ -37,6 +37,8 @@ function HoseSystemPlayerInteractive:getIsPlayerInGrabPointRange()
 
     local closestIndex
 
+    g_currentMission.player.hoseSystem.closestIndex = nil
+
     if self.object.grabPoints ~= nil then
         local distance = math.huge
         local playerTrans = { getWorldTranslation(g_currentMission.player.rootNode) }
@@ -55,8 +57,10 @@ function HoseSystemPlayerInteractive:getIsPlayerInGrabPointRange()
                 end
             end
         end
+        -- Set closest index on current mission to prevent multiple hoses being handled by the inputbindings
+        if distance < playerDistance and g_currentMission.player.hoseSystem.closestIndex == nil then
+            g_currentMission.player.hoseSystem.closestIndex = closestIndex
 
-        if distance < playerDistance then
             return true, closestIndex
         end
     end
