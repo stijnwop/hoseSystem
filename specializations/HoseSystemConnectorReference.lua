@@ -186,9 +186,6 @@ function HoseSystemConnectorReference.loadHoseReferences(self, xmlFile, base, re
                 entry.startRotOffset = Utils.getNoNil(Utils.getVectorNFromString(getXMLString(xmlFile, key .. '#startRotOffset'), 3), { 0, 0, 0 })
                 entry.endTransOffset = Utils.getNoNil(Utils.getVectorNFromString(getXMLString(xmlFile, key .. '#endTransOffset'), 3), { 0, 0, 0 })
                 entry.endRotOffset = Utils.getNoNil(Utils.getVectorNFromString(getXMLString(xmlFile, key .. '#endRotOffset'), 3), { 0, 0, 0 })
-                -- entry.startRotOffset = Utils.getNoNil(Utils.getVectorNFromString(getXMLString(xmlFile, key .. '#parkTransOffset'), 3), {0, 0, 0})
-                -- entry.parkTransOffset = Utils.getNoNil(Utils.getVectorNFromString(getXMLString(xmlFile, key .. '#parkTransOffset'), 3), {0, 0, 0})
-                -- entry.parkRotOffset = Utils.getNoNil(Utils.getVectorNFromString(getXMLString(xmlFile, key .. '#parkRotOffset'), 3), {0, 0, 0})
                 local maxNode = createTransformGroup(('hoseSystemReference_park_maxNode_%d'):format(entry.id))
                 link(entry.node, maxNode)
                 local trans = { localToWorld(node, 0, 0, entry.offsetDirection ~= 1 and -entry.parkLength or entry.parkLength) }
