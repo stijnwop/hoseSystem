@@ -142,28 +142,28 @@
             <en>Press mouse button %s to</en>
             <de>Press mouse button %s to</de>
         </text>
-		<text name="TOGGLE_LOCK_HOSE">
+		<text name="action_toggleLock">
             <en>%s manure hose</en>
             <de>%s manure hose</de>
         </text>
-		<text name="LOCK_HOSE_STATE_LOCK">
+		<text name="action_toggleLockStateLock">
             <en>Lock</en>
             <de>Lock</de>
         </text>
-		<text name="LOCK_HOSE_STATE_UNLOCK">
+		<text name="action_toggleLockStateUnlock">
             <en>Unlock</en>
             <de>Unlock</de>
         </text>
 		
-		<text name="TOGGLE_MANUREFLOW_HOSE">
+		<text name="action_toggleManureFlow">
             <en>%s manure flow</en>
             <de>%s manure flow</de>
         </text>
-		<text name="MANUREFLOW_HOSE_STATE_OPEN">
+		<text name="action_toggleManureFlowStateOpen">
             <en>Open</en>
             <de>Open</de>
         </text>
-		<text name="MANUREFLOW_HOSE_STATE_CLOSE">
+		<text name="action_toggleManureFlowStateClose">
             <en>Close</en>
             <de>Close</de>
         </text>
