@@ -73,14 +73,14 @@ function HoseSystemUtil:addHoseSystemToPhysics(grabPoint, reference, vehicle, is
 
     if hoseSystem ~= nil then
         -- Todo: dirty, cleanup later
-        local vehicle = HoseSystemReferences:getReferenceVehicle(vehicle)
-
-        if not isConnecting then
+--        local vehicle = HoseSystemReferences:getReferenceVehicle(vehicle)
+--
+--        if not isConnecting then
             local connected = HoseSystem:getConnectedGrabPoints(hoseSystem)
             grabPoint = connected[1]
             vehicle = HoseSystemReferences:getReferenceVehicle(grabPoint.connectorVehicle)
             reference = HoseSystemReferences:getReference(grabPoint.connectorVehicle, grabPoint.connectorRefId, grabPoint)
-        end
+--        end
 
         hoseSystem.poly.interactiveHandling:createCustomComponentJoint(grabPoint, vehicle, reference)
     end
