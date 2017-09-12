@@ -1,11 +1,10 @@
 --
---	Manual Hose Event: liquidManureHoseSetOwnerEvent
+-- Owner event
 --
---	@author: 	 Wopster
---	@descripion:
---	@website:
---	@history:	 v1.0 - 2016-02-21 - Initial implementation
+-- Authors: Wopster
+-- Description: Event the current owner of the hose
 --
+-- Copyright (c) Wopster, 2017
 
 HoseSystemSetOwnerEvent = {}
 HoseSystemSetOwnerEvent_mt = Class(HoseSystemSetOwnerEvent, Event)
@@ -47,7 +46,7 @@ function HoseSystemSetOwnerEvent:run(connection)
     self.object.poly.interactiveHandling:setGrabPointOwner(self.index, self.state, self.player, true)
 
     if not connection:getIsServer() then
-        g_server:broadcastEvent(HoseSystemSetOwnerEvent:new(self.object, self.index, self.state, self.player), nil, connection, self.object)
+        g_server:broadcastEvent(self, false, connection, self.object)
     end
 end
 

@@ -1,10 +1,11 @@
 --
--- Created by IntelliJ IDEA.
--- User: stijn
--- Date: 15-12-2015
--- Time: 13:26
--- To change this template use File | Settings | File Templates.
+-- Attach event
 --
+-- Authors: Wopster
+-- Description: Event when the hose is being attached to an object
+--
+-- Copyright (c) Wopster, 2017
+
 
 HoseSystemAttachEvent = {}
 
@@ -24,7 +25,7 @@ function HoseSystemAttachEvent:new(object, index, vehicle, referenceId, isExtend
     event.vehicle = vehicle
     event.referenceId = referenceId
     event.isExtendable = isExtendable
-	
+
     return event
 end
 
@@ -46,11 +47,11 @@ function HoseSystemAttachEvent:readStream(streamId, connection)
 end
 
 function HoseSystemAttachEvent:run(connection)
-	self.object.poly.interactiveHandling:attach(self.index, self.vehicle, self.referenceId, self.isExtendable, true)
+    self.object.poly.interactiveHandling:attach(self.index, self.vehicle, self.referenceId, self.isExtendable, true)
 
-	if not connection:getIsServer() then
-		g_server:broadcastEvent(self, nil, connection, self.object)
-	end
+    if not connection:getIsServer() then
+        g_server:broadcastEvent(self, false, connection, self.object)
+    end
 end
 
 function HoseSystemAttachEvent.sendEvent(object, index, vehicle, referenceId, isExtendable, noEventSend)

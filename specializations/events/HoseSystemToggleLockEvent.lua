@@ -1,11 +1,11 @@
----
--- Created by IntelliJ IDEA.
--- Author: Wopster
--- Date: 28-7-2016
--- Time: 21:09
 --
+-- Lock event
 --
+-- Authors: Wopster
+-- Description: Event the current lock state of the extendable grabpoint
 --
+-- Copyright (c) Wopster, 2017
+
 
 HoseSystemToggleLockEvent = {}
 HoseSystemToggleLockEvent_mt = Class(HoseSystemToggleLockEvent, Event)
@@ -40,7 +40,7 @@ function HoseSystemToggleLockEvent:readStream(streamId, connection)
 end
 
 function HoseSystemToggleLockEvent:run(connection)
-	self.object:toggleLock(self.index, self.bool, true)
+    self.object:toggleLock(self.index, self.bool, true)
 
     if not connection:getIsServer() then
         g_server:broadcastEvent(self, false, connection, self.object)

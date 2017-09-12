@@ -1,11 +1,10 @@
----
--- Created by IntelliJ IDEA.
--- Author: Wopster
--- Date: 28-7-2016
--- Time: 21:09
 --
+-- Grab event
 --
+-- Authors: Wopster
+-- Description: Event when the hose is grabbed by the player
 --
+-- Copyright (c) Wopster, 2017
 
 HoseSystemGrabEvent = {}
 
@@ -48,9 +47,9 @@ function HoseSystemGrabEvent:run(connection)
         self.object.poly.interactiveHandling:grab(self.index, self.player, self.syncState, true)
     end
 
-	if not connection:getIsServer() then
-		g_server:broadcastEvent(self, nil, connection, self.object)
-	end
+    if not connection:getIsServer() then
+        g_server:broadcastEvent(self, false, connection, self.object)
+    end
 end
 
 function HoseSystemGrabEvent.sendEvent(object, index, player, syncState, noEventSend)

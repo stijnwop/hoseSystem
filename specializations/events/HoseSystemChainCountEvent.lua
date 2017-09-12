@@ -1,11 +1,10 @@
----
--- Created by IntelliJ IDEA.
--- Author: Wopster
--- Date: 28-7-2016
--- Time: 21:09
 --
+-- Chain event
 --
+-- Authors: Wopster
+-- Description: Event the amount of attached hoses
 --
+-- Copyright (c) Wopster, 2017
 
 HoseSystemChainCountEvent = {}
 HoseSystemChainCountEvent_mt = Class(HoseSystemChainCountEvent, Event)
@@ -26,7 +25,7 @@ function HoseSystemChainCountEvent:new(object, count)
 end
 
 function HoseSystemChainCountEvent:writeStream(streamId, connection)
-	writeNetworkNodeObject(streamId, self.object)
+    writeNetworkNodeObject(streamId, self.object)
     -- Todo: write max number bit probably go for int8 or int16 (signed 8 bit could hold to 127)
     streamWriteInt32(streamId, self.count)
 end
@@ -38,17 +37,17 @@ function HoseSystemChainCountEvent:readStream(streamId, connection)
 end
 
 function HoseSystemChainCountEvent:run(connection)
-	if not connection:getIsServer() then
-		g_server:broadcastEvent(self, false, connection, self.object)
-	end
-	
+    if not connection:getIsServer() then
+        g_server:broadcastEvent(self, false, connection, self.object)
+    end
+
     -- if not connection:getIsServer() then
-        -- g_server:broadcastEvent(liquidManureHoseChainCountEvent:new(self.liquidManureHose, self.count), nil, connection, self.liquidManureHose)
+    -- g_server:broadcastEvent(liquidManureHoseChainCountEvent:new(self.liquidManureHose, self.count), nil, connection, self.liquidManureHose)
     -- end
-	
-	if self.object ~= nil then
-		self.object:setChainCount(self.count, true)
-	end
+
+    if self.object ~= nil then
+        self.object:setChainCount(self.count, true)
+    end
 end
 
 function HoseSystemChainCountEvent.sendEvent(object, count, noEventSend)

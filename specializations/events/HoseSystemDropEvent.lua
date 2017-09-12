@@ -1,10 +1,10 @@
 --
--- Created by IntelliJ IDEA.
--- User: stijn
--- Date: 15-12-2015
--- Time: 13:26
--- To change this template use File | Settings | File Templates.
+-- Drop event
 --
+-- Authors: Wopster
+-- Description: Event when the hose is dropped by the player
+--
+-- Copyright (c) Wopster, 2017
 
 HoseSystemDropEvent = {}
 

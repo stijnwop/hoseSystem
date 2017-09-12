@@ -1,11 +1,10 @@
----
--- Created by IntelliJ IDEA.
--- Author: Wopster
--- Date: 28-7-2016
--- Time: 21:09
 --
+-- Grabpoint is used event
 --
+-- Authors: Wopster
+-- Description: Event when the grabpoint is used by player or object
 --
+-- Copyright (c) Wopster, 2017
 
 HoseSystemIsUsedEvent = {}
 HoseSystemIsUsedEvent_mt = Class(HoseSystemIsUsedEvent, Event)

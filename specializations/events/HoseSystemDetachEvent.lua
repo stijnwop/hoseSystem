@@ -1,10 +1,10 @@
 --
--- Created by IntelliJ IDEA.
--- User: stijn
--- Date: 15-12-2015
--- Time: 13:26
--- To change this template use File | Settings | File Templates.
+-- Detach event
 --
+-- Authors: Wopster
+-- Description: Event when the hose is being detached from an object
+--
+-- Copyright (c) Wopster, 2017
 
 HoseSystemDetachEvent = {}
 
@@ -24,7 +24,7 @@ function HoseSystemDetachEvent:new(object, index, vehicle, referenceId, isExtend
     event.vehicle = vehicle
     event.referenceId = referenceId
     event.isExtendable = isExtendable
-	
+
     return event
 end
 
@@ -39,18 +39,18 @@ end
 function HoseSystemDetachEvent:readStream(streamId, connection)
     self.object = readNetworkNodeObject(streamId)
     self.index = streamReadUIntN(streamId, HoseSystemUtil.eventHelper.GRABPOINTS_NUM_SEND_BITS) + 1
-	self.vehicle = readNetworkNodeObject(streamId)
+    self.vehicle = readNetworkNodeObject(streamId)
     self.referenceId = streamReadUIntN(streamId, HoseSystemUtil.eventHelper.REFERENCES_NUM_SEND_BITS) + 1
     self.isExtendable = streamReadBool(streamId)
     self:run(connection)
 end
 
 function HoseSystemDetachEvent:run(connection)
-	if not connection:getIsServer() then
-		g_server:broadcastEvent(self, nil, connection, self.object)
---        self.object.poly.interactiveHandling:detach(self.index, self.vehicle, self.referenceId, self.isExtendable)
---    else
---        self.object.poly.interactiveHandling:detach(self.index, self.vehicle, self.referenceId, self.isExtendable, true)
+    if not connection:getIsServer() then
+        g_server:broadcastEvent(self, false, connection, self.object)
+        --        self.object.poly.interactiveHandling:detach(self.index, self.vehicle, self.referenceId, self.isExtendable)
+        --    else
+        --        self.object.poly.interactiveHandling:detach(self.index, self.vehicle, self.referenceId, self.isExtendable, true)
     end
 
     self.object.poly.interactiveHandling:detach(self.index, self.vehicle, self.referenceId, self.isExtendable, true)

@@ -1,11 +1,10 @@
----
--- Created by IntelliJ IDEA.
--- Author: Wopster
--- Date: 28-7-2016
--- Time: 21:09
 --
+-- In range vehicle event
 --
+-- Authors: Wopster
+-- Description: Event when an object and reference are in range
 --
+-- Copyright (c) Wopster, 2017
 
 HoseSystemLoadFillableObjectAndReferenceEvent = {}
 
@@ -44,17 +43,17 @@ function HoseSystemLoadFillableObjectAndReferenceEvent:readStream(streamId, conn
 end
 
 function HoseSystemLoadFillableObjectAndReferenceEvent:run(connection)
-	if not connection:getIsServer() then
-		g_server:broadcastEvent(self, false, connection, self.object)
-	end
-	
-	-- if not connection:getIsServer() then
-        -- g_server:broadcastEvent(HoseSystemLoadFillableObjectAndReferenceEvent:new(self.object, self.vehicle, self.reference, self.isExtendable), nil, connection, self.object)
+    if not connection:getIsServer() then
+        g_server:broadcastEvent(self, false, connection, self.object)
+    end
+
+    -- if not connection:getIsServer() then
+    -- g_server:broadcastEvent(HoseSystemLoadFillableObjectAndReferenceEvent:new(self.object, self.vehicle, self.reference, self.isExtendable), nil, connection, self.object)
     -- end
-	
-	if self.object ~= nil then
-		self.object.poly.references:loadFillableObjectAndReference(self.vehicle, self.referenceId, self.isExtendable, true)
-	end
+
+    if self.object ~= nil then
+        self.object.poly.references:loadFillableObjectAndReference(self.vehicle, self.referenceId, self.isExtendable, true)
+    end
 end
 
 function HoseSystemLoadFillableObjectAndReferenceEvent.sendEvent(object, vehicle, referenceId, isExtendable, noEventSend)
