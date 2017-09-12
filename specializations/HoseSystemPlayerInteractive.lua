@@ -49,7 +49,7 @@ function HoseSystemPlayerInteractive:getIsPlayerInGrabPointRange()
                 local trans = { getWorldTranslation(grabPoint.node) }
                 local gpDistance = Utils.vector3Length(trans[1] - playerTrans[1], trans[2] - playerTrans[2], trans[3] - playerTrans[3])
 
-                playerDistance = Utils.getNoNil(grabPoint.playerDistance, self.minDistance)
+                playerDistance = Utils.getNoNil(grabPoint.playerDistance, playerDistance)
 
                 if gpDistance < distance and gpDistance < playerDistance then
                     closestIndex = index
@@ -84,26 +84,6 @@ function HoseSystemPlayerInteractive:getIsPlayerValid(strict)
             g_currentMission.player.currentTool == nil and
             g_currentMission.player.hoseSystem.index == nil and
             not g_currentMission.player.isCarryingObject
-end
-
----
--- @param node
--- @param actionText
--- @param inputBinding
---
-function HoseSystemPlayerInteractive:renderHelpTextOnNode(node, actionText, inputBinding)
-    if node ~= nil then
-        local worldX, worldY, worldZ = localToWorld(node, 0, 0.1, 0)
-        local x, y, z = project(worldX, worldY, worldZ)
-
-        if x < 0.95 and y < 0.95 and z < 1 and x > 0.05 and y > 0.05 and z > 0 then
-            setTextAlignment(RenderText.ALIGN_CENTER)
-            setTextColor(1, 1, 1, 1)
-            renderText(x, y + 0.01, 0.017, inputBinding)
-            renderText(x, y - 0.02, 0.017, actionText)
-            setTextAlignment(RenderText.ALIGN_LEFT)
-        end
-    end
 end
 
 ---

@@ -22,6 +22,26 @@ HoseSystemUtil.eventHelper = {
 }
 
 ---
+-- @param node
+-- @param actionText
+-- @param inputBinding
+--
+function HoseSystemUtil:renderHelpTextOnNode(node, actionText, inputBinding)
+    if node ~= nil then
+        local worldX, worldY, worldZ = localToWorld(node, 0, 0.1, 0)
+        local x, y, z = project(worldX, worldY, worldZ)
+
+        if x < 0.95 and y < 0.95 and z < 1 and x > 0.05 and y > 0.05 and z > 0 then
+            setTextAlignment(RenderText.ALIGN_CENTER)
+            setTextColor(1, 1, 1, 1)
+            renderText(x, y + 0.01, 0.017, inputBinding)
+            renderText(x, y - 0.02, 0.017, actionText)
+            setTextAlignment(RenderText.ALIGN_LEFT)
+        end
+    end
+end
+
+---
 -- @param vehicle
 --
 function HoseSystemUtil:addToPhysicsRecursively(vehicle)

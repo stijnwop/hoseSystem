@@ -52,7 +52,7 @@ function HoseSystemPlayerInteractiveHandling:update(dt)
                             node = reference.parkable and grabPoint.node or reference.node
                         end
 
-                        self:renderHelpTextOnNode(node, g_i18n:getText('action_attachHose'), g_i18n:getText('input_mouseInteract'):format(string.lower(MouseHelper.getButtonName(Input.MOUSE_BUTTON_LEFT))))
+                        HoseSystemUtil:renderHelpTextOnNode(node, g_i18n:getText('action_attachHose'), g_i18n:getText('input_mouseInteract'):format(string.lower(MouseHelper.getButtonName(Input.MOUSE_BUTTON_LEFT))))
 
                         g_currentMission:enableHudIcon('attach', 1)
 
@@ -72,7 +72,7 @@ function HoseSystemPlayerInteractiveHandling:update(dt)
 
             if grabPoint ~= nil then
                 if HoseSystem:getIsDetached(grabPoint.state) then
-                    self:renderHelpTextOnNode(grabPoint.node, g_i18n:getText('action_grabHose'), g_i18n:getText('input_mouseInteract'):format(string.lower(MouseHelper.getButtonName(Input.MOUSE_BUTTON_LEFT))))
+                    HoseSystemUtil:renderHelpTextOnNode(grabPoint.node, g_i18n:getText('action_grabHose'), g_i18n:getText('input_mouseInteract'):format(string.lower(MouseHelper.getButtonName(Input.MOUSE_BUTTON_LEFT))))
 
                     g_currentMission:enableHudIcon('attach', 1)
 
@@ -83,7 +83,7 @@ function HoseSystemPlayerInteractiveHandling:update(dt)
                     --
                     if HoseSystemReferences:getAllowsDetach(self.object, index) then -- or grabPoint.connectorRef.connectable then
                         if grabPoint.hasJointIndex then -- or grabPoint.connectorRef.hasJointIndex then -- Put the index through it with the jointIndex!
-                            self:renderHelpTextOnNode(grabPoint.node, g_i18n:getText('action_detachHose'), g_i18n:getText('input_mouseInteract'):format(string.lower(MouseHelper.getButtonName(Input.MOUSE_BUTTON_RIGHT))))
+                            HoseSystemUtil:renderHelpTextOnNode(grabPoint.node, g_i18n:getText('action_detachHose'), g_i18n:getText('input_mouseInteract'):format(string.lower(MouseHelper.getButtonName(Input.MOUSE_BUTTON_RIGHT))))
 
                             if InputBinding.hasEvent(InputBinding.detachHose) then
                                 --if self:allowsDetach(index) then
