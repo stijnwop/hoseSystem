@@ -118,7 +118,7 @@ function HoseSystem:load(savegame)
     end
 
     self.componentRunUpdates = 0
-    self.componentNumRunUpdates = 5
+    self.componentNumRunUpdates = 10
 
     self.polymorphismClasses = {}
 
