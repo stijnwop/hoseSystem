@@ -18,7 +18,7 @@ HoseSystemUtil.eventHelper = {
     STATE_CLIENT = 1,
     STATE_SERVER = 2,
     GRABPOINTS_NUM_SEND_BITS = 2, -- Max 2^2
-    REFERENCES_NUM_SEND_BITS = 4  -- Max 2^4
+    REFERENCES_NUM_SEND_BITS = 4 -- Max 2^4
 }
 
 ---
@@ -47,6 +47,8 @@ end
 function HoseSystemUtil:addToPhysicsRecursively(vehicle)
     if vehicle ~= nil then
         vehicle:addToPhysics()
+        -- Set firstTimeRun to prevent the wheel shape not found warning!
+        vehicle.firstTimeRun = false
 
         HoseSystemUtil:addToPhysicsRecursively(vehicle.attacherVehicle)
     end
@@ -70,7 +72,7 @@ function HoseSystemUtil:addHoseSystemToPhysics(grabPoint, reference, vehicle, is
     local hoseSystem = HoseSystemUtil:getHoseSystemFromReference(reference)
 
     if hoseSystem ~= nil then
-        -- dirty
+        -- Todo: dirty, cleanup later
         local vehicle = HoseSystemReferences:getReferenceVehicle(vehicle)
 
         if not isConnecting then
