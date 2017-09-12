@@ -13,8 +13,12 @@ HoseSystemRegistrationHelper = {
 }
 
 local srcDirectory = HoseSystemRegistrationHelper.baseDirectory .. 'specializations'
+local eventDirectory = HoseSystemRegistrationHelper.baseDirectory .. 'specializations/events'
 
 local files = {
+    ('%s/%s'):format(eventDirectory, 'HoseSystemReferenceIsUsedEvent'),
+    ('%s/%s'):format(eventDirectory, 'HoseSystemReferenceLockEvent'),
+    ('%s/%s'):format(eventDirectory, 'HoseSystemReferenceManureFlowEvent'),
     ('%s/%s'):format(srcDirectory, 'HoseSystemUtil'),
 }
 
