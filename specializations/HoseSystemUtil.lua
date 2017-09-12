@@ -66,12 +66,21 @@ end
 ---
 -- @param reference
 --
-function HoseSystemUtil:addHoseSystemToPhysics(grabPoint, reference)
+function HoseSystemUtil:addHoseSystemToPhysics(grabPoint, reference, vehicle, isConnecting)
     local hoseSystem = HoseSystemUtil:getHoseSystemFromReference(reference)
 
     if hoseSystem ~= nil then
-        local vehicle = HoseSystemReferences:getReferenceVehicle(grabPoint.connectorVehicle)
-        hoseSystem.poly.interactiveHandling:addToPhysicsParts(grabPoint, {}, vehicle, reference, true)
+        -- dirty
+        local vehicle = HoseSystemReferences:getReferenceVehicle(vehicle)
+
+        if not isConnecting then
+            local connected = HoseSystem:getConnectedGrabPoints(hoseSystem)
+            grabPoint = connected[1]
+            vehicle = HoseSystemReferences:getReferenceVehicle(grabPoint.connectorVehicle)
+            reference = HoseSystemReferences:getReference(grabPoint.connectorVehicle, grabPoint.connectorRefId, grabPoint)
+        end
+
+        hoseSystem.poly.interactiveHandling:createCustomComponentJoint(grabPoint, vehicle, reference)
     end
 end
 
@@ -82,7 +91,7 @@ function HoseSystemUtil:removeHoseSystemFromPhysics(reference)
     local hoseSystem = HoseSystemUtil:getHoseSystemFromReference(reference)
 
     if hoseSystem ~= nil then
-        hoseSystem:removeFromPhysics()
+        hoseSystem.poly.interactiveHandling:deleteCustomComponentJoint()
     end
 end
 
@@ -103,10 +112,10 @@ function HoseSystemUtil:getReferencesWithSingleConnection(object, referenceId)
         if continue then
             if reference.isUsed and not reference.parkable then
                 if reference.hoseSystem ~= nil and reference.hoseSystem.grabPoints ~= nil then
-                    local grabPoints = HoseSystem:getConnectedReferenceGrabPoints(reference.hoseSystem, id)
+                    local grabPoints = HoseSystem:getDetachedReferenceGrabPoints(reference.hoseSystem, id)
 
                     if #grabPoints == 1 then
-                        table.insert(references, { grabPoint = grabPoints[1], reference = reference })
+                        table.insert(references, { grabPoint = grabPoints[1], reference = reference, vehicle = object })
                     end
                 end
             end

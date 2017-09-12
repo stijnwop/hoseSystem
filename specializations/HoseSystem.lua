@@ -635,11 +635,11 @@ end
 ---
 -- @return table
 --
-function HoseSystem:getConnectedReferenceGrabPoints(object, referenceId)
+function HoseSystem:getDetachedReferenceGrabPoints(object, referenceId)
     local grabPoints = {}
 
     for index, grabPoint in pairs(object.grabPoints) do
-        if HoseSystem:getIsConnected(grabPoint.state) and grabPoint.connectorRefId == referenceId then
+        if HoseSystem:getIsDetached(grabPoint.state) then --and grabPoint.connectorRefId ~= referenceId then
             table.insert(grabPoints, grabPoint)
         end
     end

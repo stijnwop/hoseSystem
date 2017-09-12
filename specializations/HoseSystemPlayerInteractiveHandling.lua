@@ -653,7 +653,7 @@ function HoseSystemPlayerInteractiveHandling:hardConnect(grabPoint, vehicle, ref
     linkComponent(self.object, grabPoint, reference)
 
     for i, r in pairs(connectedRreferences) do
-        HoseSystemUtil:addHoseSystemToPhysics(r.grabPoint, r.reference)
+        HoseSystemUtil:addHoseSystemToPhysics(r.grabPoint, r.reference, r.vehicle, true)
     end
 
     -- Only add the hose to physics partly when not dealing with an extenable hose
@@ -746,14 +746,14 @@ function HoseSystemPlayerInteractiveHandling:hardDisconnect(grabPoint, vehicle, 
     setDirection(self.object.components[grabPoint.componentIndex].node, direction[1], direction[2], direction[3], upVector[1], upVector[2], upVector[3])
     link(getRootNode(), self.object.components[grabPoint.componentIndex].node)
 
-    for i, r in pairs(connectedRreferences) do
-        HoseSystemUtil:addHoseSystemToPhysics(r.grabPoint, r.reference)
-    end
-
     if not reference.isObject then
         HoseSystemUtil:addToPhysicsRecursively(vehicle)
     else
         addToPhysics(vehicle.nodeId)
+    end
+
+    for i, r in pairs(connectedRreferences) do
+        HoseSystemUtil:addHoseSystemToPhysics(r.grabPoint, r.reference, r.vehicle, false)
     end
 
     -- only add the hose partly to physics when there are attached grabPoints
