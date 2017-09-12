@@ -49,10 +49,10 @@
             <objectChange node="0>1" connectableActive="false" connectableInactive="false" visibilityActive="true" visibilityInactive="true"/> 
             <objectChange node="0>0|0|1|0" visibilityActive="true" visibilityInactive="false"/> 
         </designConfiguration>
-        <designConfiguration name="$l10n_configuration_ext_liquidManureHose" price="25" icon="$dataS2/menu/hud/configurations/config_edition.png">
-            <objectChange node="0>1" connectableActive="true" connectableInactive="false" connectableAnimation="connect" visibilityActive="true" visibilityInactive="true"/>
-            <objectChange node="0>0|0|1|1" visibilityActive="true" visibilityInactive="false"/> 
-        </designConfiguration>
+        <!--<designConfiguration name="$l10n_configuration_ext_liquidManureHose" price="25" icon="$dataS2/menu/hud/configurations/config_edition.png">-->
+            <!--<objectChange node="0>1" connectableActive="true" connectableInactive="false" connectableAnimation="connect" visibilityActive="true" visibilityInactive="true"/>-->
+            <!--<objectChange node="0>0|0|1|1" visibilityActive="true" visibilityInactive="false"/> -->
+        <!--</designConfiguration>-->
     </designConfigurations>
 	
 	<baseColorConfigurations price="0" icon="$dataS2/menu/hud/configurations/config_color.png">
