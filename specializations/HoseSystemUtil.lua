@@ -68,28 +68,28 @@ end
 ---
 -- @param reference
 --
-function HoseSystemUtil:addHoseSystemToPhysics(grabPoint, reference, vehicle, isConnecting)
+function HoseSystemUtil:createHoseSystemJoint(reference)
     local hoseSystem = HoseSystemUtil:getHoseSystemFromReference(reference)
 
     if hoseSystem ~= nil then
-        -- Todo: dirty, cleanup later
---        local vehicle = HoseSystemReferences:getReferenceVehicle(vehicle)
---
---        if not isConnecting then
-            local connected = HoseSystem:getConnectedGrabPoints(hoseSystem)
-            grabPoint = connected[1]
-            vehicle = HoseSystemReferences:getReferenceVehicle(grabPoint.connectorVehicle)
-            reference = HoseSystemReferences:getReference(grabPoint.connectorVehicle, grabPoint.connectorRefId, grabPoint)
---        end
+        -- Get the connected grabPoint on the hose
+        local connected = HoseSystem:getConnectedGrabPoints(hoseSystem)
 
-        hoseSystem.poly.interactiveHandling:createCustomComponentJoint(grabPoint, vehicle, reference)
+        if #connected > 0 then
+            -- We atleast got 1 grabpoint connected
+            local grabPoint = HoseSystemUtil:getFirstElement(connected)
+            local vehicle = HoseSystemReferences:getReferenceVehicle(grabPoint.connectorVehicle)
+            local reference = HoseSystemReferences:getReference(grabPoint.connectorVehicle, grabPoint.connectorRefId, grabPoint)
+
+            hoseSystem.poly.interactiveHandling:createCustomComponentJoint(grabPoint, vehicle, reference)
+        end
     end
 end
 
 ---
 -- @param reference
 --
-function HoseSystemUtil:removeHoseSystemFromPhysics(reference)
+function HoseSystemUtil:removeHoseSystemJoint(reference)
     local hoseSystem = HoseSystemUtil:getHoseSystemFromReference(reference)
 
     if hoseSystem ~= nil then
@@ -116,8 +116,8 @@ function HoseSystemUtil:getReferencesWithSingleConnection(object, referenceId)
                 if reference.hoseSystem ~= nil and reference.hoseSystem.grabPoints ~= nil then
                     local grabPoints = HoseSystem:getDetachedReferenceGrabPoints(reference.hoseSystem, id)
 
-                    if #grabPoints == 1 then
-                        table.insert(references, { grabPoint = grabPoints[1], reference = reference, vehicle = object })
+                    if #grabPoints > 0 then
+                        table.insert(references, { grabPoint = HoseSystemUtil:getFirstElement(grabPoints), reference = reference, vehicle = object })
                     end
                 end
             end
@@ -148,6 +148,14 @@ function HoseSystemUtil:getDependentGrabPoint(grabPoints, id, allowPlayer)
     end
 
     return nil
+end
+
+function HoseSystemUtil:getFirstElement(table)
+    return table[1]
+end
+
+function HoseSystemUtil:getFirstElement(table)
+    return table[#table]
 end
 
 addConsoleCommand("gsToggleHoseSystemDebugRendering", "Toggles the debug rendering of the HoseSystem", "consoleCommandToggleHoseSystemDebugRendering", HoseSystemUtil)

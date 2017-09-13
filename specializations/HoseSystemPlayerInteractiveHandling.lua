@@ -622,7 +622,7 @@ function HoseSystemPlayerInteractiveHandling:hardConnect(grabPoint, vehicle, ref
     --    print("connectedGrabPoints before doing something with physics = " .. #grabPoints)
 
     for i, r in pairs(connectedRreferences) do
-        HoseSystemUtil:removeHoseSystemFromPhysics(r.reference)
+        HoseSystemUtil:removeHoseSystemJoint(r.reference)
     end
 
     -- we always completely delete the current handled hose
@@ -653,7 +653,7 @@ function HoseSystemPlayerInteractiveHandling:hardConnect(grabPoint, vehicle, ref
     linkComponent(self.object, grabPoint, reference)
 
     for i, r in pairs(connectedRreferences) do
-        HoseSystemUtil:addHoseSystemToPhysics(r.grabPoint, r.reference, r.vehicle, true)
+        HoseSystemUtil:createHoseSystemJoint(r.reference)
     end
 
     -- Only add the hose to physics partly when not dealing with an extenable hose
@@ -710,7 +710,7 @@ function HoseSystemPlayerInteractiveHandling:hardDisconnect(grabPoint, vehicle, 
     end
 
     for i, r in pairs(connectedRreferences) do
-        HoseSystemUtil:removeHoseSystemFromPhysics(r.reference)
+        HoseSystemUtil:removeHoseSystemJoint(r.reference)
     end
 
     self.object:removeFromPhysics()
@@ -753,7 +753,7 @@ function HoseSystemPlayerInteractiveHandling:hardDisconnect(grabPoint, vehicle, 
     end
 
     for i, r in pairs(connectedRreferences) do
-        HoseSystemUtil:addHoseSystemToPhysics(r.grabPoint, r.reference, r.vehicle, false)
+        HoseSystemUtil:createHoseSystemJoint(r.reference)
     end
 
     -- only add the hose partly to physics when there are attached grabPoints
@@ -776,7 +776,7 @@ function HoseSystemPlayerInteractiveHandling:hardParkHose(grabPoints, vehicle, r
     local connectedRreferences = HoseSystemUtil:getReferencesWithSingleConnection(vehicle, reference.id)
 
     for i, r in pairs(connectedRreferences) do
-        HoseSystemUtil:removeHoseSystemFromPhysics(r.reference)
+        HoseSystemUtil:removeHoseSystemJoint(r.reference)
     end
 
     if not reference.isObject then
@@ -923,7 +923,7 @@ function HoseSystemPlayerInteractiveHandling:hardParkHose(grabPoints, vehicle, r
     self.object.data.parkEndTargetNode = endTargetNode
 
     for i, r in pairs(connectedRreferences) do
-        HoseSystemUtil:addHoseSystemToPhysics(r.grabPoint, r.reference, r.vehicle, true)
+        HoseSystemUtil:createHoseSystemJoint(r.reference)
     end
 
     if not reference.isObject then
@@ -949,7 +949,7 @@ function HoseSystemPlayerInteractiveHandling:hardUnparkHose(grabPoints, vehicle,
     local connectedRreferences = HoseSystemUtil:getReferencesWithSingleConnection(vehicle, reference.id)
 
     for i, r in pairs(connectedRreferences) do
-        HoseSystemUtil:removeHoseSystemFromPhysics(r.reference)
+        HoseSystemUtil:removeHoseSystemJoint(r.reference)
     end
 
     if not reference.isObject then
@@ -1004,7 +1004,7 @@ function HoseSystemPlayerInteractiveHandling:hardUnparkHose(grabPoints, vehicle,
     end
 
     for i, r in pairs(connectedRreferences) do
-        HoseSystemUtil:addHoseSystemToPhysics(r.grabPoint, r.reference, r.vehicle, false)
+        HoseSystemUtil:createHoseSystemJoint(r.reference)
     end
 
     self.object:addToPhysics()
