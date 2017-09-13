@@ -97,11 +97,6 @@ function HoseSystemPlayerInteractiveRestrictions:restrictPlayerDistance(dt, grab
                         if radius < actionRadius then
                             self.lastInRangePosition = { getTranslation(player.rootNode) }
                         else
-                            -- local x, y, z = getWorldTranslation(player.rootNode)
-                            -- local gx, gy, gz = getWorldTranslation(dependentGrabpoint.node)
-                            -- local distance = Utils.vector3Length(x - gx, y - gy, z - gz)
-
-                            -- if distance > self.hose.length then
                             local kx, _, kz = getWorldTranslation(reference.node)
                             local px, py, pz = getWorldTranslation(player.rootNode)
                             local distance = Utils.vector2Length(px - kx, pz - kz)
@@ -164,7 +159,6 @@ function HoseSystemPlayerInteractiveRestrictions:restrictReferenceDistance(dt, g
                             print('HoseSystemPlayerInteractiveRestrictions - debug: detach distance: ' .. distance)
                         end
 
-                        -- Todo: when moving the wheel shape can not be found.. which gives physics warnings
                         self.object.poly.interactiveHandling:detach(grabPoint.id, grabPoint.connectorVehicle, grabPoint.connectorRefId, reference.connectable ~= nil and reference.connectable)
                     end
                 end

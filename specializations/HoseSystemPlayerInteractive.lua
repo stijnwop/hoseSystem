@@ -16,8 +16,6 @@ function HoseSystemPlayerInteractive:new(object, mt)
 
     setmetatable(playerInteractive, mt == nil and HoseSystemPlayerInteractive_mt or mt)
 
-    playerInteractive.minDistance = 2
-
     return playerInteractive
 end
 
@@ -28,44 +26,6 @@ function HoseSystemPlayerInteractive:update(dt)
 end
 
 function HoseSystemPlayerInteractive:draw()
-end
-
-function HoseSystemPlayerInteractive:getIsPlayerInGrabPointRange()
-    if not self:getIsPlayerValid(true) then
-        return false, nil
-    end
-
-    local closestIndex
-
-    g_currentMission.player.hoseSystem.closestIndex = nil
-
-    if self.object.grabPoints ~= nil then
-        local distance = math.huge
-        local playerTrans = { getWorldTranslation(g_currentMission.player.rootNode) }
-        local playerDistance = self.minDistance
-
-        for index, grabPoint in pairs(self.object.grabPoints) do
-            if grabPoint.node ~= nil then
-                local trans = { getWorldTranslation(grabPoint.node) }
-                local gpDistance = Utils.vector3Length(trans[1] - playerTrans[1], trans[2] - playerTrans[2], trans[3] - playerTrans[3])
-
-                playerDistance = Utils.getNoNil(grabPoint.playerDistance, playerDistance)
-
-                if gpDistance < distance and gpDistance < playerDistance then
-                    closestIndex = index
-                    distance = gpDistance
-                end
-            end
-        end
-        -- Set closest index on current mission to prevent multiple hoses being handled by the inputbindings
-        if distance < playerDistance and g_currentMission.player.hoseSystem.closestIndex == nil then
-            g_currentMission.player.hoseSystem.closestIndex = closestIndex
-
-            return true, closestIndex
-        end
-    end
-
-    return false, nil
 end
 
 function HoseSystemPlayerInteractive:getIsPlayerValid(strict)
