@@ -135,7 +135,7 @@ function HoseSystemLiquidManureFillTrigger:load(superFunc, nodeId, fillLevelObje
                 g_currentMission.hoseSystemReferences = {}
             end
 
---            g_currentMission.hoseSystemReferences[self.hoseSystemId] = self
+            --            g_currentMission.hoseSystemReferences[self.hoseSystemId] = self
             table.insert(g_currentMission.hoseSystemReferences, self)
         end
 
@@ -161,7 +161,13 @@ function HoseSystemLiquidManureFillTrigger:loadHoseSystemReferences(self, nodeId
 
     while true do
         local key = string.format(base .. 'hoseSystemReference(%d)', i)
+
         if not hasXMLProperty(xmlFile, key) then
+            break
+        end
+
+        if #references == 2 ^ HoseSystemUtil.eventHelper.REFERENCES_NUM_SEND_BITS then
+            print(('HoseSystem warning - Max number of references is %s!'):format(2 ^ HoseSystemUtil.eventHelper.REFERENCES_NUM_SEND_BITS))
             break
         end
 
@@ -193,6 +199,7 @@ function HoseSystemLiquidManureFillTrigger:loadHoseSystemReferences(self, nodeId
                 isObject = true,
                 componentIndex = id, -- where to joint to?
                 parkable = false,
+                inRangeDistance = Utils.getNoNil(getXMLFloat(xmlFile, key .. 'inRangeDistance'), 1.3),
                 lockAnimatedObjectSaveId = Utils.getNoNil(getXMLString(xmlFile, key .. '#lockAnimatedObjectSaveId'), nil),
                 manureFlowAnimatedObjectSaveId = Utils.getNoNil(getXMLString(xmlFile, key .. '#manureFlowAnimatedObjectSaveId'), nil)
             }
@@ -234,54 +241,57 @@ function HoseSystemLiquidManureFillTrigger:update(superFunc, dt)
         superFunc(self, dt)
     end
 
-    if not self.playerInRange then
-        if g_currentMission.animatedObjects ~= nil then -- Note: this is only possible with the extension
-            local object = g_currentMission.animatedObjects[self.animatedObjectSaveId]
+    if self.fillLevelObject.isClient then
+        if not self.playerInRange then
+            if g_currentMission.animatedObjects ~= nil then -- Note: this is only possible with the extension
+                local object = g_currentMission.animatedObjects[self.animatedObjectSaveId]
 
-            if object ~= nil then
-                self.isEnabled = object.animation.time == 1
+                if object ~= nil then
+                    self.isEnabled = object.animation.time == 1
+                end
             end
         end
-    end
 
-    if self.playerInRange then
-        if g_currentMission.animatedObjects ~= nil then
-            self.inRageReferenceIndex = self:getNearestReference({ getWorldTranslation(g_currentMission.player.rootNode) })
+        if self.playerInRange then
+            if g_currentMission.animatedObjects ~= nil then
+                self.inRageReferenceIndex = self:getNearestReference({ getWorldTranslation(g_currentMission.player.rootNode) })
 
-            if self.inRageReferenceIndex ~= nil then
-                local reference = self.hoseSystemReferences[self.inRageReferenceIndex]
+                if self.inRageReferenceIndex ~= nil then
+                    local reference = self.hoseSystemReferences[self.inRageReferenceIndex]
 
-                if reference ~= nil then
-                    if reference.lockAnimatedObjectSaveId ~= nil then
-                        local animatedObject = g_currentMission.animatedObjects[reference.lockAnimatedObjectSaveId]
-
-                        if animatedObject ~= nil then
-                        end
-                    else
-                        if not reference.isLocked then
-                            self:toggleLock(self.inRageReferenceIndex, true, true)
-                        end
-                    end
-
-                    if reference.isLocked then
-                        if reference.manureFlowAnimatedObjectSaveId ~= nil then
+                    if reference ~= nil then
+                        if reference.lockAnimatedObjectSaveId ~= nil then
                             local animatedObject = g_currentMission.animatedObjects[reference.lockAnimatedObjectSaveId]
 
                             if animatedObject ~= nil then
                             end
                         else
-                            if not reference.flowOpened then
-                                self:toggleManureFlow(self.inRageReferenceIndex, true, true)
+                            if not reference.isLocked then
+                                self:toggleLock(self.inRageReferenceIndex, true, true)
+                            end
+                        end
+
+                        if reference.isLocked then
+                            if reference.manureFlowAnimatedObjectSaveId ~= nil then
+                                local animatedObject = g_currentMission.animatedObjects[reference.lockAnimatedObjectSaveId]
+
+                                if animatedObject ~= nil then
+                                end
+                            else
+                                if not reference.flowOpened then
+                                    self:toggleManureFlow(self.inRageReferenceIndex, true, true)
+                                end
                             end
                         end
                     end
                 end
             end
         end
-    end
 
-    if not self.shaderOnIdle and self.lastFillLevelChangeTime < g_currentMission.time then
-        self:updateShaderPlane(false)
+        -- Set plane to idle when there's no recent changes to the fill level
+        if not self.shaderOnIdle and self.lastFillLevelChangeTime + 100 < g_currentMission.time then
+            self:updateShaderPlane(false)
+        end
     end
 end
 
@@ -369,6 +379,9 @@ function HoseSystemLiquidManureFillTrigger:setFillLevel(superFunc, fillLevel, no
     self.lastFillLevelChangeTime = g_currentMission.time
 end
 
+---
+-- @param fillType
+--
 function HoseSystemLiquidManureFillTrigger:getFillLevel(fillType)
     if fillType == nil then
         return self.fillLevel
@@ -377,6 +390,9 @@ function HoseSystemLiquidManureFillTrigger:getFillLevel(fillType)
     return fillType == self.fillType and self.fillLevel or 0
 end
 
+---
+-- @param fillType
+--
 function HoseSystemLiquidManureFillTrigger:getCapacity(fillType)
     if fillType == nil then
         return self.capacity
@@ -385,14 +401,23 @@ function HoseSystemLiquidManureFillTrigger:getCapacity(fillType)
     return fillType == self.fillType and self.capacity or 0
 end
 
+---
+-- @param fillType
+--
 function HoseSystemLiquidManureFillTrigger:getFreeCapacity(fillType)
     return self:getCapacity(fillType) - self:getFillLevel(fillType)
 end
 
+---
+-- @param nodeId
+--
 function HoseSystemLiquidManureFillTrigger:checkNode(nodeId)
     return self.isEnabled and self.detectionNode == nodeId or false
 end
 
+---
+-- @param y
+--
 function HoseSystemLiquidManureFillTrigger:checkPlaneY(y)
     local _, py, _ = getWorldTranslation(self.movingId)
     py = py + self.offsetY
@@ -400,38 +425,54 @@ function HoseSystemLiquidManureFillTrigger:checkPlaneY(y)
     return py >= y, py
 end
 
--- 
--- Do this extern..
--- Include pump direction to set different shaderParameter
+---
+-- @param pumpIsStarted
+-- @param pumpDirection
+-- @param literPerSeconds
 --
 function HoseSystemLiquidManureFillTrigger:updateShaderPlane(pumpIsStarted, pumpDirection, literPerSeconds) -- what more?
     if self.fillLevelObject.isClient then
         if self.supportsHoseSystem then
-            if getHasShaderParameter(self.movingId, "displacementScaleSpeedFrequency") then
+            if getHasShaderParameter(self.movingId, 'displacementScaleSpeedFrequency') then
                 if pumpIsStarted then
                     self.shaderOnIdle = false
 
-                    if pumpDirection == HoseSystemPumpMotor.IN then -- in
-                        setShaderParameter(self.movingId, "displacementScaleSpeedFrequency", 0.02, 4, 15, 1, false)
-                    elseif pumpDirection == HoseSystemPumpMotor.OUT then
-                        setShaderParameter(self.movingId, "displacementScaleSpeedFrequency", 0.02, 6, 30, 1, false)
-                    end
+                    local frequency = pumpDirection == HoseSystemPumpMotor.IN and literPerSeconds / 10 or literPerSeconds / 10 * 2
+                    local speed = pumpDirection == HoseSystemPumpMotor.IN and literPerSeconds / 100 * 1.5 or (literPerSeconds / 100 * 1.5) * 2
+
+                    HoseSystemLiquidManureFillTrigger:updateShaderPlaneGraphics(self.movingId, HoseSystem:mathRound(speed, 2), HoseSystem:mathRound(frequency, 2))
                 else
                     if not self.shaderOnIdle then
-                        setShaderParameter(self.movingId, "displacementScaleSpeedFrequency", 0.02, 0.1, 15, 1, false)
+                        HoseSystemLiquidManureFillTrigger:updateShaderPlaneGraphics(self.movingId, 0.1, 15) -- idle is hardcoded
                         self.shaderOnIdle = true
                     end
                 end
             end
         end
-        -- if getHasShaderParameter(self.movingId, 'the param name') then
-        -- setShaderParameter(self.movingId)
-        -- end
     end
 end
 
+---
+-- @param node
+-- @param speed
+-- @param frequency
+--
+function HoseSystemLiquidManureFillTrigger:updateShaderPlaneGraphics(node, speed, frequency)
+    local scale, x, y, _ = getShaderParameter(node, 'displacementScaleSpeedFrequency')
+
+    if HoseSystem:mathRound(x, 2) ~= speed and HoseSystem:mathRound(y, 2) ~= frequency then
+        setShaderParameter(node, 'displacementScaleSpeedFrequency', scale, speed, frequency, 1, false)
+    end
+end
+
+---
+-- @param index
+-- @param state
+-- @param force
+-- @param noEventSend
+--
 function HoseSystemLiquidManureFillTrigger:toggleLock(index, state, force, noEventSend)
-    HoseSystemLiquidManureFillTriggerLockEvent.sendEvent(self.fillLevelObject, index, state, force, noEventSend)
+    HoseSystemReferenceLockEvent.sendEvent(self.fillLevelObject.hoseSystemParent, index, state, force, noEventSend)
 
     local reference = self.hoseSystemReferences[index]
 
@@ -452,8 +493,14 @@ function HoseSystemLiquidManureFillTrigger:toggleLock(index, state, force, noEve
     end
 end
 
+---
+-- @param index
+-- @param state
+-- @param force
+-- @param noEventSend
+--
 function HoseSystemLiquidManureFillTrigger:toggleManureFlow(index, state, force, noEventSend)
-    HoseSystemLiquidManureFillTriggerManureFlowEvent.sendEvent(self.fillLevelObject, index, state, force, noEventSend)
+    HoseSystemReferenceManureFlowEvent.sendEvent(self.fillLevelObject.hoseSystemParent, index, state, force, noEventSend)
 
     local reference = self.hoseSystemReferences[index]
 
@@ -474,8 +521,13 @@ function HoseSystemLiquidManureFillTrigger:toggleManureFlow(index, state, force,
     end
 end
 
+---
+-- @param index
+-- @param bool
+-- @param noEventSend
+--
 function HoseSystemLiquidManureFillTrigger:setIsUsed(index, bool, noEventSend)
-    HoseSystemLiquidManureFillTriggerIsUsedEvent.sendEvent(self.fillLevelObject, index, bool, noEventSend)
+    HoseSystemReferenceIsUsedEvent.sendEvent(self.fillLevelObject.hoseSystemParent, index, bool, noEventSend)
 
     local reference = self.hoseSystemReferences[index]
 
@@ -483,14 +535,10 @@ function HoseSystemLiquidManureFillTrigger:setIsUsed(index, bool, noEventSend)
         reference.isUsed = bool
 
         if reference.lockAnimatedObjectSaveId == nil then
-            print('no lock animation found for object -> force lock')
-
             self:toggleLock(index, bool, true)
         end
 
         if reference.manureFlowAnimatedObjectSaveId == nil then
-            print('no manureFlow animation found for object -> force manureFlow')
-
             self:toggleManureFlow(index, bool, true)
         end
     end
@@ -501,170 +549,4 @@ LiquidManureFillTrigger.new = Utils.overwrittenFunction(LiquidManureFillTrigger.
 LiquidManureFillTrigger.load = Utils.overwrittenFunction(LiquidManureFillTrigger.load, HoseSystemLiquidManureFillTrigger.load)
 
 -- TipTrigger
--- TipTrigger.load = Utils.overwrittenFunction(TipTrigger.load, HoseSystemLiquidManureFillTrigger.load) -- overwrite to be albe to pump water
-
----
---
---
-
-HoseSystemLiquidManureFillTriggerIsUsedEvent = {}
-HoseSystemLiquidManureFillTriggerIsUsedEvent_mt = Class(HoseSystemLiquidManureFillTriggerIsUsedEvent, Event)
-InitEventClass(HoseSystemLiquidManureFillTriggerIsUsedEvent, 'HoseSystemLiquidManureFillTriggerIsUsedEvent')
-
-function HoseSystemLiquidManureFillTriggerIsUsedEvent:emptyNew()
-    local self = Event:new(HoseSystemLiquidManureFillTriggerIsUsedEvent_mt)
-    self.className = 'HoseSystemLiquidManureFillTriggerIsUsedEvent'
-
-    return self
-end
-
-function HoseSystemLiquidManureFillTriggerIsUsedEvent:new(hoseSystemReference, index, bool)
-    local self = HoseSystemLiquidManureFillTriggerIsUsedEvent:emptyNew()
-    self.hoseSystemReference = hoseSystemReference
-    self.index = index
-    self.bool = bool
-
-    return self
-end
-
-function HoseSystemLiquidManureFillTriggerIsUsedEvent:writeStream(streamId, connection)
-    writeNetworkNodeObject(streamId, self.hoseSystemReference)
-    streamWriteInt32(streamId, self.index)
-    streamWriteBool(streamId, self.bool)
-end
-
-function HoseSystemLiquidManureFillTriggerIsUsedEvent:readStream(streamId, connection)
-    self.hoseSystemReference = readNetworkNodeObject(streamId)
-    self.index = streamReadInt32(streamId)
-    self.bool = streamReadBool(streamId)
-
-    self:run(connection)
-end
-
-function HoseSystemLiquidManureFillTriggerIsUsedEvent:run(connection)
-    self.hoseSystemReference.hoseSystemParent:setIsUsed(self.index, self.bool, true)
-
-    if not connection:getIsServer() then
-        g_server:broadcastEvent(HoseSystemLiquidManureFillTriggerIsUsedEvent:new(self.hoseSystemReference, self.index, self.bool), nil, connection, self.hoseSystemReference)
-    end
-end
-
-function HoseSystemLiquidManureFillTriggerIsUsedEvent.sendEvent(hoseSystemReference, index, bool, noEventSend)
-    if noEventSend == nil or noEventSend == false then
-        if g_server ~= nil then
-            g_server:broadcastEvent(HoseSystemLiquidManureFillTriggerIsUsedEvent:new(hoseSystemReference, index, bool), nil, nil, hoseSystemReference)
-        else
-            g_client:getServerConnection():sendEvent(HoseSystemLiquidManureFillTriggerIsUsedEvent:new(hoseSystemReference, index, bool))
-        end
-    end
-end
-
-HoseSystemLiquidManureFillTriggerLockEvent = {}
-HoseSystemLiquidManureFillTriggerLockEvent_mt = Class(HoseSystemLiquidManureFillTriggerLockEvent, Event)
-InitEventClass(HoseSystemLiquidManureFillTriggerLockEvent, 'HoseSystemLiquidManureFillTriggerLockEvent')
-
-function HoseSystemLiquidManureFillTriggerLockEvent:emptyNew()
-    local self = Event:new(HoseSystemLiquidManureFillTriggerLockEvent_mt)
-    self.className = 'HoseSystemLiquidManureFillTriggerLockEvent'
-
-    return self
-end
-
-function HoseSystemLiquidManureFillTriggerLockEvent:new(hoseSystemReference, index, state, force)
-    local self = HoseSystemLiquidManureFillTriggerLockEvent:emptyNew()
-    self.hoseSystemReference = hoseSystemReference
-    self.index = index
-    self.state = state
-    self.force = force
-
-    return self
-end
-
-function HoseSystemLiquidManureFillTriggerLockEvent:writeStream(streamId, connection)
-    writeNetworkNodeObject(streamId, self.hoseSystemReference)
-    streamWriteInt32(streamId, self.index)
-    streamWriteBool(streamId, self.state)
-    streamWriteBool(streamId, self.force)
-end
-
-function HoseSystemLiquidManureFillTriggerLockEvent:readStream(streamId, connection)
-    self.hoseSystemReference = readNetworkNodeObject(streamId)
-    self.index = streamReadInt32(streamId)
-    self.state = streamReadBool(streamId)
-    self.force = streamReadBool(streamId)
-
-    self:run(connection)
-end
-
-function HoseSystemLiquidManureFillTriggerLockEvent:run(connection)
-    self.hoseSystemReference.hoseSystemParent:toggleLock(self.index, self.state, self.force, true)
-
-    if not connection:getIsServer() then
-        g_server:broadcastEvent(HoseSystemLiquidManureFillTriggerLockEvent:new(self.hoseSystemReference, self.index, self.state, self.force), nil, connection, self.hoseSystemReference)
-    end
-end
-
-function HoseSystemLiquidManureFillTriggerLockEvent.sendEvent(hoseSystemReference, index, state, force, noEventSend)
-    if noEventSend == nil or noEventSend == false then
-        if g_server ~= nil then
-            g_server:broadcastEvent(HoseSystemLiquidManureFillTriggerLockEvent:new(hoseSystemReference, index, state, force), nil, nil, hoseSystemReference)
-        else
-            g_client:getServerConnection():sendEvent(HoseSystemLiquidManureFillTriggerLockEvent:new(hoseSystemReference, index, state, force))
-        end
-    end
-end
-
-HoseSystemLiquidManureFillTriggerManureFlowEvent = {}
-HoseSystemLiquidManureFillTriggerManureFlowEvent_mt = Class(HoseSystemLiquidManureFillTriggerManureFlowEvent, Event)
-InitEventClass(HoseSystemLiquidManureFillTriggerManureFlowEvent, 'HoseSystemLiquidManureFillTriggerManureFlowEvent')
-
-function HoseSystemLiquidManureFillTriggerManureFlowEvent:emptyNew()
-    local self = Event:new(HoseSystemLiquidManureFillTriggerManureFlowEvent_mt)
-    self.className = 'HoseSystemLiquidManureFillTriggerManureFlowEvent'
-
-    return self
-end
-
-function HoseSystemLiquidManureFillTriggerManureFlowEvent:new(hoseSystemReference, index, state, force)
-    local self = HoseSystemLiquidManureFillTriggerManureFlowEvent:emptyNew()
-    self.hoseSystemReference = hoseSystemReference
-    self.index = index
-    self.state = state
-    self.force = force
-
-    return self
-end
-
-function HoseSystemLiquidManureFillTriggerManureFlowEvent:writeStream(streamId, connection)
-    writeNetworkNodeObject(streamId, self.hoseSystemReference)
-    streamWriteInt32(streamId, self.index)
-    streamWriteBool(streamId, self.state)
-    streamWriteBool(streamId, self.force)
-end
-
-function HoseSystemLiquidManureFillTriggerManureFlowEvent:readStream(streamId, connection)
-    self.hoseSystemReference = readNetworkNodeObject(streamId)
-    self.index = streamReadInt32(streamId)
-    self.state = streamReadBool(streamId)
-    self.force = streamReadBool(streamId)
-
-    self:run(connection)
-end
-
-function HoseSystemLiquidManureFillTriggerManureFlowEvent:run(connection)
-    self.hoseSystemReference.hoseSystemParent:toggleManureFlow(self.index, self.state, self.force, true)
-
-    if not connection:getIsServer() then
-        g_server:broadcastEvent(HoseSystemLiquidManureFillTriggerManureFlowEvent:new(self.hoseSystemReference, self.index, self.state, self.force), nil, connection, self.hoseSystemReference)
-    end
-end
-
-function HoseSystemLiquidManureFillTriggerManureFlowEvent.sendEvent(hoseSystemReference, index, state, force, noEventSend)
-    if noEventSend == nil or noEventSend == false then
-        if g_server ~= nil then
-            g_server:broadcastEvent(HoseSystemLiquidManureFillTriggerManureFlowEvent:new(hoseSystemReference, index, state, force), nil, nil, hoseSystemReference)
-        else
-            g_client:getServerConnection():sendEvent(HoseSystemLiquidManureFillTriggerManureFlowEvent:new(hoseSystemReference, index, state, force))
-        end
-    end
-end
+-- TipTrigger.load = Utils.overwrittenFunction(TipTrigger.load, HoseSystemLiquidManureFillTrigger.load) -- overwrite to be albe to pump water?
