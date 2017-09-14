@@ -250,6 +250,10 @@ function HoseSystemReferences:getReferenceVehicle(object)
 end
 
 function HoseSystemReferences:getAllowsDetach(object, index)
+    if object.pumpIsStarted then
+        return false
+    end
+
     local grabPoint = object.grabPoints[index]
 
     if grabPoint ~= nil then
