@@ -255,16 +255,16 @@ function HoseSystemReferences:getAllowsDetach(object, index)
     if grabPoint ~= nil then
         if grabPoint.connectorRefId ~= nil then
             local vehicle = grabPoint.connectorVehicle
-
-            if vehicle.pumpIsStarted then
-                g_currentMission:showBlinkingWarning(g_i18n:getText('pumpMotor_warningTurnOffFirst'), 2000) -- warn about the pump being on this is not visual so people tend to act dumb!
-
-                return false
-            end
-
             local reference = HoseSystemReferences:getReference(vehicle, grabPoint.connectorRefId, grabPoint)
 
             if reference ~= nil then
+                if not reference.parkable and vehicle.pumpIsStarted then
+                    g_currentMission:showBlinkingWarning(g_i18n:getText('pumpMotor_warningTurnOffFirst'), 50) -- warn about the pump being on this is not visual so people tend to act dumb!
+
+                    return false
+                end
+
+
                 local flowOpened = reference.flowOpened
                 local isLocked = reference.isLocked
 
