@@ -257,6 +257,8 @@ function HoseSystemReferences:getAllowsDetach(object, index)
             local vehicle = grabPoint.connectorVehicle
 
             if vehicle.pumpIsStarted then
+                g_currentMission:showBlinkingWarning(g_i18n:getText('pumpMotor_warningTurnOffFirst'), 2000) -- warn about the pump being on this is not visual so people tend to act dumb!
+
                 return false
             end
 
