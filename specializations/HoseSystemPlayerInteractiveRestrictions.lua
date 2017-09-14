@@ -142,7 +142,7 @@ end
 
 function HoseSystemPlayerInteractiveRestrictions:restrictReferenceDistance(dt, grabPoint)
     if HoseSystem:getIsConnected(grabPoint.state) then
-        local dependentGrabpoint = HoseSystemUtil:getDependentGrabPoint(self.object.grabPoints, grabPoint.id)
+        local dependentGrabpoint = HoseSystemUtil:getDependentGrabPoint(self.object.grabPoints, grabPoint.id, false, true)
 
         if dependentGrabpoint ~= nil then
             if grabPoint.connectorVehicle ~= nil and grabPoint.connectorVehicle.getLastSpeed ~= nil and grabPoint.connectorVehicle:getLastSpeed() > 1 then -- only detach from the speeding side
@@ -152,7 +152,7 @@ function HoseSystemPlayerInteractiveRestrictions:restrictReferenceDistance(dt, g
                     local ax, ay, az = getWorldTranslation(self.object.components[grabPoint.componentIndex].node)
                     local bx, by, bz = getWorldTranslation(self.object.components[dependentGrabpoint.componentIndex].node)
                     local distance = Utils.vector3Length(bx - ax, by - ay, bz - az)
-                    local allowedDistance = not HoseSystem:getIsDetached(dependentGrabpoint.state) and self.object.data.length or self.object.data.length * 1.2
+                    local allowedDistance = self.object.data.length * 1.15 -- give it a bit more space to move
 
                     if distance > allowedDistance or distance < (allowedDistance - 1) then
                         if HoseSystem.debugRendering then
