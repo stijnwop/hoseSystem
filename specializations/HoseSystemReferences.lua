@@ -250,15 +250,16 @@ function HoseSystemReferences:getReferenceVehicle(object)
 end
 
 function HoseSystemReferences:getAllowsDetach(object, index)
-    if object.pumpIsStarted then
-        return false
-    end
-
     local grabPoint = object.grabPoints[index]
 
     if grabPoint ~= nil then
         if grabPoint.connectorRefId ~= nil then
             local vehicle = grabPoint.connectorVehicle
+
+            if vehicle.pumpIsStarted then
+                return false
+            end
+
             local reference = HoseSystemReferences:getReference(vehicle, grabPoint.connectorRefId, grabPoint)
 
             if reference ~= nil then
