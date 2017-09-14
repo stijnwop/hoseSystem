@@ -438,7 +438,7 @@ function HoseSystemPumpMotor:allowPumpStarted()
     return true
 end
 
-function HoseSystemPumpMotor:doPump(targetObject, fillType, deltaFill, fillInfo)
+function HoseSystemPumpMotor:doPump(targetObject, fillType, deltaFill, fillInfo, isTrigger)
     local fillDirection = self:getFillDirection()
     local fillLevel = self:getUnitFillLevel(self.fillUnitIndex)
     local targetObjectFillLevel = targetObject:getFillLevel(fillType)
@@ -464,7 +464,11 @@ function HoseSystemPumpMotor:doPump(targetObject, fillType, deltaFill, fillInfo)
             end
         end
     else
-        targetObject:setFillLevel(fillDirection == HoseSystemPumpMotor.IN and targetObjectFillLevel - deltaFill or targetObjectFillLevel + deltaFill, fillType)
+        if isTrigger then
+            targetObject:setFillLevel(fillDirection == HoseSystemPumpMotor.IN and targetObjectFillLevel - deltaFill or targetObjectFillLevel + deltaFill)
+        else
+            targetObject:setFillLevel(fillDirection == HoseSystemPumpMotor.IN and targetObjectFillLevel - deltaFill or targetObjectFillLevel + deltaFill, fillType)
+        end
 
         if fillDirection == HoseSystemPumpMotor.OUT then
             if targetObjectFillLevel >= (targetObject:getCapacity(fillType) * self.autoStopPercentage.outDirection) then
