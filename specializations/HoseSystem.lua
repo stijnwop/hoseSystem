@@ -273,14 +273,7 @@ function HoseSystem:preDelete()
 end
 
 function HoseSystem:delete()
-    if g_currentMission.hoseSystemHoses ~= nil then
-        for index = 1, #g_currentMission.hoseSystemHoses do
-            if g_currentMission.hoseSystemHoses[index] == self then
-                table.remove(g_currentMission.hoseSystemHoses, index)
-                break
-            end
-        end
-    end
+    HoseSystemUtil:removeElementFromList(g_currentMission.hoseSystemHoses, self)
 
     if self.isClient then
         if self.hoseEffects ~= nil and self.hoseEffects.effect ~= nil then
@@ -298,78 +291,83 @@ function HoseSystem:delete()
 end
 
 function HoseSystem:writeStream(streamId, connection)
-    streamWriteInt8(streamId, #self.grabPoints)
+    -- Write server data to clients
+    if not connection:getIsServer() then
+        streamWriteInt8(streamId, #self.grabPoints)
 
-    for index = 1, #self.grabPoints do
-        local grabPoint = self.grabPoints[index]
+        for index = 1, #self.grabPoints do
+            local grabPoint = self.grabPoints[index]
 
-        if grabPoint ~= nil then
-            streamWriteInt8(streamId, grabPoint.state)
-            writeNetworkNodeObjectId(streamId, networkGetObjectId(grabPoint.connectorVehicle))
-            streamWriteInt32(streamId, grabPoint.connectorRefId)
-            streamWriteBool(streamId, grabPoint.isOwned)
-            writeNetworkNodeObject(streamId, grabPoint.currentOwner)
-            streamWriteBool(streamId, grabPoint.hasJointIndex)
-            streamWriteBool(streamId, grabPoint.hasExtenableJointIndex)
+            if grabPoint ~= nil then
+                streamWriteInt8(streamId, grabPoint.state)
+                writeNetworkNodeObjectId(streamId, networkGetObjectId(grabPoint.connectorVehicle))
+                streamWriteInt32(streamId, grabPoint.connectorRefId)
+                streamWriteBool(streamId, grabPoint.isOwned)
+                writeNetworkNodeObject(streamId, grabPoint.currentOwner)
+                streamWriteBool(streamId, grabPoint.hasJointIndex)
+                streamWriteBool(streamId, grabPoint.hasExtenableJointIndex)
+            end
         end
+
+        writeNetworkNodeObjectId(streamId, self.vehicleToMountHoseSystem)
+        streamWriteInt32(streamId, self.referenceIdToMountHoseSystem)
+        streamWriteBool(streamId, self.referenceIsExtendable)
+
+        --    if self.polymorphismClasses ~= nil and #self.polymorphismClasses > 0 then
+        --        for _, class in pairs(self.polymorphismClasses) do
+        --            if class.writeStream ~= nil then
+        --                class:writeStream(streamId, connection)
+        --            end
+        --        end
+        --    end
     end
-
-    writeNetworkNodeObjectId(streamId, self.vehicleToMountHoseSystem)
-    streamWriteInt32(streamId, self.referenceIdToMountHoseSystem)
-    streamWriteBool(streamId, self.referenceIsExtendable)
-
-    --    if self.polymorphismClasses ~= nil and #self.polymorphismClasses > 0 then
-    --        for _, class in pairs(self.polymorphismClasses) do
-    --            if class.writeStream ~= nil then
-    --                class:writeStream(streamId, connection)
-    --            end
-    --        end
-    --    end
 end
 
 function HoseSystem:readStream(streamId, connection)
-    local numGrabPoints = streamReadInt8(streamId)
+    if connection:getIsServer() then
+        local numGrabPoints = streamReadInt8(streamId)
 
-    for index = 1, numGrabPoints do
-        local grabPoint = self.grabPoints[index]
+        for index = 1, numGrabPoints do
+            local grabPoint = self.grabPoints[index]
 
-        if grabPoint ~= nil then
-            grabPoint.state = streamReadInt8(streamId)
-            grabPoint.connectorVehicleId = readNetworkNodeObjectId(streamId)
-            grabPoint.connectorRefId = streamReadInt32(streamId)
+            if grabPoint ~= nil then
+                grabPoint.state = streamReadInt8(streamId)
+                grabPoint.connectorVehicleId = readNetworkNodeObjectId(streamId)
+                grabPoint.connectorRefId = streamReadInt32(streamId)
 
-            if HoseSystem:getIsConnected(grabPoint.state) then
-                if grabPoint.connectable then
-                    self:toggleLock(true, true) -- close lock
+                if HoseSystem:getIsConnected(grabPoint.state) then
+                    if grabPoint.connectable then
+                        self:toggleLock(true, true) -- close lock
+                    end
                 end
+
+                local isOwned = streamReadBool(streamId)
+                local player = readNetworkNodeObject(streamId)
+
+                self.poly.interactiveHandling:setGrabPointOwner(index, isOwned, player, true)
+
+                grabPoint.hasJointIndex = streamReadBool(streamId)
+                grabPoint.hasExtenableJointIndex = streamReadBool(streamId)
+
+                self.poly.interactiveHandling:setGrabPointIsUsed(index, HoseSystem:getIsConnected(grabPoint.state), grabPoint.hasExtenableJointIndex, false, true)
             end
-
-            local isOwned = streamReadBool(streamId)
-            local player = readNetworkNodeObject(streamId)
-
-            self.poly.interactiveHandling:setGrabPointOwner(index, isOwned, player, true)
-
-            grabPoint.hasJointIndex = streamReadBool(streamId)
-            grabPoint.hasExtenableJointIndex = streamReadBool(streamId)
-
-            self.poly.interactiveHandling:setGrabPointIsUsed(index, HoseSystem:getIsConnected(grabPoint.state), grabPoint.hasExtenableJointIndex, false, true)
         end
+
+        local vehicleToMountHoseSystem = readNetworkNodeObjectId(streamId)
+        local referenceIdToMountHoseSystem = streamReadInt32(streamId)
+        local referenceIsExtendable = streamReadBool(streamId)
+
+        self.poly.references:loadFillableObjectAndReference(vehicleToMountHoseSystem, referenceIdToMountHoseSystem, referenceIsExtendable, true)
+        self.doNetworkObjectsIteration = true
+
+        --    if self.polymorphismClasses ~= nil and #self.polymorphismClasses > 0 then
+        --        for _, class in pairs(self.polymorphismClasses) do
+        --            if class.readStream ~= nil then
+        --                class:readStream(streamId, connection)
+        --            end
+        --        end
+        --    end
     end
-
-    local vehicleToMountHoseSystem = readNetworkNodeObjectId(streamId)
-    local referenceIdToMountHoseSystem = streamReadInt32(streamId)
-    local referenceIsExtendable = streamReadBool(streamId)
-
-    self.poly.references:loadFillableObjectAndReference(vehicleToMountHoseSystem, referenceIdToMountHoseSystem, referenceIsExtendable, true)
-    self.doNetworkObjectsIteration = true
-
-    --    if self.polymorphismClasses ~= nil and #self.polymorphismClasses > 0 then
-    --        for _, class in pairs(self.polymorphismClasses) do
-    --            if class.readStream ~= nil then
-    --                class:readStream(streamId, connection)
-    --            end
-    --        end
-    --    end
 end
 
 function HoseSystem:getSaveAttributesAndNodes(nodeIdent)
@@ -539,35 +537,6 @@ end
 --
 function HoseSystem:catmullRomSpline(t, p0, p1, p2, p3)
     return 0.5 * ((2 * p1) + (-p0 + p2) * t + (2 * p0 - 5 * p1 + 4 * p2 - p3) * t ^ 2 + (-p0 + 3 * p1 - 3 * p2 + p3) * t ^ 3)
-end
-
----
--- @param number
--- @param idp
---
-function HoseSystem:mathRound(number, idp)
-    local multiplier = 10 ^ (idp or 0)
-    return math.floor(number * multiplier + 0.5) / multiplier
-end
-
----
--- @param j1
--- @param j2
---
-function HoseSystem:calculateCosAngle(j1, j2)
-    local x1, y1, z1 = localDirectionToWorld(j1, 1, 0, 0)
-    local x2, y2, z2 = localDirectionToWorld(j2, 1, 0, 0)
-
-    return x1 * x2 + y1 * y2 + z1 * z2
-end
-
----
--- @param cond
--- @param trueValue
--- @param falseValue
---
-function HoseSystem:ternary(cond, trueValue, falseValue)
-    if cond then return trueValue else return falseValue end
 end
 
 ---

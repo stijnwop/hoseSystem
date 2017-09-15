@@ -175,10 +175,10 @@ function HoseSystemReferences:getCanExtend(inverse, node1, node2)
     local rot = math.abs(Utils.getYRotationBetweenNodes(node1, node2))
 
     if inverse then
-        return HoseSystem:mathRound(rot, 1) <= 0.6
+        return HoseSystemUtil:mathRound(rot, 1) <= 0.6
     end
 
-    return HoseSystem:mathRound(rot, 1) >= 2.3
+    return HoseSystemUtil:mathRound(rot, 1) >= 2.3
 end
 
 function HoseSystemReferences:getCanConnect(x, y, z, sequence, grabPoint, reference)
@@ -187,7 +187,7 @@ function HoseSystemReferences:getCanConnect(x, y, z, sequence, grabPoint, refere
 
     if dist < sequence then
         if math.abs(y - ry) < reference.inRangeDistance then
-            local cosAngle = HoseSystem:calculateCosAngle(reference.node, grabPoint.node)
+            local cosAngle = HoseSystemUtil:calculateCosAngle(reference.node, grabPoint.node)
 
             if not reference.parkable then
                 if not grabPoint.connectable then

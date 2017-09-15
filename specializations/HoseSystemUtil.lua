@@ -22,6 +22,35 @@ HoseSystemUtil.eventHelper = {
 }
 
 ---
+-- @param number
+-- @param idp
+--
+function HoseSystemUtil:mathRound(number, idp)
+    local multiplier = 10 ^ (idp or 0)
+    return math.floor(number * multiplier + 0.5) / multiplier
+end
+
+---
+-- @param j1
+-- @param j2
+--
+function HoseSystemUtil:calculateCosAngle(j1, j2)
+    local x1, y1, z1 = localDirectionToWorld(j1, 1, 0, 0)
+    local x2, y2, z2 = localDirectionToWorld(j2, 1, 0, 0)
+
+    return x1 * x2 + y1 * y2 + z1 * z2
+end
+
+---
+-- @param cond
+-- @param trueValue
+-- @param falseValue
+--
+function HoseSystemUtil:ternary(cond, trueValue, falseValue)
+    return cond and trueValue or falseValue
+end
+
+---
 -- @param node
 -- @param actionText
 -- @param inputBinding
@@ -148,6 +177,17 @@ function HoseSystemUtil:getDependentGrabPoint(grabPoints, id, allowPlayer, allow
     end
 
     return nil
+end
+
+function HoseSystemUtil:removeElementFromList(table, element)
+    if table ~= nil then
+        for i, e in pairs(table) do
+            if e == element then
+                table.remove(table, i)
+                break
+            end
+        end
+    end
 end
 
 function HoseSystemUtil:getFirstElement(table)

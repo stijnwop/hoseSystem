@@ -49,7 +49,7 @@ function HoseSystemFillTriggerInteractive:update(dt)
 
                         if isUnderFillplane and HoseSystemFillTriggerInteractive:allowFillTypeAffectDirtMask(self.object.lastRaycastObject.fillType) then
                             -- todo: make this direction based!
-                            local difference = HoseSystem:mathRound(math.abs(planeY - y), 3)
+                            local difference = HoseSystemUtil:mathRound(math.abs(planeY - y), 3)
 
                             if self.object:getDirtAmount() < 1 then
                                 self.object:setDirtAmount(1)
@@ -61,7 +61,7 @@ function HoseSystemFillTriggerInteractive:update(dt)
                             for _, node in pairs(self.object.washableNodes) do
                                 local x, y, z, w = getShaderParameter(node, 'RDT')
                                 -- Round value to have better check on the param
-                                x = HoseSystem:mathRound(x, 3)
+                                x = HoseSystemUtil:mathRound(x, 3)
 
                                 local update = false
 
