@@ -101,7 +101,7 @@ function HoseSystemRegistrationHelper:update(dt)
                                     if connectorVehicle ~= nil then
                                         vehicle.poly.interactiveHandling:attach(grabPointId, connectorVehicle, referenceId, isExtendable)
                                     else
-                                        if HoseSystem.debugRendering  then
+                                        if HoseSystem.debugRendering then
                                             print('HoseSystemRegistrationHelper - error: Invalid connectorVehicle!')
                                         end
                                     end
@@ -171,26 +171,22 @@ end
 function HoseSystemRegistrationHelper:register()
     for _, vehicle in pairs(VehicleTypeUtil.vehicleTypes) do
         if vehicle ~= nil then
-            local doInsert = false
-            local customEnvironment = nil
+            local customEnvironment
 
             if vehicle.name:find('.') then
-                customEnvironment = Utils.splitString('.', vehicle.name)[1]
+                customEnvironment = HoseSystemUtil:getFirstElement(Utils.splitString('.', vehicle.name))
             end
 
             if customEnvironment ~= nil then
                 if rawget(SpecializationUtil.specializations, customEnvironment .. '.HoseSystemConnector') ~= nil or rawget(SpecializationUtil.specializations, customEnvironment .. '.hoseSystemConnector') ~= nil then
-                    doInsert = true
-                end
-            end
+                    -- Found connector specialization
+                    if HoseSystem.debugRendering then
+                        print('HoseSystem - hoseSystemConnectorReference specialization added to: ' .. customEnvironment)
+                    end
 
-            if doInsert then
-                if HoseSystem.debugRendering then
-                    print('HoseSystem - hoseSystemConnectorReference specialization added to: ' .. customEnvironment)
+                    table.insert(vehicle.specializations, SpecializationUtil.getSpecialization('hoseSystemConnectorReference'))
+                    table.insert(vehicle.specializations, SpecializationUtil.getSpecialization('hoseSystemPumpMotor')) -- insert pump as well.. no way to check this without doing it dirty
                 end
-
-                table.insert(vehicle.specializations, SpecializationUtil.getSpecialization('hoseSystemConnectorReference'))
-                table.insert(vehicle.specializations, SpecializationUtil.getSpecialization('hoseSystemPumpMotor')) -- insert pump as well.. no way to check this without doing it dirty
             end
         end
     end
