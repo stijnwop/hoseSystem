@@ -440,7 +440,7 @@ function HoseSystemLiquidManureFillTrigger:updateShaderPlane(pumpIsStarted, pump
                     local frequency = pumpDirection == HoseSystemPumpMotor.IN and literPerSeconds / 10 or literPerSeconds / 10 * 2
                     local speed = pumpDirection == HoseSystemPumpMotor.IN and literPerSeconds / 100 * 1.5 or (literPerSeconds / 100 * 1.5) * 2
 
-                    HoseSystemLiquidManureFillTrigger:updateShaderPlaneGraphics(self.movingId, HoseSystem:mathRound(speed, 2), HoseSystem:mathRound(frequency, 2))
+                    HoseSystemLiquidManureFillTrigger:updateShaderPlaneGraphics(self.movingId, HoseSystemUtil:mathRound(speed, 2), HoseSystemUtil:mathRound(frequency, 2))
                 else
                     if not self.shaderOnIdle then
                         HoseSystemLiquidManureFillTrigger:updateShaderPlaneGraphics(self.movingId, 0.1, 15) -- idle is hardcoded
@@ -460,7 +460,7 @@ end
 function HoseSystemLiquidManureFillTrigger:updateShaderPlaneGraphics(node, speed, frequency)
     local scale, x, y, _ = getShaderParameter(node, 'displacementScaleSpeedFrequency')
 
-    if HoseSystem:mathRound(x, 2) ~= speed and HoseSystem:mathRound(y, 2) ~= frequency then
+    if HoseSystemUtil:mathRound(x, 2) ~= speed and HoseSystemUtil:mathRound(y, 2) ~= frequency then
         setShaderParameter(node, 'displacementScaleSpeedFrequency', scale, speed, frequency, 1, false)
     end
 end
