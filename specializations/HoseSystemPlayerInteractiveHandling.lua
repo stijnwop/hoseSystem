@@ -65,7 +65,7 @@ function HoseSystemPlayerInteractiveHandling:update(dt)
             end
         end
     else
---        local index = self:getIsPlayerInGrabPointRange()
+        --        local index = self:getIsPlayerInGrabPointRange()
 
         if g_currentMission.player.hoseSystem ~= nil and g_currentMission.player.hoseSystem.closestIndex ~= nil and g_currentMission.player.hoseSystem.closestHoseSystem == self.object then
             local index = g_currentMission.player.hoseSystem.closestIndex
@@ -119,6 +119,12 @@ end
 function HoseSystemPlayerInteractiveHandling:draw()
 end
 
+---
+-- @param index
+-- @param player
+-- @param syncState
+-- @param noEventSend
+--
 function HoseSystemPlayerInteractiveHandling:grab(index, player, syncState, noEventSend)
     if self.object.grabPoints ~= nil then
         if not noEventSend and syncState == nil then
@@ -132,6 +138,11 @@ function HoseSystemPlayerInteractiveHandling:grab(index, player, syncState, noEv
         end
 
         grabPoint.state = HoseSystem.STATE_ATTACHED
+
+        if self.object.isServer then
+            -- But do not event it again since we already getting reloaded by the grab event
+            self:setGrabPointOwner(index, true, player)
+        end
 
         if syncState == nil then
             player:setWoodWorkVisibility(true, false)
@@ -151,9 +162,6 @@ function HoseSystemPlayerInteractiveHandling:grab(index, player, syncState, noEv
             end
         elseif syncState == HoseSystemUtil.eventHelper.STATE_SERVER then
             if self.object.isServer then
-                -- But do not event it again since we already getting reloaded by the grab event
-                self:setGrabPointOwner(index, true, player)
-
                 -- Todo: calculate mass of hose components.. save it in self on game load.
                 -- For now just set 4kg for every meter.
                 player.hoseSystem.mass = (0.004 * self.object.data.length) * 100
@@ -167,10 +175,9 @@ function HoseSystemPlayerInteractiveHandling:grab(index, player, syncState, noEv
                 -- Set kinematicHelper node dependent on player rotation
                 local yRot = math.abs(Utils.getYRotationBetweenNodes(grabPoint.node, player.toolsRootNode))
                 yRot = yRot >= 1.5 and (index > 1 and math.rad(0) or math.rad(180)) or (index > 1 and math.rad(180) or math.rad(0))
-
+                -- Todo: lookup better way to get the correct attach rotation
                 setRotation(player.hoseSystem.kinematicHelper.node, 0, yRot, 0)
 
-                -- Todo: check if we still have to set the joint orientation?
                 player.hoseSystem.jointIndex = HoseSystemPlayerInteractiveHandling:constructPlayerJoint({
                     actor1 = player.hoseSystem.kinematicHelper.node,
                     actor2 = self.object.components[grabPoint.componentIndex].node,
@@ -202,6 +209,12 @@ function HoseSystemPlayerInteractiveHandling:grab(index, player, syncState, noEv
     end
 end
 
+---
+-- @param index
+-- @param player
+-- @param syncState
+-- @param noEventSend
+--
 function HoseSystemPlayerInteractiveHandling:drop(index, player, syncState, noEventSend)
     if self.object.grabPoints ~= nil then
         if not noEventSend and syncState == nil then
@@ -229,6 +242,10 @@ function HoseSystemPlayerInteractiveHandling:drop(index, player, syncState, noEv
 
         grabPoint.state = HoseSystem.STATE_DETACHED
 
+        if self.object.isServer then
+            self:setGrabPointOwner(index, false, player)
+        end
+
         if syncState == nil then
             player:setWoodWorkVisibility(false, false)
             player.walkingSpeed = self.object.walkingSpeed
@@ -245,9 +262,6 @@ function HoseSystemPlayerInteractiveHandling:drop(index, player, syncState, noEv
             end
         elseif syncState == HoseSystemUtil.eventHelper.STATE_SERVER then
             if self.object.isServer then
-                self:setGrabPointOwner(index, false, player)
-
-                print('this drop only happends on the server')
                 if player.hoseSystem ~= nil then
                     if player.hoseSystem.jointIndex ~= 0 then
                         removeJoint(player.hoseSystem.jointIndex)
@@ -314,36 +328,32 @@ function HoseSystemPlayerInteractiveHandling:attach(index, vehicle, referenceId,
                     if self.object.isServer then
                         local lastIndex = #grabPoints
 
-                        if HoseSystem:getIsConnected(grabPoints[lastIndex].attachState) then
-                            self:detach(grabPoints[lastIndex].id, nil, grabPoints[lastIndex].connectorVehicle, grabPoints[lastIndex].connectorRef.id, (grabPoints[lastIndex].connectorRef.connectable ~= nil and grabPoints[lastIndex].connectorRef.connectable) or (grabPoints[lastIndex].connectable ~= nil and grabPoints[lastIndex].connectable))
+                        if HoseSystem:getIsConnected(grabPoints[lastIndex].state) then
+                            local lastReference = HoseSystemReferences:getReference(grabPoints[lastIndex].connectorVehicle, grabPoints[lastIndex].connectorRefId, grabPoints[lastIndex])
+                            if lastReference ~= nil then
+                                self:detach(grabPoints[lastIndex].id, grabPoints[lastIndex].connectorVehicle, grabPoints[lastIndex].connectorRefId, (lastReference.connectable ~= nil and lastReference.connectable) or (grabPoints[lastIndex].connectable ~= nil and grabPoints[lastIndex].connectable), true)
+                            end
                         end
 
-                        -- Todo: also call this on the server only?
-                        -- Do this after above else it will fuckup the data..
-
-                        if grabPoint.isOwned then -- we can't call it on start since we don't want to drop when the parking place is to small.
+                        if HoseSystem:getIsAttached(grabPoint.state) and grabPoint.isOwned then -- we can't call it on start since we don't want to drop when the parking place is to small.
+                            -- Do this after above else it will fuckup the data..
                             self:drop(index, grabPoint.currentOwner)
                         end
                     end
 
-                    --if self.isServer then
                     self:hardParkHose(grabPoints, object, reference)
-                    --end
                 else
                     g_currentMission:showBlinkingWarning(string.format(g_i18n:getText('info_hoseParkingPlaceToShort'), reference.parkLength, self.object.data.length), 5000)
 
-                    return false
+                    return
                 end
             else
                 -- handle connected hose
                 if self.object.isServer then
-                    if grabPoint.isOwned then -- we can't call it on start since we don't want to drop when the parking place is to small.
+                    if HoseSystem:getIsAttached(grabPoint.state) and grabPoint.isOwned then -- we can't call it on start since we don't want to drop when the parking place is to small.
                         self:drop(index, grabPoint.currentOwner)
                     end
                 end
-
-                -- reference.grabPoints = self.grabPoints
-                -- reference.liquidManureHose = self
 
                 if (isExtendable or grabPoint.connectable) then
                     -- Set 2 way recognition
@@ -365,7 +375,7 @@ function HoseSystemPlayerInteractiveHandling:attach(index, vehicle, referenceId,
                 grabPoint.connectorVehicle = vehicle
 
                 if self.object.isServer then
-                    self:setGrabPointIsUsed(grabPoint.id, true, isExtendable)
+                    self:setGrabPointIsUsed(grabPoint.id, true, isExtendable, false)
                 end
             end
 
@@ -380,7 +390,9 @@ end
 
 ---
 -- @param index
--- @param state
+-- @param vehicle
+-- @param referenceId
+-- @param isExtendable
 -- @param noEventSend
 --
 function HoseSystemPlayerInteractiveHandling:detach(index, vehicle, referenceId, isExtendable, noEventSend)
@@ -403,9 +415,7 @@ function HoseSystemPlayerInteractiveHandling:detach(index, vehicle, referenceId,
                 -- handle parked hose
                 table.insert(grabPoints, index > 1 and self.object.grabPoints[1] or self.object.grabPoints[#self.object.grabPoints])
 
-                --if self.isServer then
                 self:hardUnparkHose(grabPoints, object, reference)
-                --end
             else
                 -- handle connected hose
                 if grabPoint.connectable then
@@ -421,10 +431,10 @@ function HoseSystemPlayerInteractiveHandling:detach(index, vehicle, referenceId,
 
             for _, grabPoint in pairs(grabPoints) do
                 if self.object.isServer then
-                    self:setGrabPointIsUsed(grabPoint.id, false, isExtendable)
-
                     setTranslation(grabPoint.node, unpack(grabPoint.nodeOrgTrans))
                     setRotation(grabPoint.node, unpack(grabPoint.nodeOrgRot))
+
+                    self:setGrabPointIsUsed(grabPoint.id, false, isExtendable, false)
                 end
 
                 grabPoint.connectorRefId = 0
@@ -436,8 +446,9 @@ end
 
 ---
 -- @param index
--- @param isOwned
+-- @param state
 -- @param player
+-- @param noEventSend
 --
 function HoseSystemPlayerInteractiveHandling:setGrabPointOwner(index, state, player, noEventSend)
     HoseSystemSetOwnerEvent.sendEvent(self.object, index, state, player, noEventSend)
@@ -459,10 +470,12 @@ function HoseSystemPlayerInteractiveHandling:setGrabPointOwner(index, state, pla
     player.hoseSystem.index = state and index or nil
 end
 
-
 ---
 -- @param index
--- @param bool
+-- @param isConnected
+-- @param isExtendable
+-- @param isCalledFromReference
+-- @param noEventSend
 --
 function HoseSystemPlayerInteractiveHandling:setGrabPointIsUsed(index, isConnected, isExtendable, isCalledFromReference, noEventSend)
     if isCalledFromReference == nil then
@@ -832,8 +845,8 @@ function HoseSystemPlayerInteractiveHandling:hardParkHose(grabPoints, vehicle, r
     setTranslation(self.object.components[grabPoints[1].componentIndex].node, unpack(translation))
     setRotation(self.object.components[grabPoints[1].componentIndex].node, unpack(referenceRotation))
 
---    local quaternion = {mathEulerToQuaternion(unpack(referenceRotation))}
---    self.object:setWorldPositionQuaternion(translation[1],translation[2],translation[3], quaternion[1], quaternion[2], quaternion[3], quaternion[4], grabPoints[1].componentIndex, false)
+    --    local quaternion = {mathEulerToQuaternion(unpack(referenceRotation))}
+    --    self.object:setWorldPositionQuaternion(translation[1],translation[2],translation[3], quaternion[1], quaternion[2], quaternion[3], quaternion[4], grabPoints[1].componentIndex, false)
 
     --link(reference.node, self.components[grabPoints[1].componentIndex].node)
     setWorldTranslation(startTargetNode, unpack(referenceTranslation))
@@ -864,9 +877,9 @@ function HoseSystemPlayerInteractiveHandling:hardParkHose(grabPoints, vehicle, r
 
     local translation = { localToLocal(self.object.components[(#self.object.components + 1) / 2].node, self.object.data.centerNode, 0, 0, 0) }
     setTranslation(self.object.components[(#self.object.components + 1) / 2].node, unpack(translation))
---
---    local quaternion = {mathEulerToQuaternion(getRotation(self.object.components[(#self.object.components + 1) / 2].node))}
---    self.object:setWorldPositionQuaternion(translation[1],translation[2],translation[3], quaternion[1], quaternion[2], quaternion[3], quaternion[4], (#self.object.components + 1) / 2, false)
+    --
+    --    local quaternion = {mathEulerToQuaternion(getRotation(self.object.components[(#self.object.components + 1) / 2].node))}
+    --    self.object:setWorldPositionQuaternion(translation[1],translation[2],translation[3], quaternion[1], quaternion[2], quaternion[3], quaternion[4], (#self.object.components + 1) / 2, false)
 
     --link(centerTargetNode, self.components[(table.getn(self.components) + 1) / 2].node)
     setWorldTranslation(centerTargetNode, unpack(centerTranslation))
@@ -905,10 +918,10 @@ function HoseSystemPlayerInteractiveHandling:hardParkHose(grabPoints, vehicle, r
     setTranslation(self.object.components[grabPoints[2].componentIndex].node, unpack(translation))
     setRotation(self.object.components[grabPoints[2].componentIndex].node, unpack(referenceRotation))
 
---    if not self.object.isServer then
---        local quaternion = {mathEulerToQuaternion(unpack(referenceRotation))}
---        self.object:setWorldPositionQuaternion(translation[1],translation[2],translation[3], quaternion[1], quaternion[2], quaternion[3], quaternion[4], grabPoints[2].componentIndex, false)
---    end
+    --    if not self.object.isServer then
+    --        local quaternion = {mathEulerToQuaternion(unpack(referenceRotation))}
+    --        self.object:setWorldPositionQuaternion(translation[1],translation[2],translation[3], quaternion[1], quaternion[2], quaternion[3], quaternion[4], grabPoints[2].componentIndex, false)
+    --    end
 
     --link(endTargetNode, self.components[grabPoints[2].componentIndex].node)
     setWorldTranslation(endTargetNode, unpack(endTranslation))
@@ -1059,8 +1072,7 @@ function HoseSystemPlayerInteractiveHandling:addToPhysicsParts(grabPoint, connec
         return
     end
 
-    --    print('!===================> is this causing that again?')
-
+    -- Todo: cleanup
     -- do joints
     -- if we disconnect the hose we need to create the joints on the other connected grabPoint
     local gp = grabPoint

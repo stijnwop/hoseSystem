@@ -40,11 +40,11 @@ function HoseSystemReferenceIsUsedEvent:readStream(streamId, connection)
 end
 
 function HoseSystemReferenceIsUsedEvent:run(connection)
-    self.object:setIsUsed(self.referenceId, self.state, true)
-
     if not connection:getIsServer() then
         g_server:broadcastEvent(self, false, connection, self.object)
     end
+
+    self.object:setIsUsed(self.referenceId, self.state, true)
 end
 
 function HoseSystemReferenceIsUsedEvent.sendEvent(object, referenceId, state, noEventSend)

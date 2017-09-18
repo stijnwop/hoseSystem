@@ -301,7 +301,7 @@ function HoseSystem:writeStream(streamId, connection)
             if grabPoint ~= nil then
                 streamWriteInt8(streamId, grabPoint.state)
                 writeNetworkNodeObjectId(streamId, networkGetObjectId(grabPoint.connectorVehicle))
-                streamWriteInt32(streamId, grabPoint.connectorRefId)
+                streamWriteInt8(streamId, grabPoint.connectorRefId)
                 streamWriteBool(streamId, grabPoint.isOwned)
                 writeNetworkNodeObject(streamId, grabPoint.currentOwner)
                 streamWriteBool(streamId, grabPoint.hasJointIndex)
@@ -310,7 +310,7 @@ function HoseSystem:writeStream(streamId, connection)
         end
 
         writeNetworkNodeObjectId(streamId, self.vehicleToMountHoseSystem)
-        streamWriteInt32(streamId, self.referenceIdToMountHoseSystem)
+        streamWriteInt8(streamId, self.referenceIdToMountHoseSystem)
         streamWriteBool(streamId, self.referenceIsExtendable)
 
         --    if self.polymorphismClasses ~= nil and #self.polymorphismClasses > 0 then
@@ -333,7 +333,7 @@ function HoseSystem:readStream(streamId, connection)
             if grabPoint ~= nil then
                 grabPoint.state = streamReadInt8(streamId)
                 grabPoint.connectorVehicleId = readNetworkNodeObjectId(streamId)
-                grabPoint.connectorRefId = streamReadInt32(streamId)
+                grabPoint.connectorRefId = streamReadInt8(streamId)
 
                 if HoseSystem:getIsConnected(grabPoint.state) then
                     if grabPoint.connectable then
@@ -354,7 +354,7 @@ function HoseSystem:readStream(streamId, connection)
         end
 
         local vehicleToMountHoseSystem = readNetworkNodeObjectId(streamId)
-        local referenceIdToMountHoseSystem = streamReadInt32(streamId)
+        local referenceIdToMountHoseSystem = streamReadInt8(streamId)
         local referenceIsExtendable = streamReadBool(streamId)
 
         self.poly.references:loadFillableObjectAndReference(vehicleToMountHoseSystem, referenceIdToMountHoseSystem, referenceIsExtendable, true)
