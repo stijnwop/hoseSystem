@@ -235,52 +235,55 @@ function HoseSystemConnectorReference:preDelete()
 end
 
 function HoseSystemConnectorReference:delete()
-    if g_currentMission.hoseSystemReferences ~= nil then
-        for i = 1, #g_currentMission.hoseSystemReferences do
-            if g_currentMission.hoseSystemReferences[i] == self then
-                table.remove(g_currentMission.hoseSystemReferences, i)
-                break
-            end
-        end
-    end
-
-    if g_currentMission.dockingSystemReferences ~= nil then
-        for i = 1, #g_currentMission.dockingSystemReferences do
-            if g_currentMission.dockingSystemReferences[i] == self then
-                table.remove(g_currentMission.dockingSystemReferences, i)
-                break
-            end
-        end
-    end
+    HoseSystemUtil:removeElementFromList(g_currentMission.hoseSystemReferences, self)
+    HoseSystemUtil:removeElementFromList(g_currentMission.dockingSystemReferences, self)
 end
 
 function HoseSystemConnectorReference:readStream(streamId, connection)
-    self.fillObjectFound = streamReadBool(streamId)
-    self.fillFromFillVolume = streamReadBool(streamId)
-    local currentReferenceIndex = streamReadInt8(streamId)
-    self.currentReferenceIndex = currentReferenceIndex ~= 0 and currentReferenceIndex or nil
-    local currentGrabPointIndex = streamReadInt8(streamId)
-    self.currentGrabPointIndex = currentGrabPointIndex ~= 0 and currentGrabPointIndex or nil
+    if connection:getIsServer() then
+        self.fillObjectFound = streamReadBool(streamId)
+        self.fillFromFillVolume = streamReadBool(streamId)
+        local currentReferenceIndex = streamReadInt8(streamId)
+        self.currentReferenceIndex = currentReferenceIndex ~= 0 and currentReferenceIndex or nil
+        local currentGrabPointIndex = streamReadInt8(streamId)
+        self.currentGrabPointIndex = currentGrabPointIndex ~= 0 and currentGrabPointIndex or nil
 
-    if self.hoseSystemReferences ~= nil then
-        for id = 1, #self.hoseSystemReferences do
-            self:toggleLock(id, streamReadBool(streamId), false, true)
-            self:toggleManureFlow(id, streamReadBool(streamId), false, true)
+        if self.hoseSystemReferences ~= nil then
+            for id = 1, #self.hoseSystemReferences do
+                local reference = self.hoseSystemReferences[id]
+
+                self:setIsUsed(id, streamReadBool(streamId), true)
+                self:toggleLock(id, streamReadBool(streamId), false, true)
+                self:toggleManureFlow(id, streamReadBool(streamId), false, true)
+
+                if streamReadBool(streamId) then
+                    reference.hoseSystem = readNetworkNodeObject(streamId)
+                end
+            end
         end
     end
 end
 
 function HoseSystemConnectorReference:writeStream(streamId, connection)
-    streamWriteBool(streamId, self.fillObjectFound)
-    streamWriteBool(streamId, self.fillFromFillVolume)
-    streamWriteInt8(streamId, self.currentReferenceIndex ~= nil and self.currentReferenceIndex or 0)
-    streamWriteInt8(streamId, self.currentGrabPointIndex ~= nil and self.currentGrabPointIndex or 0)
+    if not connection:getIsServer() then
+        streamWriteBool(streamId, self.fillObjectFound)
+        streamWriteBool(streamId, self.fillFromFillVolume)
+        streamWriteInt8(streamId, self.currentReferenceIndex ~= nil and self.currentReferenceIndex or 0)
+        streamWriteInt8(streamId, self.currentGrabPointIndex ~= nil and self.currentGrabPointIndex or 0)
 
-    if self.hoseSystemReferences ~= nil then
-        for id = 1, #self.hoseSystemReferences do
-            local reference = self.hoseSystemReferences[id]
-            streamWriteBool(streamId, reference.isLocked)
-            streamWriteBool(streamId, reference.flowOpened)
+        if self.hoseSystemReferences ~= nil then
+            for id = 1, #self.hoseSystemReferences do
+                local reference = self.hoseSystemReferences[id]
+
+                streamWriteBool(streamId, reference.isUsed)
+                streamWriteBool(streamId, reference.isLocked)
+                streamWriteBool(streamId, reference.flowOpened)
+                streamWriteBool(streamId, reference.hoseSystem ~= nil)
+
+                if reference.hoseSystem ~= nil then
+                    writeNetworkNodeObject(streamId, reference.hoseSystem)
+                end
+            end
         end
     end
 end
@@ -319,7 +322,7 @@ function HoseSystemConnectorReference:update(dt)
         if inRange then
             local reference = self.hoseSystemReferences[referenceId]
 
-            if reference ~= nil and not reference.parkable and reference.hoseSystem ~= nil then
+            if reference ~= nil then
                 if reference.lockAnimationName ~= nil and self.animations[reference.lockAnimationName] ~= nil and #self.animations[reference.lockAnimationName].parts > 0 then
                     local _, firstPartAnimation = next(self.animations[reference.lockAnimationName].parts, nil)
 
@@ -497,7 +500,7 @@ function HoseSystemConnectorReference:getIsPlayerInReferenceRange()
 
     if self.hoseSystemReferences ~= nil then
         for referenceId, reference in pairs(self.hoseSystemReferences) do
-            if reference.isUsed then
+            if reference.isUsed and not reference.parkable and reference.hoseSystem ~= nil then
                 local trans = { getWorldTranslation(reference.node) }
                 local distance = Utils.vector3Length(trans[1] - playerTrans[1], trans[2] - playerTrans[2], trans[3] - playerTrans[3])
 
@@ -621,17 +624,17 @@ function HoseSystemConnectorReference:getValidFillObject()
                             end
                         end
                     end
-
-                    if self.lastFillObjectFound ~= self.fillObjectFound or self.lastFillFromFillVolume ~= self.fillFromFillVolume or self.lastFillUnitIndex ~= self.fillUnitIndex or self.lastFillObjectHasPlane ~= self.fillObjectHasPlane then
-                        g_server:broadcastEvent(SendUpdateOnFillEvent:new(self, self.fillObjectFound, self.fillFromFillVolume, self.fillUnitIndex, self.fillObjectHasPlane))
-
-                        self.lastFillUnitIndex = self.fillUnitIndex
-                        self.lastFillObjectFound = self.fillObjectFound
-                        self.lastFillFromFillVolume = self.fillFromFillVolume
-                        self.lastFillObjectHasPlane = self.fillObjectHasPlane
-                    end
                 end
             end
+        end
+
+        if self.lastFillObjectFound ~= self.fillObjectFound or self.lastFillFromFillVolume ~= self.fillFromFillVolume or self.lastFillUnitIndex ~= self.fillUnitIndex or self.lastFillObjectHasPlane ~= self.fillObjectHasPlane then
+            g_server:broadcastEvent(SendUpdateOnFillEvent:new(self, self.fillObjectFound, self.fillFromFillVolume, self.fillUnitIndex, self.fillObjectHasPlane))
+
+            self.lastFillUnitIndex = self.fillUnitIndex
+            self.lastFillObjectFound = self.fillObjectFound
+            self.lastFillFromFillVolume = self.fillFromFillVolume
+            self.lastFillObjectHasPlane = self.fillObjectHasPlane
         end
     end
 end
@@ -674,8 +677,6 @@ function HoseSystemConnectorReference:getConnectedReference()
     if self.hoseSystemReferences ~= nil then
         for referenceIndex, reference in pairs(self.hoseSystemReferences) do
             if reference.isUsed and reference.flowOpened and reference.isLocked then
-
-                print('we still got something')
                 if reference.hoseSystem ~= nil and reference.hoseSystem.grabPoints ~= nil then
                     for grabPointIndex, grabPoint in pairs(reference.hoseSystem.grabPoints) do
                         if HoseSystem:getIsConnected(grabPoint.state) then
@@ -699,11 +700,11 @@ end
 -- @param noEventSend
 --
 function HoseSystemConnectorReference:toggleLock(index, state, force, noEventSend)
-    HoseSystemReferenceLockEvent.sendEvent(self, index, state, force, noEventSend)
-
     local reference = self.hoseSystemReferences[index]
 
-    if reference ~= nil and not reference.parkable then
+    if reference ~= nil and not reference.parkable and reference.isLocked ~= state or force then
+        HoseSystemReferenceLockEvent.sendEvent(self, index, state, force, noEventSend)
+
         if reference.lockAnimationName ~= nil then
             local dir = state and 1 or -1
             local shouldPlay = force or not self:getIsAnimationPlaying(reference.lockAnimationName)
@@ -725,11 +726,11 @@ end
 -- @param noEventSend
 --
 function HoseSystemConnectorReference:toggleManureFlow(index, state, force, noEventSend)
-    HoseSystemReferenceManureFlowEvent.sendEvent(self, index, state, force, noEventSend)
-
     local reference = self.hoseSystemReferences[index]
 
-    if reference ~= nil and not reference.parkable then
+    if reference ~= nil and not reference.parkable and reference.flowOpened ~= state or force then
+        HoseSystemReferenceManureFlowEvent.sendEvent(self, index, state, force, noEventSend)
+
         if reference.manureFlowAnimationName ~= nil then
             local dir = state and 1 or -1
             local shouldPlay = force or not self:getIsAnimationPlaying(reference.manureFlowAnimationName)
@@ -746,41 +747,41 @@ end
 
 ---
 -- @param index
--- @param bool
+-- @param state
 -- @param noEventSend
 --
-function HoseSystemConnectorReference:setIsUsed(index, bool, noEventSend)
+function HoseSystemConnectorReference:setIsUsed(index, state, noEventSend)
     if self.hoseSystemReferences ~= nil then
-        HoseSystemReferenceIsUsedEvent.sendEvent(self, index, bool, noEventSend)
-
         local reference = self.hoseSystemReferences[index]
 
-        if reference ~= nil then
-            reference.isUsed = bool
+        if reference ~= nil and reference.isUsed ~= state then
+            HoseSystemReferenceIsUsedEvent.sendEvent(self, index, state, noEventSend)
+
+            reference.isUsed = state
 
             if not reference.parkable then
                 if reference.lockAnimationName == nil then
-                    self:toggleLock(index, bool, true)
+                    self:toggleLock(index, state, true, true)
                 end
 
                 if reference.manureFlowAnimationName == nil then
-                    self:toggleManureFlow(index, bool, true)
+                    self:toggleManureFlow(index, state, true, true)
                 end
 
                 -- When detaching while on gameload we do need to sync the animations
-                if not bool then
+                if not state then
                     if reference.isLocked then
-                        self:toggleLock(index, not reference.isLocked, false)
+                        self:toggleLock(index, not reference.isLocked, false, true)
                     end
 
                     if reference.flowOpened then
-                        self:toggleManureFlow(index, not reference.flowOpened, false)
+                        self:toggleManureFlow(index, not reference.flowOpened, false, true)
                     end
                 end
             end
 
             if reference.parkable and reference.parkAnimationName ~= nil then
-                local dir = bool and 1 or -1
+                local dir = state and 1 or -1
 
                 if not self:getIsAnimationPlaying(reference.parkAnimationName) then
                     self:playAnimation(reference.parkAnimationName, dir, nil, true)
