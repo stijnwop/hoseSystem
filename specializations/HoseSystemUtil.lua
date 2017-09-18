@@ -179,11 +179,11 @@ function HoseSystemUtil:getDependentGrabPoint(grabPoints, id, allowPlayer, allow
     return nil
 end
 
-function HoseSystemUtil:removeElementFromList(table, element)
-    if table ~= nil then
-        for i, e in pairs(table) do
+function HoseSystemUtil:removeElementFromList(t, element)
+    if t ~= nil and #t > 0 then
+        for i, e in ipairs(t) do
             if e == element then
-                table.remove(table, i)
+                table.remove(t, i)
                 break
             end
         end
