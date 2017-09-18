@@ -34,7 +34,6 @@ function HoseSystemReferences:delete()
 end
 
 function HoseSystemReferences:readStream(streamId, connection)
-
 end
 
 function HoseSystemReferences:writeStream(streamId, connection)
@@ -95,7 +94,7 @@ function HoseSystemReferences:iterateNetworkObjects()
                     grabPoint.connectorVehicle = vehicle
                     grabPoint.connectorVehicleId = nil
 
---                    self:syncIsUsed(index, HoseSystem:getIsConnected(grabPoint.attachState), grabPoint.hasExtenableJointIndex, true)
+                    --                    self:syncIsUsed(index, HoseSystem:getIsConnected(grabPoint.attachState), grabPoint.hasExtenableJointIndex, true)
                 end
             end
         end
@@ -109,11 +108,9 @@ end
 -- @param grabPoint
 --
 function HoseSystemReferences:searchReferences(grabPoint)
-    -- do this per side? This will do for now.
-    self:loadFillableObjectAndReference(0, 0, false)
-
     local x, y, z = getWorldTranslation(grabPoint.node)
     local sequence = 0.6 * 0.6
+    local reset = true
 
     if not grabPoint.connectable then
         if g_currentMission.hoseSystemReferences ~= nil and #g_currentMission.hoseSystemReferences > 0 then
@@ -131,6 +128,7 @@ function HoseSystemReferences:searchReferences(grabPoint)
                                 -- local object = reference.isObject and g_currentMission:getNodeObject(liquidManureHoseReference.nodeId) or liquidManureHoseReference
                                 local object = reference.isObject and hoseSystemReference.fillLevelObject or hoseSystemReference
                                 self:loadFillableObjectAndReference(networkGetObjectId(object), i, false)
+                                reset = false
                                 break
                             end
                         end
@@ -155,6 +153,7 @@ function HoseSystemReferences:searchReferences(grabPoint)
                                         if HoseSystemReferences:getCanExtend(reference.id > 1, reference.node, grabPoint.node) then
                                             self:loadFillableObjectAndReference(networkGetObjectId(hoseSystemHose), i, reference.connectable)
                                             sequence = dist
+                                            reset = false
                                             -- self.inRangeVehicle = liquidManureHose
                                             -- self.inRangeReference = reference.id
                                             -- self.inRangeIsExtendable = true
@@ -168,6 +167,11 @@ function HoseSystemReferences:searchReferences(grabPoint)
                 end
             end
         end
+    end
+
+    -- do this per side? This will do for now.
+    if reset then -- only reset when not in range of something
+        self:loadFillableObjectAndReference(0, 0, false)
     end
 end
 
@@ -234,7 +238,6 @@ function HoseSystemReferences:getReference(object, index, grabPoint)
         if grabPoint.connectable and object.grabPoints ~= nil or object.grabPoints ~= nil then
             return object.grabPoints[index]
         end
-
     end
 
     return nil
