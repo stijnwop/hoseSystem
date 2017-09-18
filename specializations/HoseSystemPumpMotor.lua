@@ -16,7 +16,6 @@ HoseSystemPumpMotor.OUT = 1
 
 -- WARNING MESSAGES -- 
 HoseSystemPumpMotor.NONE = 0
-HoseSystemPumpMotor.POWER_DOWN = 1
 HoseSystemPumpMotor.TURN_OFF = 2
 
 function HoseSystemPumpMotor.formatFillModeKey(name)
@@ -114,7 +113,6 @@ function HoseSystemPumpMotor:load(savegame)
     self.warningMessage.currentTime = 0
     self.warningMessage.howLongToShow = Utils.getNoNil(getXMLFloat(self.xmlFile, "vehicle.pumpMotor#warningTime"), 1500)
     self.warningMessage.messages = {}
-    self.warningMessage.messages[HoseSystemPumpMotor.POWER_DOWN] = g_i18n:getText('pumpMotor_warningPowerDown')
     self.warningMessage.messages[HoseSystemPumpMotor.TURN_OFF] = g_i18n:getText('pumpMotor_warningTurnOffFirst')
 
     self.pumpMotor = {
@@ -180,9 +178,6 @@ function HoseSystemPumpMotor:update(dt)
                     if not self.pumpIsStarted then
                         if self.pumpEfficiency.currentScale < self.pumpEfficiency.scaleLimit then
                             self:setFillDirection(self:getFillDirection() + 1)
-                        else
-                            self.warningMessage.currentId = HoseSystemPumpMotor.POWER_DOWN
-                            self.warningMessage.currentTime = 0
                         end
                     else -- TODO: Move down isn't right..
                         self.warningMessage.currentId = HoseSystemPumpMotor.TURN_OFF
@@ -202,7 +197,6 @@ function HoseSystemPumpMotor:updateTick(dt)
     if self.attacherMotor.check then
         local vehicle = self:getRootAttacherVehicle()
         self.attacherMotor.isStarted = vehicle.isMotorStarted ~= nil and vehicle.isMotorStarted
-        local implement = self.attacherVehicle:getImplementByObject(self)
     end
 
     if self.attacherMotor.isStarted then
@@ -219,12 +213,6 @@ function HoseSystemPumpMotor:updateTick(dt)
         if self.pumpIsStarted then
             if not self.fillObjectFound then -- if we lost the object stop pump
                 self:setPumpStarted(false, true)
-            end
-
-            if self.pumpEfficiency.currentScale < self.pumpEfficiency.scaleLimit then
-                if self.warningMessage.currentId == HoseSystemPumpMotor.POWER_DOWN then
-                    self.warningMessage.currentId = HoseSystemPumpMotor.NONE
-                end
             end
 
             if self.pumpEfficiency.currentStartUpTime < self.pumpEfficiency.startUpTime then
@@ -280,7 +268,6 @@ function HoseSystemPumpMotor:updateTick(dt)
     self.pumpEfficiency.currentScale = Utils.clamp(self.pumpEfficiency.currentStartUpTime / self.pumpEfficiency.startUpTime, 0, 1)
     self.pumpFillEfficiency.currentScale = Utils.clamp(self.pumpFillEfficiency.currentTime / self.pumpFillEfficiency.maxTime, 0, 1)
 
-    -- TODO: only play sound on the vehicle that pumps!
     if self.isClient then
         if self.pumpIsStarted then
             if self.pumpEfficiency.currentScale ~= 0 then
@@ -331,8 +318,6 @@ function HoseSystemPumpMotor:draw()
 
                         if self:getFillLevel(fillType) > 0 then
                             g_currentMission:addHelpButtonText(g_i18n:getText('pumpMotor_activatePump'), InputBinding.ACTIVATE_OBJECT)
-                            -- else
-                            -- vehicle is empty
                         end
                     end
                 else
