@@ -267,7 +267,6 @@ function HoseSystemReferences:getAllowsDetach(object, index)
                     return false
                 end
 
-
                 local flowOpened = reference.flowOpened
                 local isLocked = reference.isLocked
 

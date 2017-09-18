@@ -1,18 +1,18 @@
 --
--- Created by IntelliJ IDEA.
--- User: Stijn Wopereis
--- Date: 13-4-2017
--- Time: 18:36
--- To change this template use File | Settings | File Templates.
+-- HoseSystem
 --
+-- Authors: Wopster
+-- Description: Main specilization for the HoseSystem
+--
+-- Copyright (c) Wopster, 2017
 
 HoseSystem = {
     debugRendering = true,
-    modDir = g_currentModDirectory
+    baseDirectory = g_currentModDirectory
 }
 
-local srcDirectory = HoseSystem.modDir .. 'specializations'
-local eventDirectory = HoseSystem.modDir .. 'specializations/events'
+local srcDirectory = HoseSystem.baseDirectory .. 'specializations'
+local eventDirectory = HoseSystem.baseDirectory .. 'specializations/events'
 
 local files = {
     -- Events
@@ -37,6 +37,7 @@ for _, directory in pairs(files) do
     source(directory .. '.lua')
 end
 
+-- The grabPoint states
 HoseSystem.STATE_ATTACHED = 0
 HoseSystem.STATE_DETACHED = 1
 HoseSystem.STATE_CONNECTED = 2
@@ -77,8 +78,6 @@ function HoseSystem:load(savegame)
 
     self:loadHoseJoints(self.xmlFile, 'vehicle.hoseSystem.jointSpline')
     self:loadGrabPoints(self.xmlFile, 'vehicle.hoseSystem.grabPoints')
-
-    --    print(HoseSystem:print_r(self.grabPoints))
 
     local startTrans = { getWorldTranslation(self.components[1].node) }
     local endTrans = { getWorldTranslation(self.components[self.jointSpline.endComponentId].node) }
@@ -135,6 +134,10 @@ function HoseSystem:load(savegame)
     table.insert(self.polymorphismClasses, HoseSystemPlayerInteractiveRestrictions:new(self))
 end
 
+---
+-- @param xmlFile
+-- @param baseString
+--
 function HoseSystem:loadHoseJoints(xmlFile, baseString)
     local entry = {}
     local rootJointNode = Utils.indexToObject(self.components, getXMLString(xmlFile, ('%s#rootJointNode'):format(baseString)))
@@ -176,6 +179,10 @@ function HoseSystem:loadHoseJoints(xmlFile, baseString)
     self.jointSpline = entry
 end
 
+---
+-- @param xmlFile
+-- @param baseString
+--
 function HoseSystem:loadGrabPoints(xmlFile, baseString)
     local i = 0
 
@@ -235,6 +242,9 @@ function HoseSystem:loadGrabPoints(xmlFile, baseString)
     end
 end
 
+---
+-- @param savegame
+--
 function HoseSystem:postLoad(savegame)
     for index, grabPoint in pairs(self.grabPoints) do
         if grabPoint.connectable and grabPoint.connectableAnimation ~= nil then
@@ -254,6 +264,8 @@ function HoseSystem:postLoad(savegame)
     end
 end
 
+---
+--
 function HoseSystem:preDelete()
     if self.grabPoints ~= nil then
         for index, grabPoint in pairs(self.grabPoints) do
@@ -272,6 +284,8 @@ function HoseSystem:preDelete()
     end
 end
 
+---
+--
 function HoseSystem:delete()
     HoseSystemUtil:removeElementFromList(g_currentMission.hoseSystemHoses, self)
 
@@ -290,6 +304,10 @@ function HoseSystem:delete()
     end
 end
 
+---
+-- @param streamId
+-- @param connection
+--
 function HoseSystem:writeStream(streamId, connection)
     -- Write server data to clients
     if not connection:getIsServer() then
@@ -312,17 +330,13 @@ function HoseSystem:writeStream(streamId, connection)
         writeNetworkNodeObjectId(streamId, self.vehicleToMountHoseSystem)
         streamWriteInt8(streamId, self.referenceIdToMountHoseSystem)
         streamWriteBool(streamId, self.referenceIsExtendable)
-
-        --    if self.polymorphismClasses ~= nil and #self.polymorphismClasses > 0 then
-        --        for _, class in pairs(self.polymorphismClasses) do
-        --            if class.writeStream ~= nil then
-        --                class:writeStream(streamId, connection)
-        --            end
-        --        end
-        --    end
     end
 end
 
+---
+-- @param streamId
+-- @param connection
+--
 function HoseSystem:readStream(streamId, connection)
     if connection:getIsServer() then
         local numGrabPoints = streamReadInt8(streamId)
@@ -359,17 +373,12 @@ function HoseSystem:readStream(streamId, connection)
 
         self.poly.references:loadFillableObjectAndReference(vehicleToMountHoseSystem, referenceIdToMountHoseSystem, referenceIsExtendable, true)
         self.doNetworkObjectsIteration = true
-
-        --    if self.polymorphismClasses ~= nil and #self.polymorphismClasses > 0 then
-        --        for _, class in pairs(self.polymorphismClasses) do
-        --            if class.readStream ~= nil then
-        --                class:readStream(streamId, connection)
-        --            end
-        --        end
-        --    end
     end
 end
 
+---
+-- @param nodeIdent
+--
 function HoseSystem:getSaveAttributesAndNodes(nodeIdent)
     local nodes = ""
 
@@ -411,12 +420,28 @@ function HoseSystem:getSaveAttributesAndNodes(nodeIdent)
     return nil, nodes
 end
 
+---
+-- @param posX
+-- @param posY
+-- @param isDown
+-- @param isUp
+-- @param button
+--
 function HoseSystem:mouseEvent(posX, posY, isDown, isUp, button)
 end
 
+---
+-- @param unicode
+-- @param sym
+-- @param modifier
+-- @param isDown
+--
 function HoseSystem:keyEvent(unicode, sym, modifier, isDown)
 end
 
+---
+-- @param dt
+--
 function HoseSystem:update(dt)
     if self.polymorphismClasses ~= nil and #self.polymorphismClasses > 0 then
         for _, class in pairs(self.polymorphismClasses) do
@@ -436,7 +461,9 @@ function HoseSystem:update(dt)
     end
 end
 
-
+---
+-- @param dt
+--
 function HoseSystem:updateTick(dt)
     if self.isServer and self.forceCompontentUpdate then
         if self.componentRunUpdates < self.componentNumRunUpdates then
@@ -453,7 +480,8 @@ function HoseSystem:updateTick(dt)
     end
 end
 
-
+---
+--
 function HoseSystem:draw()
 end
 
@@ -473,8 +501,6 @@ function HoseSystem:updateSpline(force)
     local movedDistance2 = Utils.vector3Length(p2[1] - js.lastPosition[2][1], p2[2] - js.lastPosition[2][2], p2[3] - js.lastPosition[2][3])
 
     if movedDistance1 > 0.001 or movedDistance2 > 0.001 or force then
-        -- print("force " .. tostring(force) .. " distance " .. movedDistance1 .. " - " .. movedDistance2)
-
         js.lastPosition[1] = p1
         js.lastPosition[2] = p2
 
@@ -572,6 +598,7 @@ function HoseSystem:getIsConnected(state)
 end
 
 ---
+-- @param object
 -- @return int
 --
 function HoseSystem:getConnectedGrabPointsAmount(object)
@@ -587,6 +614,7 @@ function HoseSystem:getConnectedGrabPointsAmount(object)
 end
 
 ---
+-- @param object
 -- @return table
 --
 function HoseSystem:getConnectedGrabPoints(object)
@@ -602,6 +630,8 @@ function HoseSystem:getConnectedGrabPoints(object)
 end
 
 ---
+-- @param object
+-- @param referenceId
 -- @return table
 --
 function HoseSystem:getDetachedReferenceGrabPoints(object, referenceId)
@@ -638,6 +668,7 @@ end
 -- @param activate
 -- @param yDirectionSpeed
 -- @param index
+-- @param fillType
 --
 function HoseSystem:toggleEmptyingEffect(activate, yDirectionSpeed, index, fillType)
     if self.hoseEffects ~= nil and self.hoseEffects.isActive ~= activate then
@@ -662,6 +693,10 @@ function HoseSystem:toggleEmptyingEffect(activate, yDirectionSpeed, index, fillT
     end
 end
 
+---
+-- @param activate
+-- @param dt
+--
 function HoseSystem:setEmptyEffect(activate, dt)
     if self.hoseEffects ~= nil and self.hoseEffects.effects ~= nil then
         if activate then
@@ -745,41 +780,4 @@ function HoseSystem:setObjectChangeValues(superFunc, object, isActive)
             grabPoint.connectable = grabPoint.connectableInactive
         end
     end
-end
-
-function HoseSystem:print_r(t, name, indent)
-    local tableList = {}
-
-    local table_r = function(t, name, indent, full)
-        local id = not full and name or type(name) ~= "number" and tostring(name) or '[' .. name .. ']'
-        local tag = indent .. id .. ' : '
-        local out = {}
-
-        if type(t) == "table" then
-            if tableList[t] ~= nil then
-                table.insert(out, tag .. '{} -- ' .. tableList[t] .. ' (self reference)')
-            else
-                tableList[t] = full and (full .. '.' .. id) or id
-
-                if next(t) then -- If table not empty.. fill it further
-                    table.insert(out, tag .. '{')
-
-                    for key, value in pairs(t) do
-                        table.insert(out, table_r(value, key, indent .. '|  ', tableList[t]))
-                    end
-
-                    table.insert(out, indent .. '}')
-                else
-                    table.insert(out, tag .. '{}')
-                end
-            end
-        else
-            local val = type(t) ~= "number" and type(t) ~= "boolean" and '"' .. tostring(t) .. '"' or tostring(t)
-            table.insert(out, tag .. val)
-        end
-
-        return table.concat(out, '\n')
-    end
-
-    return table_r(t, name or 'Value', indent or '')
 end
