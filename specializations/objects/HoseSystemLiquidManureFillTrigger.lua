@@ -34,6 +34,7 @@ function HoseSystemLiquidManureFillTrigger:load(superFunc, nodeId, fillLevelObje
         self.resetFillLevelIfNeeded = HoseSystemLiquidManureFillTrigger.resetFillLevelIfNeeded
         self.getFillLevel = HoseSystemLiquidManureFillTrigger.getFillLevel
         self.updateShaderPlane = HoseSystemLiquidManureFillTrigger.updateShaderPlane -- shader stuff
+        self.updateShaderPlaneGraphics = HoseSystemLiquidManureFillTrigger.updateShaderPlaneGraphics -- shader stuff
 
         self.getNearestReference = HoseSystemLiquidManureFillTrigger.getNearestReference
         self.setIsUsed = HoseSystemLiquidManureFillTrigger.setIsUsed
@@ -226,14 +227,7 @@ function HoseSystemLiquidManureFillTrigger:delete(superFunc)
         end
     end
 
-    if g_currentMission.hoseSystemReferences ~= nil then
-        for i = 1, #g_currentMission.hoseSystemReferences do
-            if g_currentMission.hoseSystemReferences[i] == self then
-                table.remove(g_currentMission.hoseSystemReferences, i)
-                break
-            end
-        end
-    end
+    HoseSystemUtil:removeElementFromList(g_currentMission.hoseSystemReferences, self)
 end
 
 function HoseSystemLiquidManureFillTrigger:update(superFunc, dt)
@@ -264,6 +258,7 @@ function HoseSystemLiquidManureFillTrigger:update(superFunc, dt)
                             local animatedObject = g_currentMission.animatedObjects[reference.lockAnimatedObjectSaveId]
 
                             if animatedObject ~= nil then
+                                -- Todo: do the animation
                             end
                         else
                             if not reference.isLocked then
@@ -276,6 +271,7 @@ function HoseSystemLiquidManureFillTrigger:update(superFunc, dt)
                                 local animatedObject = g_currentMission.animatedObjects[reference.lockAnimatedObjectSaveId]
 
                                 if animatedObject ~= nil then
+                                    -- Todo: do the animation
                                 end
                             else
                                 if not reference.flowOpened then
@@ -355,6 +351,11 @@ function HoseSystemLiquidManureFillTrigger:resetFillLevelIfNeeded(fillType)
     return true
 end
 
+---
+-- @param superFunc
+-- @param fillLevel
+-- @param noEventSend
+--
 function HoseSystemLiquidManureFillTrigger:setFillLevel(superFunc, fillLevel, noEventSend)
     -- superFunc(self, fillLevel, noEventSend)
 
@@ -431,21 +432,23 @@ end
 -- @param literPerSeconds
 --
 function HoseSystemLiquidManureFillTrigger:updateShaderPlane(pumpIsStarted, pumpDirection, literPerSeconds) -- what more?
-    if self.fillLevelObject.isClient then
-        if self.supportsHoseSystem then
-            if getHasShaderParameter(self.movingId, 'displacementScaleSpeedFrequency') then
-                if pumpIsStarted then
-                    self.shaderOnIdle = false
+    if self.fillLevelObject.isServer and self.supportsHoseSystem then -- sync to clients
+        g_server:broadcastEvent(UpdatePlaneEvent:new(self.fillLevelObject, pumpIsStarted, pumpDirection, literPerSeconds))
+    end
 
-                    local frequency = pumpDirection == HoseSystemPumpMotor.IN and literPerSeconds / 10 or literPerSeconds / 10 * 2
-                    local speed = pumpDirection == HoseSystemPumpMotor.IN and literPerSeconds / 100 * 1.5 or (literPerSeconds / 100 * 1.5) * 2
+    if self.fillLevelObject.isClient and self.supportsHoseSystem then
+        if getHasShaderParameter(self.movingId, 'displacementScaleSpeedFrequency') then
+            if pumpIsStarted then
+                self.shaderOnIdle = false
 
-                    HoseSystemLiquidManureFillTrigger:updateShaderPlaneGraphics(self.movingId, HoseSystemUtil:mathRound(speed, 2), HoseSystemUtil:mathRound(frequency, 2))
-                else
-                    if not self.shaderOnIdle then
-                        HoseSystemLiquidManureFillTrigger:updateShaderPlaneGraphics(self.movingId, 0.1, 15) -- idle is hardcoded
-                        self.shaderOnIdle = true
-                    end
+                local frequency = pumpDirection == HoseSystemPumpMotor.IN and literPerSeconds / 10 or literPerSeconds / 10 * 2
+                local speed = pumpDirection == HoseSystemPumpMotor.IN and literPerSeconds / 100 * 1.5 or (literPerSeconds / 100 * 1.5) * 2
+
+                self:updateShaderPlaneGraphics(self.movingId, HoseSystemUtil:mathRound(speed, 2), HoseSystemUtil:mathRound(frequency, 2))
+            else
+                if not self.shaderOnIdle then
+                    self:updateShaderPlaneGraphics(self.movingId, 0.1, 15) -- idle is hardcoded
+                    self.shaderOnIdle = true
                 end
             end
         end
@@ -472,11 +475,11 @@ end
 -- @param noEventSend
 --
 function HoseSystemLiquidManureFillTrigger:toggleLock(index, state, force, noEventSend)
-    HoseSystemReferenceLockEvent.sendEvent(self.fillLevelObject.hoseSystemParent, index, state, force, noEventSend)
-
     local reference = self.hoseSystemReferences[index]
 
-    if reference ~= nil then
+    if reference ~= nil and reference.isLocked ~= state or force then
+        HoseSystemReferenceLockEvent.sendEvent(self.fillLevelObject.hoseSystemParent, index, state, force, noEventSend)
+
         local animatedObject = g_currentMission.animatedObjects[reference.lockAnimatedObjectSaveId]
 
         if animatedObject ~= nil then
@@ -500,11 +503,12 @@ end
 -- @param noEventSend
 --
 function HoseSystemLiquidManureFillTrigger:toggleManureFlow(index, state, force, noEventSend)
-    HoseSystemReferenceManureFlowEvent.sendEvent(self.fillLevelObject.hoseSystemParent, index, state, force, noEventSend)
 
     local reference = self.hoseSystemReferences[index]
 
-    if reference ~= nil then
+    if reference ~= nil and reference.flowOpened ~= state or force then
+        HoseSystemReferenceManureFlowEvent.sendEvent(self.fillLevelObject.hoseSystemParent, index, state, force, noEventSend)
+
         local animatedObject = g_currentMission.animatedObjects[reference.lockAnimatedObjectSaveId]
 
         if animatedObject ~= nil then
@@ -523,23 +527,23 @@ end
 
 ---
 -- @param index
--- @param bool
+-- @param state
 -- @param noEventSend
 --
-function HoseSystemLiquidManureFillTrigger:setIsUsed(index, bool, noEventSend)
-    HoseSystemReferenceIsUsedEvent.sendEvent(self.fillLevelObject.hoseSystemParent, index, bool, noEventSend)
-
+function HoseSystemLiquidManureFillTrigger:setIsUsed(index, state, noEventSend)
     local reference = self.hoseSystemReferences[index]
 
-    if reference ~= nil then
-        reference.isUsed = bool
+    if reference ~= nil and reference.isUsed ~= state then
+        HoseSystemReferenceIsUsedEvent.sendEvent(self.fillLevelObject.hoseSystemParent, index, state, noEventSend)
+
+        reference.isUsed = state
 
         if reference.lockAnimatedObjectSaveId == nil then
-            self:toggleLock(index, bool, true)
+            self:toggleLock(index, state, true)
         end
 
         if reference.manureFlowAnimatedObjectSaveId == nil then
-            self:toggleManureFlow(index, bool, true)
+            self:toggleManureFlow(index, state, true)
         end
     end
 end
@@ -550,3 +554,55 @@ LiquidManureFillTrigger.load = Utils.overwrittenFunction(LiquidManureFillTrigger
 
 -- TipTrigger
 -- TipTrigger.load = Utils.overwrittenFunction(TipTrigger.load, HoseSystemLiquidManureFillTrigger.load) -- overwrite to be albe to pump water?
+
+UpdatePlaneEvent = {}
+UpdatePlaneEvent_mt = Class(UpdatePlaneEvent, Event)
+
+InitEventClass(UpdatePlaneEvent, 'UpdatePlaneEvent')
+
+function UpdatePlaneEvent:emptyNew()
+    local event = Event:new(UpdatePlaneEvent_mt)
+    return event
+end
+
+function UpdatePlaneEvent:new(object, pumpIsStarted, pumpDirection, literPerSeconds)
+    local event = UpdatePlaneEvent:emptyNew()
+
+    event.object = object
+    event.pumpIsStarted = pumpIsStarted
+    event.pumpDirection = pumpDirection
+    event.literPerSeconds = literPerSeconds
+
+    return event
+end
+
+function UpdatePlaneEvent:writeStream(streamId, connection)
+--    if not connection:getIsServer() then
+        writeNetworkNodeObject(streamId, self.object)
+        streamWriteBool(streamId, self.pumpIsStarted)
+
+        if self.pumpIsStarted then
+            streamWriteInt8(streamId, self.pumpDirection)
+            streamWriteInt32(streamId, self.literPerSeconds)
+        end
+--    end
+end
+
+function UpdatePlaneEvent:readStream(streamId, connection)
+--    if not connection:getIsServer() then
+        self.object = readNetworkNodeObject(streamId)
+        self.pumpIsStarted = streamReadBool(streamId)
+
+        if self.pumpIsStarted then
+            self.pumpDirection = streamReadInt8(streamId)
+            self.literPerSeconds = streamReadInt32(streamId)
+        end
+--    end
+    self:run(connection)
+end
+
+function UpdatePlaneEvent:run(connection)
+--    if not connection:getIsServer() then
+        self.object.hoseSystemParent:updateShaderPlane(self.pumpIsStarted, self.pumpDirection, self.literPerSeconds)
+--    end
+end
