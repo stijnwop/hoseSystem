@@ -37,6 +37,7 @@ end
 function HoseSystemRegistrationHelper:loadMap(name)
     self.loadHoseSystemReferenceIds = {}
     self.minDistance = 2
+    self.syncClients = false
 
     if not g_currentMission.hoseSystemRegistrationHelperIsLoaded then
         -- Register the hoseSystemConnectorReference to vehicles
@@ -136,7 +137,7 @@ function HoseSystemRegistrationHelper:getIsPlayerInGrabPointRange()
     local playerDistance = self.minDistance
     local playerTrans = { getWorldTranslation(g_currentMission.player.rootNode) }
 
-    if HoseSystemPlayerInteractive:getIsPlayerValid(true) then
+    if HoseSystemPlayerInteractive:getIsPlayerValid(true) and g_currentMission.hoseSystemHoses ~= nil then
         for _, hoseSystem in pairs(g_currentMission.hoseSystemHoses) do
             for index, grabPoint in pairs(hoseSystem.grabPoints) do
                 if grabPoint.node ~= nil then
@@ -174,7 +175,7 @@ function HoseSystemRegistrationHelper:register()
             local customEnvironment
 
             if vehicle.name:find('.') then
-                customEnvironment = HoseSystemUtil:getFirstElement(Utils.splitString('.', vehicle.name))
+                customEnvironment = Utils.splitString('.', vehicle.name)[1]
             end
 
             if customEnvironment ~= nil then
