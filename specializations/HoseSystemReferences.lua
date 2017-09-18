@@ -210,7 +210,7 @@ function HoseSystemReferences:getCanConnect(x, y, z, sequence, grabPoint, refere
         local rmx, rmy, rmz = getWorldTranslation(reference.maxParkLengthNode)
         local distance = Utils.vector2LengthSq(x - rmx, z - rmz)
 
-        if distance < sequence then
+        if distance < reference.inRangeDistance then
             if math.abs(y - rmy) < 1.3 then
                 return true
             end
