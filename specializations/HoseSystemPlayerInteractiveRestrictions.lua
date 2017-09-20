@@ -86,15 +86,17 @@ function HoseSystemPlayerInteractiveRestrictions:restrictPlayerDistance(dt, grab
                             return
                         end
 
-                        local x, _, z = getWorldTranslation(reference.node)
-                        local px, _, pz = getWorldTranslation(player.rootNode)
+                        local x, y, z = getWorldTranslation(reference.node)
+                        local px, py, pz = getWorldTranslation(player.rootNode)
                         local dx, dz = px - x, pz - z
                         local radius = dx * dx + dz * dz
                         local length = self.object.data.length
                         --                                local actionRadius = self.currentChainCount > 1 and (length * length) * 1.2 or length * length -- give it some space when moving a chain because well..
                         local actionRadius = length * length
+                        local playerHeight = math.abs(py - y)
 
-                        if radius < actionRadius then
+                        -- player height difference is not the full hose lenght since there's always an curve on the dependentGrabpoint that will give some lenght loss
+                        if radius < actionRadius and playerHeight < length - 0.5 then
                             self.lastInRangePosition = { getTranslation(player.rootNode) }
                         else
                             local kx, _, kz = getWorldTranslation(reference.node)
@@ -152,7 +154,7 @@ function HoseSystemPlayerInteractiveRestrictions:restrictReferenceDistance(dt, g
                     local ax, ay, az = getWorldTranslation(self.object.components[grabPoint.componentIndex].node)
                     local bx, by, bz = getWorldTranslation(self.object.components[dependentGrabpoint.componentIndex].node)
                     local distance = Utils.vector3Length(bx - ax, by - ay, bz - az)
-                    local allowedDistance = self.object.data.length * 1.15 -- give it a bit more space to move
+                    local allowedDistance = self.object.data.length * 1.25 -- give it a bit more space to move
 
                     if distance > allowedDistance or distance < (allowedDistance - 1) then
                         if HoseSystem.debugRendering then
