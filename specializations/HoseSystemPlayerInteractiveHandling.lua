@@ -175,7 +175,6 @@ function HoseSystemPlayerInteractiveHandling:grab(index, player, syncState, noEv
                 -- Set kinematicHelper node dependent on player rotation
                 local yRot = math.abs(Utils.getYRotationBetweenNodes(grabPoint.node, player.toolsRootNode))
                 yRot = yRot >= 1.5 and (index > 1 and math.rad(0) or math.rad(180)) or (index > 1 and math.rad(180) or math.rad(0))
-                -- Todo: lookup better way to get the correct attach rotation
                 setRotation(player.hoseSystem.kinematicHelper.node, 0, yRot, 0)
 
                 player.hoseSystem.jointIndex = HoseSystemPlayerInteractiveHandling:constructPlayerJoint({
@@ -320,6 +319,14 @@ function HoseSystemPlayerInteractiveHandling:attach(index, vehicle, referenceId,
         if reference ~= nil then
             local grabPoints = { grabPoint }
 
+            if self.object.isServer then
+                local attachedGrabPoint = HoseSystemUtil:getAttachedGrabPoint(self.object.grabPoints, index)
+                -- get the other grabPoint if it's attached and drop it
+                if attachedGrabPoint ~= nil and attachedGrabPoint.isOwned then
+                    self:drop(attachedGrabPoint.id, attachedGrabPoint.currentOwner)
+                end
+            end
+
             if reference.parkable then
                 -- handle parked hose
                 if self.object.data.length < reference.parkLength then
@@ -410,6 +417,14 @@ function HoseSystemPlayerInteractiveHandling:detach(index, vehicle, referenceId,
 
         if reference ~= nil then
             local grabPoints = { grabPoint }
+
+            if self.object.isServer then
+                local attachedGrabPoint = HoseSystemUtil:getAttachedGrabPoint(self.object.grabPoints, index)
+                -- get the other grabPoint if it's attached and drop it
+                if attachedGrabPoint ~= nil and attachedGrabPoint.isOwned then
+                    self:drop(attachedGrabPoint.id, attachedGrabPoint.currentOwner)
+                end
+            end
 
             if reference.parkable then
                 -- handle parked hose
@@ -797,8 +812,9 @@ function HoseSystemPlayerInteractiveHandling:hardParkHose(grabPoints, vehicle, r
         HoseSystemUtil:removeFromPhysicsRecursively(vehicle)
     end
 
+    -- set the controlling index
     local index = grabPoints[1].id
-
+    print("CONTROLLING INDEX " .. index)
     -- Create nodes
     local startTargetNode = createTransformGroup('startTargetNode')
     local centerTargetNode = createTransformGroup('centerTargetNode')
@@ -810,16 +826,13 @@ function HoseSystemPlayerInteractiveHandling:hardParkHose(grabPoints, vehicle, r
 
     self.object:removeFromPhysics()
 
+    -- Move all components to compound childs
     setIsCompoundChild(self.object.components[grabPoints[1].componentIndex].node, true)
     setIsCompoundChild(self.object.components[(#self.object.components + 1) / 2].node, true)
     setIsCompoundChild(self.object.components[grabPoints[2].componentIndex].node, true)
 
-    -- Not needed on park function
-    --LiquidManureHose:orientConnectionJoint(reference.node, grabPoints[1].node, grabPoints[1].id, grabPoints[1].connectable, reference.id, isExtendable)
-    --LiquidManureHose:orientConnectionJoint(reference.node, self.components[grabPoints[1].componentIndex].node, grabPoints[1].id, grabPoints[1].connectable, reference.id, isExtendable)
-
     local referenceTranslation = { getWorldTranslation(reference.node) }
-    local xRotOffset, yRotOffset, zRotOffset = unpack(reference.startRotOffset)
+    local xRotOffset, yRotOffset, zRotOffset = HoseSystemUtil:getOffsetTargetRotation(index, unpack(reference.startRotOffset))
     local referenceRotation = { localRotationToLocal(self.object.components[grabPoints[1].componentIndex].node, grabPoints[1].node, xRotOffset, yRotOffset, zRotOffset) }
     --local referenceRotation = {getRotation(reference.node)}
 
@@ -892,7 +905,7 @@ function HoseSystemPlayerInteractiveHandling:hardParkHose(grabPoints, vehicle, r
 
     -- Note: does offsetDirection have influence on the y rotation?
     -- Note: this is not going to work with world rotations
-    local xRotOffset, yRotOffset, zRotOffset = unpack(reference.endRotOffset)
+    local xRotOffset, yRotOffset, zRotOffset = HoseSystemUtil:getOffsetTargetRotation(index, unpack(reference.endRotOffset))
     local referenceRotation = { localRotationToLocal(self.object.components[grabPoints[2].componentIndex].node, grabPoints[2].node, xRotOffset, yRotOffset, zRotOffset) }
     --local referenceRotation = {getRotation(reference.node)}
 

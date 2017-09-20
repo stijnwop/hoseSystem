@@ -42,6 +42,21 @@ function HoseSystemUtil:calculateCosAngle(j1, j2)
 end
 
 ---
+-- @param index
+-- @param x
+-- @param y
+-- @param z
+--
+function HoseSystemUtil:getOffsetTargetRotation(index, x, y, z)
+    if index > 1 then
+        return x, y, z
+    end
+
+    local invert = -1;
+    return x * invert, y * invert, z * invert
+end
+
+---
 -- @param cond
 -- @param trueValue
 -- @param falseValue
@@ -171,6 +186,18 @@ function HoseSystemUtil:getDependentGrabPoint(grabPoints, id, allowPlayer, allow
     for _, grabPoint in pairs(grabPoints) do
         if grabPoint.id ~= id then
             if HoseSystem:getIsConnected(grabPoint.state) or allowPlayer and HoseSystem:getIsAttached(grabPoint.state) or allowDetached and HoseSystem:getIsDetached(grabPoint.state) then
+                return grabPoint
+            end
+        end
+    end
+
+    return nil
+end
+
+function HoseSystemUtil:getAttachedGrabPoint(grabPoints, id)
+    for _, grabPoint in pairs(grabPoints) do
+        if grabPoint.id ~= id then
+            if HoseSystem:getIsAttached(grabPoint.state) then
                 return grabPoint
             end
         end
