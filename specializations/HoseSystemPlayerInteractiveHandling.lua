@@ -1,10 +1,10 @@
 --
--- Created by IntelliJ IDEA.
--- User: stijn
--- Date: 14-4-2017
--- Time: 13:29
--- To change this template use File | Settings | File Templates.
+-- HoseSystemPlayerInteractiveHandling
 --
+-- Authors: Wopster
+-- Description: Class to handle all the attach and detach interaction with the hose to player and vehicles
+--
+-- Copyright (c) Wopster, 2017
 
 HoseSystemPlayerInteractiveHandling = {}
 local HoseSystemPlayerInteractiveHandling_mt = Class(HoseSystemPlayerInteractiveHandling, HoseSystemPlayerInteractive)
@@ -57,7 +57,6 @@ function HoseSystemPlayerInteractiveHandling:update(dt)
                         g_currentMission:enableHudIcon('attach', 1)
 
                         if InputBinding.hasEvent(InputBinding.attachHose) then
-                            -- print(LiquidManureHose:print_r(self.fillableObject))
                             self:attach(index, object, self.object.referenceIdToMountHoseSystem, self.object.referenceIsExtendable)
                         end
                     end
@@ -101,11 +100,10 @@ function HoseSystemPlayerInteractiveHandling:update(dt)
                                         self:detach(index, vehicle, reference.id, extenable)
                                     end
 
-                                    if not grabPoint.connectable and (reference ~= nil and not reference.connectable) and reference.parkable then
-                                        -- print('we should grab')
-                                        -- TODO: Oke this fucks up the
-                                        -- self:grab(index, g_currentMission.player)
-                                    end
+                                    --                                    if not grabPoint.connectable and (reference ~= nil and not reference.connectable) and reference.parkable then
+                                    -- print('we should grab')
+                                    -- self:grab(index, g_currentMission.player)
+                                    --                                    end
                                 end
                             end
                         end
@@ -157,7 +155,6 @@ function HoseSystemPlayerInteractiveHandling:grab(index, player, syncState, noEv
             end
         elseif syncState == HoseSystemUtil.eventHelper.STATE_CLIENT then
             if player ~= g_currentMission.player then
-                --print('Grab hose: other clients are getting other infos')
                 player:setWoodWorkVisibility(true, false)
             end
         elseif syncState == HoseSystemUtil.eventHelper.STATE_SERVER then
@@ -561,13 +558,16 @@ function HoseSystemPlayerInteractiveHandling:constructPlayerJoint(jointDesc, pla
     end
 
     local forceLimit = playerHoseDesc.mass * 25 -- only when stucked behind object
-    --    constructor:setBreakable(forceLimit, forceLimit)
+    constructor:setBreakable(forceLimit, forceLimit)
 
-    --    addJointBreakReport(playerHoseDesc.jointIndex, 'onGrabJointBreak', self)
+    addJointBreakReport(playerHoseDesc.jointIndex, 'onGrabJointBreak', self)
 
     return constructor:finalize()
 end
 
+---
+-- @param jointDesc
+--
 function HoseSystemPlayerInteractiveHandling:constructReferenceJoints(jointDesc)
     local constructor = JointConstructor:new()
 
@@ -602,6 +602,10 @@ function HoseSystemPlayerInteractiveHandling:constructReferenceJoints(jointDesc)
     return constructor:finalize()
 end
 
+---
+-- @param rotLimit
+-- @param transLimit
+--
 function HoseSystemPlayerInteractiveHandling:setJointRotAndTransLimit(rotLimit, transLimit)
     if not self.object.isServer then
         return
@@ -633,6 +637,11 @@ function HoseSystemPlayerInteractiveHandling:onGrabJointBreak(jointIndex, breaki
     return false
 end
 
+---
+-- @param grabPoint
+-- @param vehicle
+-- @param reference
+--
 function HoseSystemPlayerInteractiveHandling:hardConnect(grabPoint, vehicle, reference)
     -- Note: cause we delete the connector vehicle from physics we have to attach it back later on
     local grabPoints = {}
@@ -709,7 +718,11 @@ function HoseSystemPlayerInteractiveHandling:hardConnect(grabPoint, vehicle, ref
     end
 end
 
-
+---
+-- @param grabPoint
+-- @param vehicle
+-- @param reference
+--
 function HoseSystemPlayerInteractiveHandling:hardDisconnect(grabPoint, vehicle, reference)
     local grabPoints = {}
     -- Get all the hoses that are connected to a references from the Vehicle
@@ -797,6 +810,11 @@ function HoseSystemPlayerInteractiveHandling:hardDisconnect(grabPoint, vehicle, 
     end
 end
 
+---
+-- @param grabPoints
+-- @param vehicle
+-- @param reference
+--
 function HoseSystemPlayerInteractiveHandling:hardParkHose(grabPoints, vehicle, reference)
     if #grabPoints < 2 then
         return
@@ -814,7 +832,7 @@ function HoseSystemPlayerInteractiveHandling:hardParkHose(grabPoints, vehicle, r
 
     -- set the controlling index
     local index = grabPoints[1].id
-    print("CONTROLLING INDEX " .. index)
+
     -- Create nodes
     local startTargetNode = createTransformGroup('startTargetNode')
     local centerTargetNode = createTransformGroup('centerTargetNode')
@@ -968,6 +986,11 @@ function HoseSystemPlayerInteractiveHandling:hardParkHose(grabPoints, vehicle, r
     end
 end
 
+---
+-- @param grabPoints
+-- @param vehicle
+-- @param reference
+--
 function HoseSystemPlayerInteractiveHandling:hardUnparkHose(grabPoints, vehicle, reference)
     if #grabPoints < 2 then
         return
@@ -1041,6 +1064,13 @@ function HoseSystemPlayerInteractiveHandling:hardUnparkHose(grabPoints, vehicle,
     end
 end
 
+---
+-- @param grabPoint
+-- @param connectedGrabPoints
+-- @param vehicle
+-- @param reference
+-- @param isConnecting
+--
 function HoseSystemPlayerInteractiveHandling:addToPhysicsParts(grabPoint, connectedGrabPoints, vehicle, reference, isConnecting)
     --    if self.object.isAddedToPhysics then
     --       return true
@@ -1099,6 +1129,11 @@ function HoseSystemPlayerInteractiveHandling:addToPhysicsParts(grabPoint, connec
     self:createCustomComponentJoint(gp, object, reference)
 end
 
+---
+-- @param grabPoint
+-- @param object
+-- @param reference
+--
 function HoseSystemPlayerInteractiveHandling:createCustomComponentJoint(grabPoint, object, reference)
     if not self.object.isServer then
         return
@@ -1125,6 +1160,8 @@ function HoseSystemPlayerInteractiveHandling:createCustomComponentJoint(grabPoin
     end
 end
 
+---
+--
 function HoseSystemPlayerInteractiveHandling:deleteCustomComponentJoint()
     if not self.object.isServer then
         return
