@@ -560,9 +560,11 @@ function HoseSystemPlayerInteractiveHandling:constructPlayerJoint(jointDesc, pla
     local forceLimit = playerHoseDesc.mass * 25 -- only when stucked behind object
     constructor:setBreakable(forceLimit, forceLimit)
 
-    addJointBreakReport(playerHoseDesc.jointIndex, 'onGrabJointBreak', self)
+    local jointIndex = constructor:finalize()
 
-    return constructor:finalize()
+    addJointBreakReport(jointIndex, 'onGrabJointBreak', self)
+
+    return jointIndex
 end
 
 ---
@@ -626,10 +628,6 @@ end
 -- @param breakingImpulse
 --
 function HoseSystemPlayerInteractiveHandling:onGrabJointBreak(jointIndex, breakingImpulse)
-    if not self.object.isServer then
-        return false
-    end
-
     if jointIndex == g_currentMission.player.hoseSystem.jointIndex then
         g_currentMission.player.hoseSystem.interactiveHandling:drop(g_currentMission.player.hoseSystem.index, g_currentMission.player)
     end
