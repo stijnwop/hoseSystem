@@ -1,9 +1,10 @@
 --
 -- HoseSystemPumpMotor
 --
--- @author:    	Wopster and Xentro (Marcus@Xentro.se)
--- @history:	v1.0 - 2016-02-14 - Initial implementation
--- 
+-- Authors:    	Wopster and Xentro (Marcus@Xentro.se)
+-- Description: Pumpmotor to pump fillTypes
+--
+-- Copyright (c) Wopster and Xentro, 2017
 
 HoseSystemPumpMotor = {
     sendNumBits = 1,
@@ -18,10 +19,16 @@ HoseSystemPumpMotor.OUT = 1
 HoseSystemPumpMotor.NONE = 0
 HoseSystemPumpMotor.TURN_OFF = 2
 
+---
+-- @param name
+--
 function HoseSystemPumpMotor.formatFillModeKey(name)
     return ('mode_%s'):format(name:lower())
 end
 
+---
+-- @param name
+--
 function HoseSystemPumpMotor.registerFillMode(name)
     local key = HoseSystemPumpMotor.formatFillModeKey(name)
 
@@ -30,6 +37,9 @@ function HoseSystemPumpMotor.registerFillMode(name)
     end
 end
 
+---
+-- @param fillMode
+--
 function HoseSystemPumpMotor.allowFillMode(fillMode)
     for key, value in pairs(HoseSystemPumpMotor.fillModes) do
         if value == fillMode then
@@ -40,6 +50,9 @@ function HoseSystemPumpMotor.allowFillMode(fillMode)
     return false
 end
 
+---
+-- @param name
+--
 function HoseSystemPumpMotor.getInitialFillMode(name)
     local key = HoseSystemPumpMotor.formatFillModeKey(name)
 
@@ -50,6 +63,9 @@ function HoseSystemPumpMotor.getInitialFillMode(name)
     return nil
 end
 
+---
+-- @param specializations
+--
 function HoseSystemPumpMotor.prerequisitesPresent(specializations)
     return SpecializationUtil.hasSpecialization(Fillable, specializations)
 end
@@ -336,6 +352,10 @@ function HoseSystemPumpMotor:draw()
     end
 end
 
+---
+-- @param attacherVehicle
+-- @param jointDescIndex
+--
 function HoseSystemPumpMotor:onAttach(attacherVehicle, jointDescIndex)
     if not self.hasHoseSystemPumpMotor then
         return
@@ -344,6 +364,10 @@ function HoseSystemPumpMotor:onAttach(attacherVehicle, jointDescIndex)
     self.attacherMotor.check = true
 end
 
+---
+-- @param attacherVehicle
+-- @param jointDescIndex
+--
 function HoseSystemPumpMotor:onDetach(attacherVehicle, jointDescIndex)
     if not self.hasHoseSystemPumpMotor then
         return
@@ -358,6 +382,8 @@ function HoseSystemPumpMotor:onDetach(attacherVehicle, jointDescIndex)
     end
 end
 
+---
+--
 function HoseSystemPumpMotor:onDeactivate()
     if not self.hasHoseSystemPumpMotor then
         return
@@ -366,26 +392,42 @@ function HoseSystemPumpMotor:onDeactivate()
     self:setPumpStarted(false, true)
 end
 
+---
+--
 function HoseSystemPumpMotor:getFillMode()
     return self.fillMode
 end
 
+---
+-- @param int
+-- @param noEventSend
+--
 function HoseSystemPumpMotor:setFillMode(int, noEventSend)
     self.fillMode = math.floor(int) -- cast it to int!
 
     setFillModeEvent.sendEvent(self, int, noEventSend)
 end
 
+---
+--
 function HoseSystemPumpMotor:getFillDirection()
     return self.fillDirection
 end
 
+---
+-- @param int
+-- @param noEventSend
+--
 function HoseSystemPumpMotor:setFillDirection(int, noEventSend)
     self.fillDirection = int > HoseSystemPumpMotor.OUT and 0 or int
 
     setFillDirectionEvent.sendEvent(self, int, noEventSend)
 end
 
+---
+-- @param isStarted
+-- @param noEventSend
+--
 function HoseSystemPumpMotor:setPumpStarted(isStarted, noEventSend)
     if self.pumpIsStarted ~= isStarted then
         self.pumpIsStarted = isStarted
@@ -397,6 +439,8 @@ function HoseSystemPumpMotor:setPumpStarted(isStarted, noEventSend)
     end
 end
 
+---
+--
 function HoseSystemPumpMotor:allowPumpStarted()
     local fillMode = self:getFillMode()
 
@@ -423,6 +467,13 @@ function HoseSystemPumpMotor:allowPumpStarted()
     return true
 end
 
+---
+-- @param targetObject
+-- @param fillType
+-- @param deltaFill
+-- @param fillInfo
+-- @param isTrigger
+--
 function HoseSystemPumpMotor:doPump(targetObject, fillType, deltaFill, fillInfo, isTrigger)
     local fillDirection = self:getFillDirection()
     local fillLevel = self:getUnitFillLevel(self.fillUnitIndex)
@@ -463,15 +514,26 @@ function HoseSystemPumpMotor:doPump(targetObject, fillType, deltaFill, fillInfo,
     end
 end
 
-
+---
+-- @param fillType
+-- @param deltaFill
+-- @param fillInfo
+--
 function HoseSystemPumpMotor:doFakePump(fillType, deltaFill, fillInfo)
     self:setFillLevel(deltaFill, fillType, true)
 end
 
+---
+-- @param superFunc
+--
 function HoseSystemPumpMotor:getIsTurnedOn(superFunc)
     return self.pumpIsStarted and true or superFunc(self)
 end
 
+---
+-- @param superFunc
+-- @param isTurnedOn
+--
 function HoseSystemPumpMotor:getIsTurnedOnAllowed(superFunc, isTurnedOn)
     if self.fillObjectFound or self.pumpIsStarted then
         return false
@@ -480,6 +542,9 @@ function HoseSystemPumpMotor:getIsTurnedOnAllowed(superFunc, isTurnedOn)
     return superFunc(self, isTurnedOn)
 end
 
+---
+-- @param superFunc
+--
 function HoseSystemPumpMotor:getConsumedPtoTorque(superFunc)
     if self.pumpIsStarted then
         local rpm = superFunc(self) * 3
@@ -490,6 +555,9 @@ function HoseSystemPumpMotor:getConsumedPtoTorque(superFunc)
     return superFunc(self)
 end
 
+---
+-- @param message
+--
 function HoseSystemPumpMotor:showWarningMessage(message)
     g_currentMission:showBlinkingWarning(message)
 end
