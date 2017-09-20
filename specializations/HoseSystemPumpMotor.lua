@@ -477,7 +477,7 @@ function HoseSystemPumpMotor:getIsTurnedOnAllowed(superFunc, isTurnedOn)
         return false
     end
 
-    return superFunc(self)
+    return superFunc(self, isTurnedOn)
 end
 
 function HoseSystemPumpMotor:getConsumedPtoTorque(superFunc)
@@ -493,17 +493,6 @@ end
 function HoseSystemPumpMotor:showWarningMessage(message)
     g_currentMission:showBlinkingWarning(message)
 end
-
--- Todo: FS17 has something else to this..
-
--- Manual Ignition keeps tool active if pump is on!
--- function HoseSystemPumpMotor:getIsTurnedOn(oldFunc)
--- if self.pumpIsStarted then
--- return true;
--- end;
-
--- return oldFunc(self);
--- end;
 
 -- Event
 setPumpStartedEvent = {}
