@@ -20,43 +20,6 @@ function HoseSystemConnectorReference.prerequisitesPresent(specializations)
     return true
 end
 
-function HoseSystemConnectorReference:print_r(t, name, indent)
-    local tableList = {}
-
-    function table_r(t, name, indent, full)
-        local id = not full and name or type(name) ~= "number" and tostring(name) or '[' .. name .. ']'
-        local tag = indent .. id .. ' : '
-        local out = {}
-
-        if type(t) == "table" then
-            if tableList[t] ~= nil then
-                table.insert(out, tag .. '{} -- ' .. tableList[t] .. ' (self reference)')
-            else
-                tableList[t] = full and (full .. '.' .. id) or id
-
-                if next(t) then -- If table not empty.. fill it further
-                    table.insert(out, tag .. '{')
-
-                    for key, value in pairs(t) do
-                        table.insert(out, table_r(value, key, indent .. '|  ', tableList[t]))
-                    end
-
-                    table.insert(out, indent .. '}')
-                else
-                    table.insert(out, tag .. '{}')
-                end
-            end
-        else
-            local val = type(t) ~= "number" and type(t) ~= "boolean" and '"' .. tostring(t) .. '"' or tostring(t)
-            table.insert(out, tag .. val)
-        end
-
-        return table.concat(out, '\n')
-    end
-
-    return table_r(t, name or 'Value', indent or '')
-end
-
 function HoseSystemConnectorReference:load(savegame)
     self.toggleLock = HoseSystemConnectorReference.toggleLock
     self.toggleManureFlow = HoseSystemConnectorReference.toggleManureFlow
@@ -473,6 +436,9 @@ end
 function HoseSystemConnectorReference:draw()
 end
 
+---
+-- @param allow
+--
 function HoseSystemConnectorReference:updateLiquidHoseSystem(allow)
     if self.currentGrabPointIndex ~= nil and self.currentReferenceIndex ~= nil then
         local reference = self.hoseSystemReferences[self.currentReferenceIndex]
@@ -546,6 +512,8 @@ function HoseSystemConnectorReference:getAllowedFillUnitIndex(object)
     return 0
 end
 
+---
+--
 function HoseSystemConnectorReference:getValidFillObject()
     self.currentReferenceIndex = nil
     self.currentGrabPointIndex = nil
@@ -596,28 +564,30 @@ function HoseSystemConnectorReference:getValidFillObject()
                             end
                         end
                     else
-                        -- check what the lastGrabPoint has on it's raycast
-                        local hoseSystem = reference.hoseSystem
+                        if HoseSystem:getIsDetached(lastGrabPoint.state) then -- don't lookup when the player picks up the hose from the pit
+                            -- check what the lastGrabPoint has on it's raycast
+                            local hoseSystem = reference.hoseSystem
 
-                        if hoseSystem ~= nil then
-                            if hoseSystem.lastRaycastDistance ~= 0 then
-                                if hoseSystem.lastRaycastObject ~= nil then -- or how i called it
-                                    local allowedFillUnitIndex = self:getAllowedFillUnitIndex(hoseSystem.lastRaycastObject)
+                            if hoseSystem ~= nil then
+                                if hoseSystem.lastRaycastDistance ~= 0 then
+                                    if hoseSystem.lastRaycastObject ~= nil then -- or how i called it
+                                        local allowedFillUnitIndex = self:getAllowedFillUnitIndex(hoseSystem.lastRaycastObject)
 
-                                    if allowedFillUnitIndex ~= 0 then
-                                        -- we have something else to pump with
-                                        if self:getFillMode() ~= self.pumpMotorFillMode then
-                                            self:setFillMode(self.pumpMotorFillMode)
-                                        end
+                                        if allowedFillUnitIndex ~= 0 then
+                                            -- we have something else to pump with
+                                            if self:getFillMode() ~= self.pumpMotorFillMode then
+                                                self:setFillMode(self.pumpMotorFillMode)
+                                            end
 
-                                        -- we can pump
-                                        self.fillObjectFound = true
-                                        self.fillObject = hoseSystem.lastRaycastObject
-                                        self.fillUnitIndex = allowedFillUnitIndex
+                                            -- we can pump
+                                            self.fillObjectFound = true
+                                            self.fillObject = hoseSystem.lastRaycastObject
+                                            self.fillUnitIndex = allowedFillUnitIndex
 
-                                        if self.fillObject.checkPlaneY ~= nil then
-                                            self.fillObjectHasPlane = true
-                                            self.fillObjectIsObject = true
+                                            if self.fillObject.checkPlaneY ~= nil then
+                                                self.fillObjectHasPlane = true
+                                                self.fillObjectIsObject = true
+                                            end
                                         end
                                     end
                                 end
@@ -673,6 +643,8 @@ end
 
 -- Todo: Moved to version 1.1
 -- Todo: but what if we have more? Can whe pump with multiple hoses? Does that lower the pumpEfficiency or increase the throughput? There is a cleaner way todo this.
+---
+--
 function HoseSystemConnectorReference:getConnectedReference()
     if self.hoseSystemReferences ~= nil then
         for referenceIndex, reference in pairs(self.hoseSystemReferences) do
