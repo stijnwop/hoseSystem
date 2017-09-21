@@ -831,10 +831,9 @@ function HoseSystemPlayerInteractiveHandling:hardParkHose(grabPoints, vehicle, r
     -- set the controlling index
     local index = grabPoints[1].id
 
-    -- Create nodes
-    local startTargetNode = createTransformGroup('startTargetNode')
-    local centerTargetNode = createTransformGroup('centerTargetNode')
-    local endTargetNode = createTransformGroup('endTargetNode')
+    local startTargetNode = createTransformGroup('hoseSystem_startTargetNode')
+    local centerTargetNode = createTransformGroup('hoseSystem_centerTargetNode')
+    local endTargetNode = createTransformGroup('hoseSystem_endTargetNode')
 
     link(reference.node, startTargetNode)
     link(reference.node, centerTargetNode)
@@ -847,119 +846,10 @@ function HoseSystemPlayerInteractiveHandling:hardParkHose(grabPoints, vehicle, r
     setIsCompoundChild(self.object.components[(#self.object.components + 1) / 2].node, true)
     setIsCompoundChild(self.object.components[grabPoints[2].componentIndex].node, true)
 
-    local referenceTranslation = { getWorldTranslation(reference.node) }
-    local xRotOffset, yRotOffset, zRotOffset = HoseSystemUtil:getOffsetTargetRotation(index, unpack(reference.startRotOffset))
-    local referenceRotation = { localRotationToLocal(self.object.components[grabPoints[1].componentIndex].node, grabPoints[1].node, xRotOffset, yRotOffset, zRotOffset) }
-    --local referenceRotation = {getRotation(reference.node)}
-
-    --setTranslation(self.components[grabPoints[1].componentIndex].node, unpack(referenceTranslation))
-
-    if reference.offsetDirection ~= 1 then
-        referenceRotation[2] = index == 1 and referenceRotation[2] + math.rad(0) or referenceRotation[2] + math.rad(180)
-    else
-        referenceRotation[2] = index == 1 and math.rad(0) + referenceRotation[2] or math.rad(180) + referenceRotation[2]
-    end
-
-    --local referenceRotation = {localRotationToWorld(startTargetNode, unpack(referenceRotation))}
-    -- setRotation(startTargetNode, unpack(referenceRotation))
-    --setWorldRotation(startTargetNode, unpack(referenceRotation))
-
-    local direction = { localDirectionToLocal(self.object.components[grabPoints[1].componentIndex].node, grabPoints[1].node, 0, 0, grabPoints[1].id > 1 and 1 or -1) } -- grabPoints[1].id > 1 and 1 or -1 grabPoints[1].id > 1 and 1 or -1
-    local upVector = { localDirectionToLocal(self.object.components[grabPoints[1].componentIndex].node, grabPoints[1].node, 0, 1, 0) } -- grabPoints[1].id > 1 and -1 or 1
-
-    setDirection(self.object.components[grabPoints[1].componentIndex].node, direction[1], direction[2], direction[3], upVector[1], upVector[2], upVector[3])
-
-    local xOffset, yOffset, zOffset = unpack(reference.startTransOffset)
-    local translation = { localToLocal(self.object.components[grabPoints[1].componentIndex].node, grabPoints[1].node, xOffset, yOffset, zOffset) }
-    setTranslation(self.object.components[grabPoints[1].componentIndex].node, unpack(translation))
-    setRotation(self.object.components[grabPoints[1].componentIndex].node, unpack(referenceRotation))
-
-    --    local quaternion = {mathEulerToQuaternion(unpack(referenceRotation))}
-    --    self.object:setWorldPositionQuaternion(translation[1],translation[2],translation[3], quaternion[1], quaternion[2], quaternion[3], quaternion[4], grabPoints[1].componentIndex, false)
-
-    --link(reference.node, self.components[grabPoints[1].componentIndex].node)
-    setWorldTranslation(startTargetNode, unpack(referenceTranslation))
-
-    link(startTargetNode, self.object.components[grabPoints[1].componentIndex].node)
-
-    local centerTranslation = reference.offsetDirection ~= 1 and { localToWorld(reference.node, 0, 0, -self.object.data.length / 2) } or { localToWorld(reference.node, 0, 0, self.object.data.length / 2) }
-    local centerRotation = { getRotation(self.object.data.centerNode) }
-
-    -- setTranslation(self.components[(table.getn(self.components) + 1) / 2].node, unpack(centerTranslation)) -- this of course only works on even values
-
-    -- Note: does offsetDirection have influence on the y rotation?
-    if reference.offsetDirection ~= 1 then
-        centerRotation[2] = index == 1 and math.rad(0) or math.rad(180)
-    else
-        centerRotation[2] = index == 1 and math.rad(180) or math.rad(0)
-    end
-
-    local centerRotation = { localRotationToWorld(centerTargetNode, unpack(centerRotation)) }
-    -- setWorldRotation(centerTargetNode, unpack(centerRotation))
-    -- setRotation(centerTargetNode, unpack(centerRotation))
-    -- setRotation(self.components[(table.getn(self.components) + 1) / 2].node, unpack(centerRotation))
-
-    local direction = { localDirectionToLocal(self.object.components[(#self.object.components + 1) / 2].node, self.object.data.centerNode, 0, 0, 1) }
-    local upVector = { localDirectionToLocal(self.object.components[(#self.object.components + 1) / 2].node, self.object.data.centerNode, 0, 1, 0) }
-
-    setDirection(self.object.components[(#self.object.components + 1) / 2].node, direction[1], direction[2], direction[3], upVector[1], upVector[2], upVector[3])
-
-    local translation = { localToLocal(self.object.components[(#self.object.components + 1) / 2].node, self.object.data.centerNode, 0, 0, 0) }
-    setTranslation(self.object.components[(#self.object.components + 1) / 2].node, unpack(translation))
-    --
-    --    local quaternion = {mathEulerToQuaternion(getRotation(self.object.components[(#self.object.components + 1) / 2].node))}
-    --    self.object:setWorldPositionQuaternion(translation[1],translation[2],translation[3], quaternion[1], quaternion[2], quaternion[3], quaternion[4], (#self.object.components + 1) / 2, false)
-
-    --link(centerTargetNode, self.components[(table.getn(self.components) + 1) / 2].node)
-    setWorldTranslation(centerTargetNode, unpack(centerTranslation))
-
-    link(centerTargetNode, self.object.components[(#self.object.components + 1) / 2].node)
-
-    local endTranslation = reference.offsetDirection ~= 1 and { localToWorld(reference.node, 0, 0, -self.object.data.length) } or { localToWorld(reference.node, 0, 0, self.object.data.length) }
-
-    -- setTranslation(self.components[grabPoints[2].componentIndex].node, unpack(endTranslation))
-
-    -- Note: does offsetDirection have influence on the y rotation?
-    -- Note: this is not going to work with world rotations
-    local xRotOffset, yRotOffset, zRotOffset = HoseSystemUtil:getOffsetTargetRotation(index, unpack(reference.endRotOffset))
-    local referenceRotation = { localRotationToLocal(self.object.components[grabPoints[2].componentIndex].node, grabPoints[2].node, xRotOffset, yRotOffset, zRotOffset) }
-    --local referenceRotation = {getRotation(reference.node)}
-
-    if reference.offsetDirection ~= 1 then
-        referenceRotation[2] = index == 1 and referenceRotation[2] + math.rad(0) or referenceRotation[2] + math.rad(180)
-    else
-        referenceRotation[2] = index == 1 and math.rad(0) + referenceRotation[2] or math.rad(180) + referenceRotation[2]
-    end
-
-    --local referenceRotation = {localRotationToWorld(endTargetNode, unpack(referenceRotation))}
-    --setWorldRotation(endTargetNode, unpack(referenceRotation))
-    --setRotation(endTargetNode, unpack(referenceRotation))
-    --setRotation(self.components[grabPoints[2].componentIndex].node, unpack(referenceRotation))
-
-    -- todo: set direction based on first grabPoints[1].id!
-    local direction = { localDirectionToLocal(self.object.components[grabPoints[2].componentIndex].node, grabPoints[2].node, 0, 0, grabPoints[2].id > 1 and 1 or -1) } --grabPoints[2].id > 1 and -1 or 1
-    local upVector = { localDirectionToLocal(self.object.components[grabPoints[2].componentIndex].node, grabPoints[2].node, 0, 1, 0) } -- grabPoints[1].id > 1 and -1 or 1
-
-    setDirection(self.object.components[grabPoints[2].componentIndex].node, direction[1], direction[2], direction[3], upVector[1], upVector[2], upVector[3])
-
-    local xOffset, yOffset, zOffset = unpack(reference.endTransOffset)
-    local translation = { localToLocal(self.object.components[grabPoints[2].componentIndex].node, grabPoints[2].node, xOffset, yOffset, zOffset) }
-    setTranslation(self.object.components[grabPoints[2].componentIndex].node, unpack(translation))
-    setRotation(self.object.components[grabPoints[2].componentIndex].node, unpack(referenceRotation))
-
-    --    if not self.object.isServer then
-    --        local quaternion = {mathEulerToQuaternion(unpack(referenceRotation))}
-    --        self.object:setWorldPositionQuaternion(translation[1],translation[2],translation[3], quaternion[1], quaternion[2], quaternion[3], quaternion[4], grabPoints[2].componentIndex, false)
-    --    end
-
-    --link(endTargetNode, self.components[grabPoints[2].componentIndex].node)
-    setWorldTranslation(endTargetNode, unpack(endTranslation))
-
-    link(endTargetNode, self.object.components[grabPoints[2].componentIndex].node)
-
-    --grabPoints[1].jointIndex = HoseSystemPlayerInteractiveHandling:constructJoint(vehicle.components[reference.componentIndex].node, self.components[grabPoints[1].componentIndex].node, startTargetNode, startTargetNode, {1000, 1000, 1000}, {1000, 1000, 1000}, {1000, 1000, 1000}, {1000, 1000, 1000})
-    --grabPoints[1].centerJointIndex = HoseSystemPlayerInteractiveHandling:constructJoint(vehicle.components[reference.componentIndex].node, self.components[(table.getn(self.components) + 1) / 2].node, centerTargetNode, centerTargetNode, {1000, 1000, 1000}, {1000, 1000, 1000}, {1000, 1000, 1000}, {1000, 1000, 1000})
-    --grabPoints[2].jointIndex = HoseSystemPlayerInteractiveHandling:constructJoint(vehicle.components[reference.componentIndex].node, self.components[grabPoints[2].componentIndex].node, endTargetNode, endTargetNode, {1000, 1000, 1000}, {1000, 1000, 1000}, {1000, 1000, 1000}, {1000, 1000, 1000})
+    -- Center node needs some dummy objects
+    HoseSystemPlayerInteractiveHandling:hardParkHoseComponent(index, grabPoints[1], reference, startTargetNode, self.object.components[grabPoints[1].componentIndex].node, reference.startTransOffset, reference.startRotOffset)
+    HoseSystemPlayerInteractiveHandling:hardParkHoseComponent(index, { node = self.object.data.centerNode, id = 2 }, reference, centerTargetNode, self.object.components[(#self.object.components + 1) / 2].node, { 0, 0, 0 }, { 0, 0, 0 }, self.object.data.length / 2)
+    HoseSystemPlayerInteractiveHandling:hardParkHoseComponent(index, grabPoints[2], reference, endTargetNode, self.object.components[grabPoints[2].componentIndex].node, reference.endTransOffset, reference.endRotOffset, self.object.data.length)
 
     self.object.data.parkStartTargetNode = startTargetNode
     self.object.data.parkCenterTargetNode = centerTargetNode
@@ -982,6 +872,38 @@ function HoseSystemPlayerInteractiveHandling:hardParkHose(grabPoints, vehicle, r
             vehicle:raiseDirtyFlags(vehicle.vehicleDirtyFlag)
         end
     end
+end
+
+---
+-- @param leadingIndex
+-- @param grabPoint
+-- @param reference
+-- @param linkNode
+-- @param componentNode
+-- @param transOffset
+-- @param rotOffset
+-- @param offset
+--
+function HoseSystemPlayerInteractiveHandling:hardParkHoseComponent(leadingIndex, grabPoint, reference, linkNode, componentNode, transOffset, rotOffset, offset)
+    local referenceTranslation = HoseSystemUtil:getOffsetTargetTranslation(reference.node, reference.offsetDirection, offset)
+    local xRotOffset, yRotOffset, zRotOffset = HoseSystemUtil:getOffsetTargetRotation(leadingIndex, unpack(rotOffset))
+    local referenceRotation = { localRotationToLocal(componentNode, grabPoint.node, xRotOffset, yRotOffset, zRotOffset) }
+
+    referenceRotation[2] = HoseSystemUtil:processTargetYRotation(leadingIndex, reference.offsetDirection, referenceRotation[2])
+
+    local direction = { localDirectionToLocal(componentNode, grabPoint.node, 0, 0, grabPoint.id > 1 and 1 or -1) } -- grabPoints.id > 1 and 1 or -1 grabPoints.id > 1 and 1 or -1
+    local upVector = { localDirectionToLocal(componentNode, grabPoint.node, 0, 1, 0) } -- grabPoints.id > 1 and -1 or 1
+
+    setDirection(componentNode, direction[1], direction[2], direction[3], upVector[1], upVector[2], upVector[3])
+
+    local xOffset, yOffset, zOffset = unpack(transOffset)
+    local translation = { localToLocal(componentNode, grabPoint.node, xOffset, yOffset, zOffset) }
+    setTranslation(componentNode, unpack(translation))
+    setRotation(componentNode, unpack(referenceRotation))
+
+    setWorldTranslation(linkNode, unpack(referenceTranslation))
+
+    link(linkNode, componentNode)
 end
 
 ---
@@ -1010,38 +932,9 @@ function HoseSystemPlayerInteractiveHandling:hardUnparkHose(grabPoints, vehicle,
     setIsCompound(self.object.components[(#self.object.components + 1) / 2].node, true)
     setIsCompound(self.object.components[grabPoints[2].componentIndex].node, true)
 
-    --
-    local translation = { getWorldTranslation(self.object.components[grabPoints[1].componentIndex].node) }
-    setTranslation(self.object.components[grabPoints[1].componentIndex].node, unpack(translation))
-
-    local direction = { localDirectionToWorld(grabPoints[1].node, 0, 0, 1) }
-    local upVector = { localDirectionToWorld(grabPoints[1].node, 0, 1, 0) }
-
-    setDirection(self.object.components[grabPoints[1].componentIndex].node, direction[1], direction[2], direction[3], upVector[1], upVector[2], upVector[3])
-
-    link(getRootNode(), self.object.components[grabPoints[1].componentIndex].node)
-    --
-    --
-    local translation = { getWorldTranslation(self.object.components[(#self.object.components + 1) / 2].node) }
-    setTranslation(self.object.components[(#self.object.components + 1) / 2].node, unpack(translation))
-
-    local direction = { localDirectionToWorld(self.object.data.centerNode, 0, 0, 1) }
-    local upVector = { localDirectionToWorld(self.object.data.centerNode, 0, 1, 0) }
-
-    setDirection(self.object.components[(#self.object.components + 1) / 2].node, direction[1], direction[2], direction[3], upVector[1], upVector[2], upVector[3])
-
-    link(getRootNode(), self.object.components[(#self.object.components + 1) / 2].node)
-    --
-    --
-    local translation = { getWorldTranslation(self.object.components[grabPoints[2].componentIndex].node) }
-    setTranslation(self.object.components[grabPoints[2].componentIndex].node, unpack(translation))
-
-    local direction = { localDirectionToWorld(grabPoints[2].node, 0, 0, 1) }
-    local upVector = { localDirectionToWorld(grabPoints[2].node, 0, 1, 0) }
-
-    setDirection(self.object.components[grabPoints[2].componentIndex].node, direction[1], direction[2], direction[3], upVector[1], upVector[2], upVector[3])
-    link(getRootNode(), self.object.components[grabPoints[2].componentIndex].node)
-    --
+    HoseSystemPlayerInteractiveHandling:hardUnparkHoseComponent(grabPoints[1].node, self.object.components[grabPoints[1].componentIndex].node)
+    HoseSystemPlayerInteractiveHandling:hardUnparkHoseComponent(self.object.data.centerNode, self.object.components[(#self.object.components + 1) / 2].node)
+    HoseSystemPlayerInteractiveHandling:hardUnparkHoseComponent(grabPoints[2].node, self.object.components[grabPoints[2].componentIndex].node)
 
     delete(self.object.data.parkStartTargetNode)
     delete(self.object.data.parkCenterTargetNode)
@@ -1060,6 +953,22 @@ function HoseSystemPlayerInteractiveHandling:hardUnparkHose(grabPoints, vehicle,
     if self.object.isServer then
         self.object:raiseDirtyFlags(self.object.vehicleDirtyFlag)
     end
+end
+
+---
+-- @param grabPointNode
+-- @param componentNode
+--
+function HoseSystemPlayerInteractiveHandling:hardUnparkHoseComponent(grabPointNode, componentNode)
+    local translation = { getWorldTranslation(componentNode) }
+
+    local direction = { localDirectionToWorld(grabPointNode, 0, 0, 1) }
+    local upVector = { localDirectionToWorld(grabPointNode, 0, 1, 0) }
+
+    setTranslation(componentNode, unpack(translation))
+    setDirection(componentNode, direction[1], direction[2], direction[3], upVector[1], upVector[2], upVector[3])
+
+    link(getRootNode(), componentNode)
 end
 
 ---

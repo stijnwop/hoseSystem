@@ -21,6 +21,10 @@ HoseSystemUtil.eventHelper = {
     REFERENCES_NUM_SEND_BITS = 4 -- Max 2^4
 }
 
+-- Park directions
+HoseSystemUtil.DIRECTION_RIGHT = 1
+HoseSystemUtil.DIRECTION_LEFT = -1
+
 ---
 -- @param number
 -- @param idp
@@ -54,6 +58,32 @@ function HoseSystemUtil:getOffsetTargetRotation(index, x, y, z)
 
     local invert = -1;
     return x * invert, y * invert, z * invert
+end
+
+---
+-- @param index
+-- @param direction
+-- @param y
+--
+function HoseSystemUtil:processTargetYRotation(index, direction, y)
+    if direction ~= HoseSystemUtil.DIRECTION_RIGHT then
+        return index == 1 and y + math.rad(0) or y + math.rad(180)
+    end
+
+    return index == 1 and math.rad(0) + y or math.rad(180) + y
+end
+
+---
+-- @param node
+-- @param direction
+-- @param offset
+--
+function HoseSystemUtil:getOffsetTargetTranslation(node, direction, offset)
+    if direction ~= nil and offset ~= nil then
+        return direction ~= HoseSystemUtil.DIRECTION_RIGHT and { localToWorld(node, 0, 0, -offset) } or { localToWorld(node, 0, 0, offset) }
+    end
+
+    return { getWorldTranslation(node) }
 end
 
 ---
