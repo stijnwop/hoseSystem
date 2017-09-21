@@ -9,11 +9,6 @@
 
 HoseSystemConnectorReference = {
     name = g_currentModName,
-    debug = true,
-    directions = {
-        right = 1, -- positive/negative axis
-        left = -1
-    }
 }
 
 function HoseSystemConnectorReference.prerequisitesPresent(specializations)
@@ -78,11 +73,11 @@ end
 
 function HoseSystemConnectorReference:postLoad(savegame)
     if savegame ~= nil and not savegame.resetVehicles then
-        for id, reference in pairs(self.hoseSystemReferences) do
+        for id, reference in ipairs(self.hoseSystemReferences) do
             local key = string.format('%s.reference(%d)', savegame.key, id - 1)
 
-            self:toggleLock(id, getXMLBool(savegame.xmlFile, key .. '#isLocked'))
-            self:toggleManureFlow(id, getXMLBool(savegame.xmlFile, key .. '#flowOpened'))
+            self:toggleLock(id, Utils.getNoNil(getXMLBool(savegame.xmlFile, key .. '#isLocked'), false), false, true)
+            self:toggleManureFlow(id, Utils.getNoNil(getXMLBool(savegame.xmlFile, key .. '#flowOpened'), false), false, true)
         end
     end
 end
@@ -142,7 +137,7 @@ function HoseSystemConnectorReference.loadHoseReferences(self, xmlFile, base, re
                 entry.parkAnimationName = Utils.getNoNil(getXMLString(xmlFile, key .. '#parkAnimationName'), nil)
                 local offsetDirection = Utils.getNoNil(getXMLString(xmlFile, key .. '#offsetDirection'), 'right')
                 entry.parkLength = Utils.getNoNil(getXMLFloat(xmlFile, key .. '#parkLength'), 5) -- Default length of 5m
-                entry.offsetDirection = offsetDirection ~= 'right' and HoseSystemConnectorReference.directions.left or HoseSystemConnectorReference.directions.right
+                entry.offsetDirection = offsetDirection ~= 'right' and HoseSystemUtil.DIRECTION_LEFT or HoseSystemUtil.DIRECTION_RIGHT
                 entry.startTransOffset = Utils.getNoNil(Utils.getVectorNFromString(getXMLString(xmlFile, key .. '#startTransOffset'), 3), { 0, 0, 0 })
                 entry.startRotOffset = Utils.getNoNil(Utils.getVectorNFromString(getXMLString(xmlFile, key .. '#startRotOffset'), 3), { 0, 0, 0 })
                 entry.endTransOffset = Utils.getNoNil(Utils.getVectorNFromString(getXMLString(xmlFile, key .. '#endTransOffset'), 3), { 0, 0, 0 })
@@ -619,8 +614,10 @@ function HoseSystemConnectorReference:getLastGrabpointRecursively(grabPoint, hos
             if grabPoint.connectorVehicle.grabPoints ~= nil then
                 for i, connectorGrabPoint in pairs(grabPoint.connectorVehicle.grabPoints) do
                     if connectorGrabPoint ~= nil then
-                        if connectorGrabPoint ~= grabPoint.connectorRef then
-                            self:getLastGrabpointRecursively(connectorGrabPoint, grabPoint.connectorRef.hoseSystem)
+                        local reference = HoseSystemReferences:getReference(grabPoint.connectorVehicle, grabPoint.connectorRefId, grabPoint)
+
+                        if connectorGrabPoint ~= reference then
+                            self:getLastGrabpointRecursively(connectorGrabPoint, reference.hoseSystem)
                         end
                     end
                 end
