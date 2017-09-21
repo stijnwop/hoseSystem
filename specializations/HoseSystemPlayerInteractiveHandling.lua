@@ -516,9 +516,9 @@ function HoseSystemPlayerInteractiveHandling:setGrabPointIsUsed(index, isConnect
             if self.object.isServer then
                 -- call reference functions
                 if grabPoint.connectable or isExtendable then
-                    vehicle.poly.interactiveHandling:setGrabPointIsUsed(reference.id, isConnected, grabPoint.connectable, true)
+                    vehicle.poly.interactiveHandling:setGrabPointIsUsed(reference.id, isConnected, grabPoint.connectable, true, noEventSend)
                 else
-                    vehicle:setIsUsed(reference.id, isConnected)
+                    vehicle:setIsUsed(reference.id, isConnected, noEventSend)
                 end
             end
         end
@@ -558,11 +558,11 @@ function HoseSystemPlayerInteractiveHandling:constructPlayerJoint(jointDesc, pla
     end
 
     local forceLimit = playerHoseDesc.mass * 25 -- only when stucked behind object
-    constructor:setBreakable(forceLimit, forceLimit)
+--    constructor:setBreakable(forceLimit, forceLimit)
 
     local jointIndex = constructor:finalize()
 
-    addJointBreakReport(jointIndex, 'onGrabJointBreak', self)
+--    addJointBreakReport(jointIndex, 'onGrabJointBreak', self)
 
     return jointIndex
 end
