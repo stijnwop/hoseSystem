@@ -100,7 +100,7 @@ function HoseSystemRegistrationHelper:update(dt)
                                     local connectorVehicle = g_currentMission.hoseSystemReferences[connectorVehicleId]
 
                                     if connectorVehicle ~= nil then
-                                        vehicle.poly.interactiveHandling:attach(grabPointId, connectorVehicle, referenceId, isExtendable)
+                                        vehicle.poly.interactiveHandling:attach(grabPointId, connectorVehicle, referenceId, isExtendable, true) -- will be synched later
                                     else
                                         if HoseSystem.debugRendering then
                                             print('HoseSystemRegistrationHelper - error: Invalid connectorVehicle!')
