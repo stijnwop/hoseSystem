@@ -530,13 +530,14 @@ end
 -- @param state
 -- @param noEventSend
 --
-function HoseSystemLiquidManureFillTrigger:setIsUsed(index, state, noEventSend)
+function HoseSystemLiquidManureFillTrigger:setIsUsed(index, state, hoseSystem, noEventSend)
     local reference = self.hoseSystemReferences[index]
 
     if reference ~= nil and reference.isUsed ~= state then
-        HoseSystemReferenceIsUsedEvent.sendEvent(self.fillLevelObject.hoseSystemParent, index, state, noEventSend)
+        HoseSystemReferenceIsUsedEvent.sendEvent(self.fillLevelObject.hoseSystemParent, index, state, hoseSystem, noEventSend)
 
         reference.isUsed = state
+        reference.hoseSystem = hoseSystem
 
         if reference.lockAnimatedObjectSaveId == nil then
             self:toggleLock(index, state, true)
@@ -577,32 +578,32 @@ function UpdatePlaneEvent:new(object, pumpIsStarted, pumpDirection, literPerSeco
 end
 
 function UpdatePlaneEvent:writeStream(streamId, connection)
---    if not connection:getIsServer() then
-        writeNetworkNodeObject(streamId, self.object)
-        streamWriteBool(streamId, self.pumpIsStarted)
+    --    if not connection:getIsServer() then
+    writeNetworkNodeObject(streamId, self.object)
+    streamWriteBool(streamId, self.pumpIsStarted)
 
-        if self.pumpIsStarted then
-            streamWriteInt8(streamId, self.pumpDirection)
-            streamWriteInt32(streamId, self.literPerSeconds)
-        end
---    end
+    if self.pumpIsStarted then
+        streamWriteInt8(streamId, self.pumpDirection)
+        streamWriteInt32(streamId, self.literPerSeconds)
+    end
+    --    end
 end
 
 function UpdatePlaneEvent:readStream(streamId, connection)
---    if not connection:getIsServer() then
-        self.object = readNetworkNodeObject(streamId)
-        self.pumpIsStarted = streamReadBool(streamId)
+    --    if not connection:getIsServer() then
+    self.object = readNetworkNodeObject(streamId)
+    self.pumpIsStarted = streamReadBool(streamId)
 
-        if self.pumpIsStarted then
-            self.pumpDirection = streamReadInt8(streamId)
-            self.literPerSeconds = streamReadInt32(streamId)
-        end
---    end
+    if self.pumpIsStarted then
+        self.pumpDirection = streamReadInt8(streamId)
+        self.literPerSeconds = streamReadInt32(streamId)
+    end
+    --    end
     self:run(connection)
 end
 
 function UpdatePlaneEvent:run(connection)
---    if not connection:getIsServer() then
-        self.object.hoseSystemParent:updateShaderPlane(self.pumpIsStarted, self.pumpDirection, self.literPerSeconds)
---    end
+    --    if not connection:getIsServer() then
+    self.object.hoseSystemParent:updateShaderPlane(self.pumpIsStarted, self.pumpDirection, self.literPerSeconds)
+    --    end
 end

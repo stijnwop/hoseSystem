@@ -57,10 +57,6 @@ function HoseSystemConnectorReference:load(savegame)
         self.pumpMotorFillMode = HoseSystemPumpMotor.getInitialFillMode('hoseSystem')
     end
 
-    self.rayCastNode = 0 -- dynamic node
-    self.rayCastingActive = true -- server
-    self.allowRayCasting = true -- server
-
     self.hasHoseSystem = true
 
     if self.unloadTrigger ~= nil then
@@ -162,7 +158,6 @@ function HoseSystemConnectorReference:updateCurrentMissionInfo(object)
             g_currentMission.hoseSystemReferences = {}
         end
 
-        --        g_currentMission.hoseSystemReferences[self.hoseSystemId] = object
         table.insert(g_currentMission.hoseSystemReferences, object)
     end
 
@@ -171,7 +166,6 @@ function HoseSystemConnectorReference:updateCurrentMissionInfo(object)
             g_currentMission.dockingSystemReferences = {}
         end
 
-        --        g_currentMission.dockingSystemReferences[self.hoseSystemId] = object
         table.insert(g_currentMission.dockingSystemReferences, object)
     end
 end
@@ -199,50 +193,55 @@ end
 
 function HoseSystemConnectorReference:readStream(streamId, connection)
     if connection:getIsServer() then
+        for id = 1, streamReadUInt8(streamId) do
+            local reference = self.hoseSystemReferences[id]
+
+            -- load the hoseSystem object later on first frame
+            self:setIsUsed(id, streamReadBool(streamId), nil, true)
+
+            if streamReadBool(streamId) then
+                if self.hoseSystemsToload == nil then
+                    self.hoseSystemsToload = {}
+                end
+
+                table.insert(self.hoseSystemsToload, { id = id, hoseSystemId = readNetworkNodeObjectId(streamId) })
+            end
+
+            self:toggleLock(id, streamReadBool(streamId), false, true)
+            self:toggleManureFlow(id, streamReadBool(streamId), false, true)
+        end
+
         self.fillObjectFound = streamReadBool(streamId)
         self.fillFromFillVolume = streamReadBool(streamId)
         local currentReferenceIndex = streamReadInt8(streamId)
         self.currentReferenceIndex = currentReferenceIndex ~= 0 and currentReferenceIndex or nil
         local currentGrabPointIndex = streamReadInt8(streamId)
         self.currentGrabPointIndex = currentGrabPointIndex ~= 0 and currentGrabPointIndex or nil
-
-        if self.hoseSystemReferences ~= nil then
-            for id = 1, #self.hoseSystemReferences do
-                local reference = self.hoseSystemReferences[id]
-
-                self:setIsUsed(id, streamReadBool(streamId), true)
-                self:toggleLock(id, streamReadBool(streamId), false, true)
-                self:toggleManureFlow(id, streamReadBool(streamId), false, true)
-
-                if streamReadBool(streamId) then
-                    reference.hoseSystem = readNetworkNodeObject(streamId)
-                end
-            end
-        end
     end
 end
 
 function HoseSystemConnectorReference:writeStream(streamId, connection)
     if not connection:getIsServer() then
+        streamWriteUInt8(streamId, #self.hoseSystemReferences)
+
+        for id = 1, #self.hoseSystemReferences do
+            local reference = self.hoseSystemReferences[id]
+
+            streamWriteBool(streamId, reference.isUsed)
+            streamWriteBool(streamId, reference.hoseSystem ~= nil)
+
+            if reference.hoseSystem ~= nil then
+                writeNetworkNodeObjectId(streamId, networkGetObjectId(reference.hoseSystem))
+            end
+
+            streamWriteBool(streamId, reference.isLocked)
+            streamWriteBool(streamId, reference.flowOpened)
+        end
+
         streamWriteBool(streamId, self.fillObjectFound)
         streamWriteBool(streamId, self.fillFromFillVolume)
         streamWriteInt8(streamId, self.currentReferenceIndex ~= nil and self.currentReferenceIndex or 0)
         streamWriteInt8(streamId, self.currentGrabPointIndex ~= nil and self.currentGrabPointIndex or 0)
-
-        if self.hoseSystemReferences ~= nil then
-            for id = 1, #self.hoseSystemReferences do
-                local reference = self.hoseSystemReferences[id]
-
-                streamWriteBool(streamId, reference.isUsed)
-                streamWriteBool(streamId, reference.isLocked)
-                streamWriteBool(streamId, reference.flowOpened)
-                streamWriteBool(streamId, reference.hoseSystem ~= nil)
-
-                if reference.hoseSystem ~= nil then
-                    writeNetworkNodeObject(streamId, reference.hoseSystem)
-                end
-            end
-        end
     end
 end
 
@@ -269,6 +268,14 @@ function HoseSystemConnectorReference:keyEvent(unicode, sym, modifier, isDown)
 end
 
 function HoseSystemConnectorReference:update(dt)
+    if self.hoseSystemsToload ~= nil then
+        for _, n in pairs(self.hoseSystemsToload) do
+            self.hoseSystemReferences[n.id].hoseSystem = networkGetObject(n.hoseSystemId)
+        end
+
+        self.hoseSystemsToload = nil
+    end
+
     -- run this client sided only?
     if not self.isClient then
         return
@@ -281,16 +288,18 @@ function HoseSystemConnectorReference:update(dt)
             local reference = self.hoseSystemReferences[referenceId]
 
             if reference ~= nil then
-                if reference.lockAnimationName ~= nil and self.animations[reference.lockAnimationName] ~= nil and #self.animations[reference.lockAnimationName].parts > 0 then
-                    local _, firstPartAnimation = next(self.animations[reference.lockAnimationName].parts, nil)
+                if not reference.flowOpened then
+                    if reference.lockAnimationName ~= nil and self.animations[reference.lockAnimationName] ~= nil and #self.animations[reference.lockAnimationName].parts > 0 then
+                        local _, firstPartAnimation = next(self.animations[reference.lockAnimationName].parts, nil)
 
-                    if firstPartAnimation.node ~= nil and g_i18n:hasText('action_toggleLock') and g_i18n:hasText('action_toggleLockStateLock') and g_i18n:hasText('action_toggleLockStateUnlock') then
-                        local state = self:getAnimationTime(reference.lockAnimationName) == 0
+                        if firstPartAnimation.node ~= nil and g_i18n:hasText('action_toggleLock') and g_i18n:hasText('action_toggleLockStateLock') and g_i18n:hasText('action_toggleLockStateUnlock') then
+                            local state = self:getAnimationTime(reference.lockAnimationName) == 0
 
-                        HoseSystemUtil:renderHelpTextOnNode(firstPartAnimation.node, string.format(g_i18n:getText('action_toggleLock'), state and g_i18n:getText('action_toggleLockStateLock') or g_i18n:getText('action_toggleLockStateUnlock')), string.format(g_i18n:getText('action_mouseInteract'), string.lower(MouseHelper.getButtonName(Input.MOUSE_BUTTON_LEFT))))
+                            HoseSystemUtil:renderHelpTextOnNode(firstPartAnimation.node, string.format(g_i18n:getText('action_toggleLock'), state and g_i18n:getText('action_toggleLockStateLock') or g_i18n:getText('action_toggleLockStateUnlock')), string.format(g_i18n:getText('action_mouseInteract'), string.lower(MouseHelper.getButtonName(Input.MOUSE_BUTTON_LEFT))))
 
-                        if InputBinding.hasEvent(InputBinding.toggleLock) then
-                            self:toggleLock(referenceId, state, false)
+                            if InputBinding.hasEvent(InputBinding.toggleLock) then
+                                self:toggleLock(referenceId, state, false)
+                            end
                         end
                     end
                 end
@@ -719,14 +728,15 @@ end
 -- @param state
 -- @param noEventSend
 --
-function HoseSystemConnectorReference:setIsUsed(index, state, noEventSend)
+function HoseSystemConnectorReference:setIsUsed(index, state, hoseSystem, noEventSend)
     if self.hoseSystemReferences ~= nil then
         local reference = self.hoseSystemReferences[index]
 
         if reference ~= nil and reference.isUsed ~= state then
-            HoseSystemReferenceIsUsedEvent.sendEvent(self, index, state, noEventSend)
+            HoseSystemReferenceIsUsedEvent.sendEvent(self, index, state, hoseSystem, noEventSend)
 
             reference.isUsed = state
+            reference.hoseSystem = hoseSystem
 
             if not reference.parkable then
                 if reference.lockAnimationName == nil then
