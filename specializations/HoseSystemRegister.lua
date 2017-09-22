@@ -16,10 +16,10 @@ local srcDirectory = HoseSystemRegistrationHelper.baseDirectory .. 'specializati
 local eventDirectory = HoseSystemRegistrationHelper.baseDirectory .. 'specializations/events'
 
 local files = {
+    ('%s/%s'):format(srcDirectory, 'HoseSystemUtil'),
     ('%s/%s'):format(eventDirectory, 'HoseSystemReferenceIsUsedEvent'),
     ('%s/%s'):format(eventDirectory, 'HoseSystemReferenceLockEvent'),
     ('%s/%s'):format(eventDirectory, 'HoseSystemReferenceManureFlowEvent'),
-    ('%s/%s'):format(srcDirectory, 'HoseSystemUtil'),
 }
 
 for _, directory in pairs(files) do
@@ -37,7 +37,6 @@ end
 function HoseSystemRegistrationHelper:loadMap(name)
     self.loadHoseSystemReferenceIds = {}
     self.minDistance = 2
-    self.syncClients = false
 
     if not g_currentMission.hoseSystemRegistrationHelperIsLoaded then
         -- Register the hoseSystemConnectorReference to vehicles
@@ -48,8 +47,7 @@ function HoseSystemRegistrationHelper:loadMap(name)
 
         -- Register the material for the hose system
         MaterialUtil.registerMaterialType('hoseSystem')
-        local materialHolder = loadI3DFile(HoseSystemRegistrationHelper.baseDirectory .. 'particleSystems/materialHolder.i3d')
-        --		delete(materialHolder)
+        loadI3DFile(HoseSystemRegistrationHelper.baseDirectory .. 'particleSystems/materialHolder.i3d')
 
         g_currentMission.hoseSystemRegistrationHelperIsLoaded = true
     else
@@ -182,7 +180,7 @@ function HoseSystemRegistrationHelper:register()
                 if rawget(SpecializationUtil.specializations, customEnvironment .. '.HoseSystemConnector') ~= nil or rawget(SpecializationUtil.specializations, customEnvironment .. '.hoseSystemConnector') ~= nil then
                     -- Found connector specialization
                     if HoseSystem.debugRendering then
-                        print('HoseSystem - hoseSystemConnectorReference specialization added to: ' .. customEnvironment)
+                        print('HoseSystemRegistrationHelper - hoseSystemConnector specialization added to: ' .. customEnvironment)
                     end
 
                     table.insert(vehicle.specializations, SpecializationUtil.getSpecialization('hoseSystemConnectorReference'))
