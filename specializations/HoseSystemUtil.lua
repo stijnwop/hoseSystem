@@ -215,7 +215,7 @@ end
 function HoseSystemUtil:getDependentGrabPoint(grabPoints, id, allowPlayer, allowDetached)
     for _, grabPoint in pairs(grabPoints) do
         if grabPoint.id ~= id then
-            if HoseSystem:getIsConnected(grabPoint.state) or allowPlayer and HoseSystem:getIsAttached(grabPoint.state) or allowDetached and HoseSystem:getIsDetached(grabPoint.state) then
+            if HoseSystem:getIsConnected(grabPoint.state) or (allowPlayer and HoseSystem:getIsAttached(grabPoint.state)) or (allowDetached and HoseSystem:getIsDetached(grabPoint.state)) then
                 return grabPoint
             end
         end
