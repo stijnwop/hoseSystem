@@ -19,7 +19,6 @@ function HoseSystemReferences:new(object, mt)
     references.object.vehicleToMountHoseSystem = 0
     references.object.referenceIdToMountHoseSystem = 0
     references.object.referenceIsExtendable = false
-    references.object.doNetworkObjectsIteration = false
 
     if object.isServer then
         references.vehicleToMountHoseSystemSend = nil
@@ -34,16 +33,16 @@ function HoseSystemReferences:delete()
 end
 
 function HoseSystemReferences:readStream(streamId, connection)
+    -- Todo: implement the stream!
 end
 
 function HoseSystemReferences:writeStream(streamId, connection)
+    -- Todo: implement the stream!
 end
 
 function HoseSystemReferences:update(dt)
     -- iterate over grabPoints to sync the vehicles with all clients
-    if self.object.doNetworkObjectsIteration then
-        self:iterateNetworkObjects()
-    end
+    self:iterateNetworkObjects()
 
     if not self.object.isServer then
         return
@@ -84,25 +83,14 @@ function HoseSystemReferences:loadFillableObjectAndReference(vehicle, referenceI
 end
 
 function HoseSystemReferences:iterateNetworkObjects()
-    if self.object.grabPoints ~= nil then
-        for index, grabPoint in pairs(self.object.grabPoints) do
-            -- Todo: lookup better solution
-            if grabPoint.connectorVehicleId ~= nil then
-                local vehicle = networkGetObject(grabPoint.connectorVehicleId)
-
-                if vehicle ~= nil then
-                    grabPoint.connectorVehicle = vehicle
-                    grabPoint.connectorVehicleId = nil
-
-                    --                    self:syncIsUsed(index, HoseSystem:getIsConnected(grabPoint.attachState), grabPoint.hasExtenableJointIndex, true)
-                end
-            end
+    if self.object.grabPointsToload ~= nil then
+        for _, n in pairs(self.object.grabPointsToload) do
+            self.object.grabPoints[n.id].connectorVehicle = networkGetObject(n.connectorVehicleId)
         end
+
+        self.object.grabPointsToload = nil
     end
-
-    self.object.queueNetworkObjects = false
 end
-
 
 ---
 -- @param grabPoint
