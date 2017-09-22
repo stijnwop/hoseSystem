@@ -213,7 +213,6 @@ function HoseSystem:loadGrabPoints(xmlFile, baseString)
                 playerJointRotLimit = { Utils.getNoNil(rx, 0), Utils.getNoNil(ry, 0), Utils.getNoNil(rz, 0) },
                 playerJointTransLimit = { Utils.getNoNil(tx, 0), Utils.getNoNil(ty, 0), Utils.getNoNil(tz, 0) },
                 jointIndex = 0,
-                centerJointIndex = 0,
                 hasJointIndex = false, -- We don't sync the actual JointIndex it's server sided
                 hasExtenableJointIndex = false, -- We don't sync the actual JointIndex it's server sided
                 componentIndex = Utils.getNoNil(getXMLInt(xmlFile, key .. '#componentIndex'), 0) + 1,
@@ -223,10 +222,8 @@ function HoseSystem:loadGrabPoints(xmlFile, baseString)
                 connectableAnimation = nil,
                 isLocked = false,
                 state = HoseSystem.STATE_DETACHED,
-                connectorRef = nil,
                 connectorRefId = 0,
                 connectorVehicle = nil,
-                connectorVehicleId = nil,
                 currentOwner = nil,
                 isOwned = false
             }
@@ -248,17 +245,17 @@ end
 function HoseSystem:postLoad(savegame)
     for index, grabPoint in pairs(self.grabPoints) do
         if grabPoint.connectable and grabPoint.connectableAnimation ~= nil then
-            self:toggleLock(index, false)
+            self:toggleLock(index, false, true)
         end
     end
 
     if savegame ~= nil and not savegame.resetVehicles then
-        for index, grabPoint in pairs(self.grabPoints) do
+        for index, grabPoint in ipairs(self.grabPoints) do
             local key = ('%s.grabPoint(%d)'):format(savegame.key, index - 1)
 
             if grabPoint.connectable and grabPoint.connectableAnimation ~= nil then
                 local lockState = Utils.getNoNil(getXMLBool(savegame.xmlFile, key .. '#lockState'), false)
-                self:toggleLock(index, lockState)
+                self:toggleLock(index, lockState, true)
             end
         end
     end
@@ -311,14 +308,18 @@ end
 function HoseSystem:writeStream(streamId, connection)
     -- Write server data to clients
     if not connection:getIsServer() then
-        streamWriteInt8(streamId, #self.grabPoints)
+        streamWriteUInt8(streamId, #self.grabPoints)
 
         for index = 1, #self.grabPoints do
             local grabPoint = self.grabPoints[index]
 
             if grabPoint ~= nil then
                 streamWriteInt8(streamId, grabPoint.state)
-                writeNetworkNodeObjectId(streamId, networkGetObjectId(grabPoint.connectorVehicle))
+                streamWriteBool(streamId, grabPoint.connectorVehicle ~= nil)
+                if grabPoint.connectorVehicle ~= nil then
+                    writeNetworkNodeObjectId(streamId, networkGetObjectId(grabPoint.connectorVehicle))
+                end
+
                 streamWriteInt8(streamId, grabPoint.connectorRefId)
                 streamWriteBool(streamId, grabPoint.isOwned)
                 writeNetworkNodeObject(streamId, grabPoint.currentOwner)
@@ -330,6 +331,12 @@ function HoseSystem:writeStream(streamId, connection)
         writeNetworkNodeObjectId(streamId, self.vehicleToMountHoseSystem)
         streamWriteInt8(streamId, self.referenceIdToMountHoseSystem)
         streamWriteBool(streamId, self.referenceIsExtendable)
+
+        for _, class in pairs(self.polymorphismClasses) do
+            if class.writeStream ~= nil then
+                class:writeStream(streamId, connection)
+            end
+        end
     end
 end
 
@@ -339,14 +346,19 @@ end
 --
 function HoseSystem:readStream(streamId, connection)
     if connection:getIsServer() then
-        local numGrabPoints = streamReadInt8(streamId)
-
-        for index = 1, numGrabPoints do
+        for index = 1, streamReadUInt8(streamId) do
             local grabPoint = self.grabPoints[index]
-
             if grabPoint ~= nil then
                 grabPoint.state = streamReadInt8(streamId)
-                grabPoint.connectorVehicleId = readNetworkNodeObjectId(streamId)
+
+                if streamReadBool(streamId) then
+                    if self.grabPointsToload == nil then
+                        self.grabPointsToload = {}
+                    end
+
+                    table.insert(self.grabPointsToload, { id = index, connectorVehicleId = readNetworkNodeObjectId(streamId) })
+                end
+
                 grabPoint.connectorRefId = streamReadInt8(streamId)
 
                 if HoseSystem:getIsConnected(grabPoint.state) then
@@ -372,7 +384,12 @@ function HoseSystem:readStream(streamId, connection)
         local referenceIsExtendable = streamReadBool(streamId)
 
         self.poly.references:loadFillableObjectAndReference(vehicleToMountHoseSystem, referenceIdToMountHoseSystem, referenceIsExtendable, true)
-        self.doNetworkObjectsIteration = true
+
+        for _, class in pairs(self.polymorphismClasses) do
+            if class.readStream ~= nil then
+                class:readStream(streamId, connection)
+            end
+        end
     end
 end
 
