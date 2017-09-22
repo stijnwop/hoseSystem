@@ -12,8 +12,6 @@ local HoseSystemPlayerInteractiveHandling_mt = Class(HoseSystemPlayerInteractive
 function HoseSystemPlayerInteractiveHandling:new(object, mt)
     local interactiveHandling = HoseSystemPlayerInteractive:new(object, mt == nil and HoseSystemPlayerInteractiveHandling_mt or mt)
 
-    interactiveHandling.doNetworkObjectsIteration = false
-
     return interactiveHandling
 end
 
@@ -512,9 +510,9 @@ function HoseSystemPlayerInteractiveHandling:setGrabPointIsUsed(index, isConnect
             if self.object.isServer then
                 -- call reference functions
                 if grabPoint.connectable or isExtendable then
-                    vehicle.poly.interactiveHandling:setGrabPointIsUsed(reference.id, isConnected, grabPoint.connectable, true, noEventSend)
+                    vehicle.poly.interactiveHandling:setGrabPointIsUsed(reference.id, isConnected, grabPoint.connectable, true)
                 else
-                    vehicle:setIsUsed(reference.id, isConnected, isConnected and self.object or nil, noEventSend)
+                    vehicle:setIsUsed(reference.id, isConnected, isConnected and self.object or nil)
                 end
             end
         end
