@@ -1,10 +1,10 @@
 --
--- Created by IntelliJ IDEA.
--- User: stijn
--- Date: 15-4-2017
--- Time: 16:00
--- To change this template use File | Settings | File Templates.
+-- HoseSystemPlayerInteractiveRestrictions
 --
+-- Authors: Wopster
+-- Description: Handles the hose system restrictions
+--
+-- Copyright (c) Wopster, 2017
 
 HoseSystemPlayerInteractiveRestrictions = {}
 
@@ -20,6 +20,7 @@ function HoseSystemPlayerInteractiveRestrictions:new(object, mt)
     playerInteractiveRestrictions.lastInRangePosition = { 0, 0, 0 }
     playerInteractiveRestrictions.rangeRestrictionMessageShown = false
     playerInteractiveRestrictions.currentChainCount = 0
+    playerInteractiveRestrictions.lastRestrictCheckTime = 0
 
     return playerInteractiveRestrictions
 end
@@ -51,6 +52,10 @@ end
 function HoseSystemPlayerInteractiveRestrictions:draw()
 end
 
+---
+-- @param dt
+-- @param grabPoint
+--
 function HoseSystemPlayerInteractiveRestrictions:restrictPlayerDistance(dt, grabPoint)
     local player = grabPoint.currentOwner
 
@@ -58,31 +63,17 @@ function HoseSystemPlayerInteractiveRestrictions:restrictPlayerDistance(dt, grab
         if player.hoseSystem.interactiveHandling ~= nil then
             if grabPoint.id == player.hoseSystem.index then
                 if HoseSystem:getIsAttached(grabPoint.state) then
-                    local dependentGrabpoint = HoseSystemUtil:getDependentGrabPoint(self.object.grabPoints, grabPoint.id, true)
-
-                    --                        self:setChainCount(1) -- We're always 1 behind cause we are counting the jointIndexes!
-
-                    --                        for _, gp in pairs(self.object.grabPoints) do
-                    --                            local _, count = self:getLastGrabpointRecursively(gp, self.currentChainCount)
-                    --
-                    --                            self:setChainCount(count)
-                    -- print(count)
-
-                    --self:calculateChainRecursively(gp)
-
-                    --                            if gp.id ~= grabPoint.id then
-                    --                                if HoseSystem:getIsConnected(gp.state) or HoseSystem:getIsAttached(gp.state) then
-                    --                                    dependentGrabpoint = gp
-                    --                                    break
-                    --                                end
-                    --                            end
-                    --                        end
+                    local dependentGrabpoint = HoseSystemUtil:getDependentGrabPoint(self.object.grabPoints, grabPoint.id, false, false)
 
                     if dependentGrabpoint ~= nil then
                         -- If we have a player use the grabpoint as reference
                         local reference = HoseSystem:getIsConnected(dependentGrabpoint.state) and HoseSystemReferences:getReference(dependentGrabpoint.connectorVehicle, dependentGrabpoint.connectorRefId, dependentGrabpoint) or dependentGrabpoint
 
                         if reference == nil then
+                            return
+                        end
+
+                        if HoseSystem:getIsConnected(dependentGrabpoint.state) and HoseSystemPlayerInteractiveRestrictions:getIsVehicleAboveSpeedLimit(dependentGrabpoint.connectorVehicle, 1) then
                             return
                         end
 
@@ -96,20 +87,22 @@ function HoseSystemPlayerInteractiveRestrictions:restrictPlayerDistance(dt, grab
                         local playerHeight = math.abs(py - y)
 
                         -- player height difference is not the full hose lenght since there's always an curve on the dependentGrabpoint that will give some lenght loss
-                        if radius < actionRadius and playerHeight < length - 0.5 then
+                        if radius < actionRadius and playerHeight < length / 2 then
                             self.lastInRangePosition = { getTranslation(player.rootNode) }
                         else
-                            local kx, _, kz = getWorldTranslation(reference.node)
+                            local kx, ky, kz = getWorldTranslation(reference.node)
                             local px, py, pz = getWorldTranslation(player.rootNode)
                             local distance = Utils.vector2Length(px - kx, pz - kz)
-                            local x, y, z = unpack(self.lastInRangePosition)
+--                            local x, y, z = unpack(self.lastInRangePosition)
 
                             x = kx + ((px - kx) / distance) * (length - 0.00001 * dt)
                             -- x = kx + ((px - kx) / distance) * (self.hose.length * (self.currentChainCount - 1) - 0.00001 * dt)
+                            y = ky + ((py - ky) / Utils.vector2Length(px - kx, py - ky)) * (length / 2 - 0.00001 * dt)
+                            -- y =
                             z = kz + ((pz - kz) / distance) * (length - 0.00001 * dt)
                             -- z = kz + ((pz - kz) / distance) * (self.hose.length * (self.currentChainCount - 1) - 0.00001 * dt)
 
-                            player:moveToAbsoluteInternal(x, py, z)
+                            player:moveToAbsoluteInternal(x, y, z)
                             self.lastInRangePosition = { x, y, z }
 
                             if not self.rangeRestrictionMessageShown and player == g_currentMission.player then
@@ -121,8 +114,6 @@ function HoseSystemPlayerInteractiveRestrictions:restrictPlayerDistance(dt, grab
                 end
             end
         end
-
-        -- print(self.currentChainCount)
 
         if self.currentChainCount >= 4 then
             player.walkingIsLocked = true
@@ -142,29 +133,47 @@ function HoseSystemPlayerInteractiveRestrictions:restrictPlayerDistance(dt, grab
     end
 end
 
+---
+-- @param dt
+-- @param grabPoint
+--
 function HoseSystemPlayerInteractiveRestrictions:restrictReferenceDistance(dt, grabPoint)
-    if HoseSystem:getIsConnected(grabPoint.state) then
-        local dependentGrabpoint = HoseSystemUtil:getDependentGrabPoint(self.object.grabPoints, grabPoint.id, false, true)
+    if self.lastRestrictCheckTime < g_currentMission.time and HoseSystem:getIsConnected(grabPoint.state) then
+        local dependentGrabpoint = HoseSystemUtil:getDependentGrabPoint(self.object.grabPoints, grabPoint.id, true, true)
 
         if dependentGrabpoint ~= nil then
-            if grabPoint.connectorVehicle ~= nil and grabPoint.connectorVehicle.getLastSpeed ~= nil and grabPoint.connectorVehicle:getLastSpeed() > 1 then -- only detach from the speeding side
+            if HoseSystemPlayerInteractiveRestrictions:getIsVehicleAboveSpeedLimit(grabPoint.connectorVehicle, 1) then -- only detach from the speeding side
                 local reference = HoseSystemReferences:getReference(grabPoint.connectorVehicle, grabPoint.connectorRefId, grabPoint)
 
                 if reference ~= nil and not reference.connectable and not reference.parkable then
                     local ax, ay, az = getWorldTranslation(self.object.components[grabPoint.componentIndex].node)
                     local bx, by, bz = getWorldTranslation(self.object.components[dependentGrabpoint.componentIndex].node)
                     local distance = Utils.vector3Length(bx - ax, by - ay, bz - az)
-                    local allowedDistance = self.object.data.length * 1.25 -- give it a bit more space to move
+                    local allowedDistance = self.object.data.length * 1.15 -- give it a bit more space to move
 
                     if distance > allowedDistance or distance < (allowedDistance - 1) then
                         if HoseSystem.debugRendering then
                             print('HoseSystemPlayerInteractiveRestrictions - debug: detach distance: ' .. distance)
                         end
 
-                        self.object.poly.interactiveHandling:detach(grabPoint.id, grabPoint.connectorVehicle, grabPoint.connectorRefId, reference.connectable ~= nil and reference.connectable)
+                        if HoseSystem:getIsAttached(dependentGrabpoint.state) then
+                            self.object.poly.interactiveHandling:drop(dependentGrabpoint.id, dependentGrabpoint.currentOwner)
+                        else
+                            self.object.poly.interactiveHandling:detach(grabPoint.id, grabPoint.connectorVehicle, grabPoint.connectorRefId, reference.connectable ~= nil and reference.connectable)
+                        end
+
+                        self.lastRestrictCheckTime = g_currentMission.time + 750
                     end
                 end
             end
         end
     end
+end
+
+---
+-- @param vehicle
+-- @param limit
+--
+function HoseSystemPlayerInteractiveRestrictions:getIsVehicleAboveSpeedLimit(vehicle, limit)
+    return vehicle ~= nil and vehicle.getLastSpeed ~= nil and vehicle:getLastSpeed() > limit
 end
