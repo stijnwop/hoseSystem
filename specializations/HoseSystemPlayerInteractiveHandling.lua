@@ -508,17 +508,13 @@ function HoseSystemPlayerInteractiveHandling:setGrabPointIsUsed(index, isConnect
         if vehicle ~= nil and not isCalledFromReference then
             local reference = HoseSystemReferences:getReference(grabPoint.connectorVehicle, grabPoint.connectorRefId, grabPoint)
 
-            if not isExtendable and not reference.connectable then
-                reference.hoseSystem = isConnected and self.object or nil
-            end
-
             -- we have to call on depending objects to tell that we are connecting
             if self.object.isServer then
                 -- call reference functions
                 if grabPoint.connectable or isExtendable then
                     vehicle.poly.interactiveHandling:setGrabPointIsUsed(reference.id, isConnected, grabPoint.connectable, true, noEventSend)
                 else
-                    vehicle:setIsUsed(reference.id, isConnected, noEventSend)
+                    vehicle:setIsUsed(reference.id, isConnected, isConnected and self.object or nil, noEventSend)
                 end
             end
         end
@@ -558,11 +554,11 @@ function HoseSystemPlayerInteractiveHandling:constructPlayerJoint(jointDesc, pla
     end
 
     local forceLimit = playerHoseDesc.mass * 25 -- only when stucked behind object
---    constructor:setBreakable(forceLimit, forceLimit)
+    --    constructor:setBreakable(forceLimit, forceLimit)
 
     local jointIndex = constructor:finalize()
 
---    addJointBreakReport(jointIndex, 'onGrabJointBreak', self)
+    --    addJointBreakReport(jointIndex, 'onGrabJointBreak', self)
 
     return jointIndex
 end
