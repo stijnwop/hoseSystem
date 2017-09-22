@@ -28,14 +28,14 @@ function HoseSystemReferenceManureFlowEvent:new(object, referenceId, state, forc
 end
 
 function HoseSystemReferenceManureFlowEvent:writeStream(streamId, connection)
-    streamWriteInt32(streamId, networkGetObjectId(self.object))
+    writeNetworkNodeObject(streamId, self.object)
     streamWriteUIntN(streamId, self.referenceId - 1, HoseSystemUtil.eventHelper.REFERENCES_NUM_SEND_BITS)
     streamWriteBool(streamId, self.state)
     streamWriteBool(streamId, self.force)
 end
 
 function HoseSystemReferenceManureFlowEvent:readStream(streamId, connection)
-    self.object = networkGetObject(streamReadInt32(streamId))
+    self.object = readNetworkNodeObject(streamId)
     self.referenceId = streamReadUIntN(streamId, HoseSystemUtil.eventHelper.REFERENCES_NUM_SEND_BITS) + 1
     self.state = streamReadBool(streamId)
     self.force = streamReadBool(streamId)
