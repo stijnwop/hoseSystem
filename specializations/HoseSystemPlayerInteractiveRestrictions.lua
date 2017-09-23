@@ -109,6 +109,12 @@ function HoseSystemPlayerInteractiveRestrictions:restrictPlayerDistance(dt, grab
                             x = kx + ((px - kx) / distance) * (length - 0.00001 * dt)
                             -- x = kx + ((px - kx) / distance) * (self.hose.length * (self.currentChainCount - 1) - 0.00001 * dt)
                             y = ky + ((py - ky) / Utils.vector2Length(px - kx, py - ky)) * (length / 2 - 0.00001 * dt)
+
+                            -- Prevent from spawning into the ground
+                            if y < ky and py > y then
+                                y = py
+                            end
+
                             -- y =
                             z = kz + ((pz - kz) / distance) * (length - 0.00001 * dt)
                             -- z = kz + ((pz - kz) / distance) * (self.hose.length * (self.currentChainCount - 1) - 0.00001 * dt)
