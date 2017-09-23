@@ -576,7 +576,7 @@ function setPumpStartedEvent:emptyNew()
 end
 
 function setPumpStartedEvent:new(vehicle, isStarted)
-    local self = setPumpStartedEvent:emptyNew();
+    local self = setPumpStartedEvent:emptyNew()
     self.vehicle = vehicle;
     self.isStarted = isStarted;
 

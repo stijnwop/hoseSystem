@@ -89,7 +89,7 @@ function HoseSystemConnectorReference.loadHoseReferences(self, xmlFile, base, re
         end
 
         if #references == 2 ^ HoseSystemUtil.eventHelper.REFERENCES_NUM_SEND_BITS then
-            print(('HoseSystem warning - Max number of references is %s!'):format(2 ^ HoseSystemUtil.eventHelper.REFERENCES_NUM_SEND_BITS))
+            HoseSystemUtil:log(1, ('Max number of references is %s!'):format(2 ^ HoseSystemUtil.eventHelper.REFERENCES_NUM_SEND_BITS))
             break
         end
 

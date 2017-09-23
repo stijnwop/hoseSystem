@@ -195,7 +195,7 @@ function HoseSystem:loadGrabPoints(xmlFile, baseString)
         end
 
         if #self.grabPoints == 2 ^ HoseSystemUtil.eventHelper.GRABPOINTS_NUM_SEND_BITS then
-            print(('HoseSystem warning - Max number of grabpoints is %s!'):format(2 ^ HoseSystemUtil.eventHelper.GRABPOINTS_NUM_SEND_BITS))
+            HoseSystemUtil:log(1, ('Max number of grabpoints is %s!'):format(2 ^ HoseSystemUtil.eventHelper.GRABPOINTS_NUM_SEND_BITS))
             break
         end
 
@@ -232,7 +232,7 @@ function HoseSystem:loadGrabPoints(xmlFile, baseString)
             table.insert(self.grabPoints, entry)
             self.nodesToGrabPoints[entry.node] = entry
         else
-            print('HoseSystem error - Invalid grabPoint node, please check your XML!')
+            HoseSystemUtil:log(1, 'Invalid grabPoint node, please check your XML!')
             break
         end
 

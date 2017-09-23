@@ -97,11 +97,6 @@ function HoseSystemPlayerInteractiveHandling:update(dt)
                                     else
                                         self:detach(index, vehicle, reference.id, extenable)
                                     end
-
-                                    --                                    if not grabPoint.connectable and (reference ~= nil and not reference.connectable) and reference.parkable then
-                                    -- print('we should grab')
-                                    -- self:grab(index, g_currentMission.player)
-                                    --                                    end
                                 end
                             end
                         end
@@ -640,16 +635,11 @@ function HoseSystemPlayerInteractiveHandling:hardConnect(grabPoint, vehicle, ref
     -- Get all the hoses that are connected to a references from the Vehicle
     local connectedRreferences = HoseSystemUtil:getReferencesWithSingleConnection(vehicle, reference.id)
 
-    --    print('all the attached references with single connection = ' .. #connectedRreferences)
-
     for index, gp in pairs(self.object.grabPoints) do
         if gp.id ~= grabPoint.id and HoseSystem:getIsConnected(gp.state) then
             table.insert(grabPoints, gp)
         end
     end
-
-    --    print("component id of grabPoint before doing something with physics = " .. grabPoint.componentIndex)
-    --    print("connectedGrabPoints before doing something with physics = " .. #grabPoints)
 
     for i, r in pairs(connectedRreferences) do
         HoseSystemUtil:removeHoseSystemJoint(r.reference)
@@ -725,10 +715,6 @@ function HoseSystemPlayerInteractiveHandling:hardDisconnect(grabPoint, vehicle, 
             table.insert(grabPoints, gp)
         end
     end
-
-    --    print("HARDISCONNECT - id = " .. grabPoint.id)
-    --    print("HARDISCONNECT - component id of grabPoint before doing something with physics = " .. grabPoint.componentIndex)
-    --    print("HARDISCONNECT - connectedGrabPoints before doing something with physics = " .. table.getn(grabPoints))
 
     self:deleteCustomComponentJoint()
 
@@ -993,7 +979,7 @@ function HoseSystemPlayerInteractiveHandling:addToPhysicsParts(grabPoint, connec
                 if gp.componentIndex ~= grabPoint.componentIndex and componentIndex == gp.componentIndex and not connectedComponentIndexes[componentIndex] then
                     -- it also does not exists in the connected table
                     if HoseSystem.debugRendering then
-                        print('We only add component ' .. componentIndex .. ' to physics')
+                        HoseSystemUtil:log(3, 'We only add component ' .. componentIndex .. ' to physics')
                     end
 
                     addToPhysics(component.node)
@@ -1044,7 +1030,7 @@ function HoseSystemPlayerInteractiveHandling:createCustomComponentJoint(grabPoin
         -- Only create on the grabPoint index
         if grabPoint.componentJointIndex == i then
             if HoseSystem.debugRendering then
-                print('We only add the component joint between the last and first component ' .. i)
+                HoseSystemUtil:log(3, 'We only add the component joint between the last and first component ' .. i)
             end
 
             -- Create custom joint since we need the jointTransforms option on the joint

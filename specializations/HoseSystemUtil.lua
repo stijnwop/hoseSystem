@@ -7,7 +7,7 @@
 -- Copyright (c) Wopster, 2017
 
 HoseSystemUtil = {
-    logLevels = { 'Debug', 'Warning', 'Error' },
+    logLevels = { 'Error', 'Warning', 'Debug' },
 }
 
 ---
@@ -17,11 +17,11 @@ HoseSystemUtil = {
 --
 function HoseSystemUtil:log(logLevel, logEntry, logCallstack)
     if logLevel <= HoseSystem.logLevel then
-        local level = Utils.getNoNil(HoseSystemUtil.logLevels[logLevel], HoseSystemUtil.logLevels[1])
+        local level = Utils.getNoNil(HoseSystemUtil.logLevels[logLevel], HoseSystemUtil.logLevels[#HoseSystemUtil.logLevels])
         print(('HoseSystem [%s] - %s'):format(level, tostring(logEntry)))
 
         if logCallstack ~= nil and logCallstack then
-            printCallstack();
+            printCallstack()
         end
     end
 end
@@ -31,6 +31,8 @@ end
 --
 function HoseSystemUtil:consoleCommandToggleHoseSystemDebugRendering(logLevel)
     HoseSystem.debugRendering = not HoseSystem.debugRendering
+
+    logLevel = tonumber(logLevel)
 
     if logLevel ~= 0 then
         if logLevel > #HoseSystemUtil.logLevels then
@@ -85,7 +87,7 @@ function HoseSystemUtil:getOffsetTargetRotation(index, x, y, z)
         return x, y, z
     end
 
-    local invert = -1;
+    local invert = -1
     return x * invert, y * invert, z * invert
 end
 

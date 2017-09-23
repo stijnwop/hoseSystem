@@ -51,7 +51,7 @@ function HoseSystemRegistrationHelper:loadMap(name)
 
         g_currentMission.hoseSystemRegistrationHelperIsLoaded = true
     else
-        print("HoseSystemRegistrationHelper - error: The HoseSystemRegistrationHelper has been loaded already! Remove one of the copy's!")
+        HoseSystemUtil:log(1, "The HoseSystemRegistrationHelper has been loaded already! Remove one of the copy's!")
     end
 end
 
@@ -101,7 +101,7 @@ function HoseSystemRegistrationHelper:update(dt)
                                         vehicle.poly.interactiveHandling:attach(grabPointId, connectorVehicle, referenceId, isExtendable) -- will be synched later
                                     else
                                         if HoseSystem.debugRendering then
-                                            print('HoseSystemRegistrationHelper - error: Invalid connectorVehicle!')
+                                            HoseSystemUtil:log(1, 'Invalid connectorVehicle on gameload!')
                                         end
                                     end
                                 end
@@ -180,7 +180,7 @@ function HoseSystemRegistrationHelper:register()
                 if rawget(SpecializationUtil.specializations, customEnvironment .. '.HoseSystemConnector') ~= nil or rawget(SpecializationUtil.specializations, customEnvironment .. '.hoseSystemConnector') ~= nil then
                     -- Found connector specialization
                     if HoseSystem.debugRendering then
-                        print('HoseSystemRegistrationHelper - hoseSystemConnector specialization added to: ' .. customEnvironment)
+                        HoseSystemUtil:log(3, 'HoseSystemConnector specialization added to: ' .. customEnvironment)
                     end
 
                     table.insert(vehicle.specializations, SpecializationUtil.getSpecialization('hoseSystemConnectorReference'))
