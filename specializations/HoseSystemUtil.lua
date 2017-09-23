@@ -1,18 +1,47 @@
 --
--- Created by IntelliJ IDEA.
--- User: Stijn Wopereis
--- Date: 13-4-2017
--- Time: 18:36
--- To change this template use File | Settings | File Templates.
+-- HoseSystemUtil
 --
+-- Authors: Wopster
+-- Description: Support class for the HoseSystem
+--
+-- Copyright (c) Wopster, 2017
 
 HoseSystemUtil = {
-    consoleCommandToggleHoseSystemDebugRendering = function(unusedSelf)
-        HoseSystem.debugRendering = not HoseSystem.debugRendering
-
-        return "HoseSystemDebugRendering = " .. tostring(HoseSystem.debugRendering)
-    end
+    logLevels = { 'Debug', 'Warning', 'Error' },
 }
+
+---
+-- @param logLevel
+-- @param logEntry
+-- @param logCallstack
+--
+function HoseSystemUtil:log(logLevel, logEntry, logCallstack)
+    if logLevel <= HoseSystem.logLevel then
+        local level = Utils.getNoNil(HoseSystemUtil.logLevels[logLevel], HoseSystemUtil.logLevels[1])
+        print(('HoseSystem [%s] - %s'):format(level, tostring(logEntry)))
+
+        if logCallstack ~= nil and logCallstack then
+            printCallstack();
+        end
+    end
+end
+
+---
+-- @param logLevel
+--
+function HoseSystemUtil:consoleCommandToggleHoseSystemDebugRendering(logLevel)
+    HoseSystem.debugRendering = not HoseSystem.debugRendering
+
+    if logLevel ~= 0 then
+        if logLevel > #HoseSystemUtil.logLevels then
+            return "HoseSystem log level must be lower then 3!"
+        end
+
+        HoseSystem.logLevel = logLevel
+    end
+
+    return "HoseSystemDebugRendering = " .. tostring(HoseSystem.debugRendering)
+end
 
 HoseSystemUtil.eventHelper = {
     STATE_CLIENT = 1,
