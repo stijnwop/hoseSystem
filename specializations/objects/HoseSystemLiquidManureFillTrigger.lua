@@ -1,22 +1,25 @@
 --
 -- HoseSystemLiquidManureFillTrigger
--- 
--- Uses parts from the LiquidManureFillTriggerExtension from Xentro.
 --
--- @author: Wopster
+-- Authors: Wopster
+-- Description: Overwritten liquidManureTrigger to function with the HoseSystem
+-- Note: Uses parts from the LiquidManureFillTriggerExtension (FS15) from Xentro.
 --
+-- Copyright (c) Wopster and Xentro, 2017
 
 HoseSystemLiquidManureFillTrigger = {}
 
+HoseSystemLiquidManureFillTrigger.PLANE_IDLE = 15
+
 function HoseSystemLiquidManureFillTrigger:new(superFunc, mt)
-    local self = superFunc(self, mt)
+    local trigger = superFunc(self, mt)
 
-    self.supportsHoseSystem = false
-    self.offsetY = 0
-    self.lastFillLevelChangeTime = 0
-    self.inRageReferenceIndex = nil
+    trigger.supportsHoseSystem = false
+    trigger.offsetY = 0
+    trigger.lastFillLevelChangeTime = 0
+    trigger.inRageReferenceIndex = nil
 
-    return self
+    return trigger
 end
 
 function HoseSystemLiquidManureFillTrigger:load(superFunc, nodeId, fillLevelObject, fillType)
@@ -49,12 +52,6 @@ function HoseSystemLiquidManureFillTrigger:load(superFunc, nodeId, fillLevelObje
         self.update = Utils.overwrittenFunction(self.update, HoseSystemLiquidManureFillTrigger.update)
         self.setFillLevel = Utils.overwrittenFunction(self.setFillLevel, HoseSystemLiquidManureFillTrigger.setFillLevel)
         self.getIsActivatable = Utils.overwrittenFunction(self.getIsActivatable, HoseSystemLiquidManureFillTrigger.getIsActivatable)
-
-        -- local detectionNode = Utils.indexToObject(nodeId, getUserAttribute(nodeId, 'detectionIndex'))
-        -- if detectionNode ~= nil then
-        -- self.detectionNode = detectionNode
-        -- g_currentMission:addNodeObject(self.detectionNode, self)
-        -- end
 
         self.components = {}
         self.referenceNodes = {}
@@ -136,7 +133,6 @@ function HoseSystemLiquidManureFillTrigger:load(superFunc, nodeId, fillLevelObje
                 g_currentMission.hoseSystemReferences = {}
             end
 
-            --            g_currentMission.hoseSystemReferences[self.hoseSystemId] = self
             table.insert(g_currentMission.hoseSystemReferences, self)
         end
 
@@ -157,6 +153,13 @@ function HoseSystemLiquidManureFillTrigger:load(superFunc, nodeId, fillLevelObje
     return false
 end
 
+---
+-- @param self
+-- @param nodeId
+-- @param xmlFile
+-- @param base
+-- @param references
+--
 function HoseSystemLiquidManureFillTrigger:loadHoseSystemReferences(self, nodeId, xmlFile, base, references)
     local i = 0
 
@@ -181,9 +184,6 @@ function HoseSystemLiquidManureFillTrigger:loadHoseSystemReferences(self, nodeId
 
             g_currentMission:addNodeObject(self.referenceNodes[id], self)
 
-            -- build dummy reference
-            -- Todo: how to play animations? Create custom stuff for it?
-
             -- build dummy component node
             self.components[id] = {
                 node = nodeId
@@ -193,8 +193,8 @@ function HoseSystemLiquidManureFillTrigger:loadHoseSystemReferences(self, nodeId
                 id = id,
                 node = self.referenceNodes[id],
                 isUsed = false,
-                flowOpened = false, -- false, todo: fix this later with user input
-                isLocked = false, -- false, todo: fix this later with user input
+                flowOpened = false,
+                isLocked = false,
                 liquidManureHose = nil,
                 grabPoints = nil,
                 isObject = true,
@@ -291,6 +291,9 @@ function HoseSystemLiquidManureFillTrigger:update(superFunc, dt)
     end
 end
 
+---
+-- @param playerTrans
+--
 function HoseSystemLiquidManureFillTrigger:getNearestReference(playerTrans)
     if self.hoseSystemReferences == nil then
         return nil
@@ -319,6 +322,10 @@ function HoseSystemLiquidManureFillTrigger:getNearestReference(playerTrans)
     return nil
 end
 
+---
+-- @param superFunc
+-- @param fillable
+--
 function HoseSystemLiquidManureFillTrigger:getIsActivatable(superFunc, fillable)
     if superFunc(self, fillable) then
         if self.supportsHoseSystem then
@@ -333,14 +340,23 @@ function HoseSystemLiquidManureFillTrigger:getIsActivatable(superFunc, fillable)
     return false
 end
 
+---
+-- @param fillType
+-- @param allowEmptying
+--
 function HoseSystemLiquidManureFillTrigger:allowFillType(fillType, allowEmptying)
     return fillType == FillUtil.FILLTYPE_UNKNOWN or fillType == self.fillType -- Confirm working
 end
 
+---
+--
 function HoseSystemLiquidManureFillTrigger:getCurrentFillTypes()
     return { self.fillType }
 end
 
+---
+-- @param fillType
+--
 function HoseSystemLiquidManureFillTrigger:resetFillLevelIfNeeded(fillType)
     if self.lastFillLevelChangeTime + 500 > g_currentMission.time then
         return false
@@ -357,8 +373,6 @@ end
 -- @param noEventSend
 --
 function HoseSystemLiquidManureFillTrigger:setFillLevel(superFunc, fillLevel, noEventSend)
-    -- superFunc(self, fillLevel, noEventSend)
-
     fillLevel = Utils.clamp(fillLevel, 0, self.capacity)
 
     if self.fillLevel ~= fillLevel then
@@ -447,7 +461,7 @@ function HoseSystemLiquidManureFillTrigger:updateShaderPlane(pumpIsStarted, pump
                 self:updateShaderPlaneGraphics(self.movingId, HoseSystemUtil:mathRound(speed, 2), HoseSystemUtil:mathRound(frequency, 2))
             else
                 if not self.shaderOnIdle then
-                    self:updateShaderPlaneGraphics(self.movingId, 0.1, 15) -- idle is hardcoded
+                    self:updateShaderPlaneGraphics(self.movingId, 0.1, HoseSystemLiquidManureFillTrigger.PLANE_IDLE) -- idle is hardcoded
                     self.shaderOnIdle = true
                 end
             end

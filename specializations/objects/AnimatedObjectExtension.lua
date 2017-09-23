@@ -1,9 +1,10 @@
 --
 -- AnimatedObjectExtension
--- 
 --
--- @author: Wopster
+-- Authors: Wopster
+-- Description: Extends the animated object load function to get the animated object by saveId
 --
+-- Copyright (c) Wopster, 2017
 
 AnimatedObjectExtension = {}
 
