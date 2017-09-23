@@ -1,43 +1,42 @@
 --
---	HoseSystemConnectorReference
+-- HoseSystemConnector
 --
---	@author: 	 Wopster
---	@descripion: 
---	@website:
---	@history:	 v1.0 - 2016-02-11 - Initial implementation
+-- Authors: Wopster
+-- Description: The HoseSystem connector script for vehicles
 --
+-- Copyright (c) Wopster, 2017
 
-HoseSystemConnectorReference = {
+HoseSystemConnector = {
     name = g_currentModName,
 }
 
-function HoseSystemConnectorReference.prerequisitesPresent(specializations)
+function HoseSystemConnector.prerequisitesPresent(specializations)
     return true
 end
 
-function HoseSystemConnectorReference:load(savegame)
-    self.toggleLock = HoseSystemConnectorReference.toggleLock
-    self.toggleManureFlow = HoseSystemConnectorReference.toggleManureFlow
-    self.setIsUsed = HoseSystemConnectorReference.setIsUsed
-    self.getConnectedReference = HoseSystemConnectorReference.getConnectedReference
+function HoseSystemConnector:load(savegame)
+    self.toggleLock = HoseSystemConnector.toggleLock
+    self.toggleManureFlow = HoseSystemConnector.toggleManureFlow
+    self.setIsUsed = HoseSystemConnector.setIsUsed
+    self.getConnectedReference = HoseSystemConnector.getConnectedReference
 
     -- new
-    self.getValidFillObject = HoseSystemConnectorReference.getValidFillObject
-    self.getAllowedFillUnitIndex = HoseSystemConnectorReference.getAllowedFillUnitIndex
+    self.getValidFillObject = HoseSystemConnector.getValidFillObject
+    self.getAllowedFillUnitIndex = HoseSystemConnector.getAllowedFillUnitIndex
 
-    self.getLastGrabpointRecursively = HoseSystemConnectorReference.getLastGrabpointRecursively
-    self.getIsPlayerInReferenceRange = HoseSystemConnectorReference.getIsPlayerInReferenceRange
+    self.getLastGrabpointRecursively = HoseSystemConnector.getLastGrabpointRecursively
+    self.getIsPlayerInReferenceRange = HoseSystemConnector.getIsPlayerInReferenceRange
 
-    self.updateLiquidHoseSystem = HoseSystemConnectorReference.updateLiquidHoseSystem
+    self.updateLiquidHoseSystem = HoseSystemConnector.updateLiquidHoseSystem
 
     -- overwrittenFunctions
-    self.getIsOverloadingAllowed = Utils.overwrittenFunction(self.getIsOverloadingAllowed, HoseSystemConnectorReference.getIsOverloadingAllowed)
+    self.getIsOverloadingAllowed = Utils.overwrittenFunction(self.getIsOverloadingAllowed, HoseSystemConnector.getIsOverloadingAllowed)
 
     self.hoseSystemReferences = {}
     self.dockingSystemReferences = {}
 
-    HoseSystemConnectorReference.loadHoseReferences(self, self.xmlFile, 'vehicle.hoseSystemReferences.', self.hoseSystemReferences)
-    -- HoseSystemConnectorReference.loadDockingReferences(self, self.xmlFile, 'vehicle.dockingSystemReferences.', self.dockingSystemReferences)
+    HoseSystemConnector.loadHoseReferences(self, self.xmlFile, 'vehicle.hoseSystemReferences.', self.hoseSystemReferences)
+    -- HoseSystemConnector.loadDockingReferences(self, self.xmlFile, 'vehicle.dockingSystemReferences.', self.dockingSystemReferences)
 
     self.fillObject = nil
     self.fillObjectFound = false
@@ -64,10 +63,10 @@ function HoseSystemConnectorReference:load(savegame)
         self.unloadTrigger = nil
     end
 
-    HoseSystemConnectorReference:updateCurrentMissionInfo(self)
+    HoseSystemConnector:updateCurrentMissionInfo(self)
 end
 
-function HoseSystemConnectorReference:postLoad(savegame)
+function HoseSystemConnector:postLoad(savegame)
     if savegame ~= nil and not savegame.resetVehicles then
         for id, reference in ipairs(self.hoseSystemReferences) do
             local key = string.format('%s.reference(%d)', savegame.key, id - 1)
@@ -78,7 +77,7 @@ function HoseSystemConnectorReference:postLoad(savegame)
     end
 end
 
-function HoseSystemConnectorReference.loadHoseReferences(self, xmlFile, base, references)
+function HoseSystemConnector.loadHoseReferences(self, xmlFile, base, references)
     local i = 0
 
     while true do
@@ -152,7 +151,7 @@ function HoseSystemConnectorReference.loadHoseReferences(self, xmlFile, base, re
     end
 end
 
-function HoseSystemConnectorReference:updateCurrentMissionInfo(object)
+function HoseSystemConnector:updateCurrentMissionInfo(object)
     if #object.hoseSystemReferences > 0 then
         if g_currentMission.hoseSystemReferences == nil then
             g_currentMission.hoseSystemReferences = {}
@@ -170,7 +169,7 @@ function HoseSystemConnectorReference:updateCurrentMissionInfo(object)
     end
 end
 
-function HoseSystemConnectorReference:preDelete()
+function HoseSystemConnector:preDelete()
     if self.hoseSystemReferences ~= nil and g_currentMission.hoseSystemHoses ~= nil then
         for referenceId, reference in pairs(self.hoseSystemReferences) do
             if reference.isUsed then
@@ -186,12 +185,12 @@ function HoseSystemConnectorReference:preDelete()
     end
 end
 
-function HoseSystemConnectorReference:delete()
+function HoseSystemConnector:delete()
     HoseSystemUtil:removeElementFromList(g_currentMission.hoseSystemReferences, self)
     HoseSystemUtil:removeElementFromList(g_currentMission.dockingSystemReferences, self)
 end
 
-function HoseSystemConnectorReference:readStream(streamId, connection)
+function HoseSystemConnector:readStream(streamId, connection)
     if connection:getIsServer() then
         for id = 1, streamReadUInt8(streamId) do
             local reference = self.hoseSystemReferences[id]
@@ -220,7 +219,7 @@ function HoseSystemConnectorReference:readStream(streamId, connection)
     end
 end
 
-function HoseSystemConnectorReference:writeStream(streamId, connection)
+function HoseSystemConnector:writeStream(streamId, connection)
     if not connection:getIsServer() then
         streamWriteUInt8(streamId, #self.hoseSystemReferences)
 
@@ -245,7 +244,7 @@ function HoseSystemConnectorReference:writeStream(streamId, connection)
     end
 end
 
-function HoseSystemConnectorReference:getSaveAttributesAndNodes(nodeIdent)
+function HoseSystemConnector:getSaveAttributesAndNodes(nodeIdent)
     local nodes = ""
 
     if self.hoseSystemReferences ~= nil then
@@ -261,13 +260,13 @@ function HoseSystemConnectorReference:getSaveAttributesAndNodes(nodeIdent)
     return nil, nodes
 end
 
-function HoseSystemConnectorReference:mouseEvent(posX, posY, isDown, isUp, button)
+function HoseSystemConnector:mouseEvent(posX, posY, isDown, isUp, button)
 end
 
-function HoseSystemConnectorReference:keyEvent(unicode, sym, modifier, isDown)
+function HoseSystemConnector:keyEvent(unicode, sym, modifier, isDown)
 end
 
-function HoseSystemConnectorReference:update(dt)
+function HoseSystemConnector:update(dt)
     if self.hoseSystemsToload ~= nil then
         for _, n in pairs(self.hoseSystemsToload) do
             self.hoseSystemReferences[n.id].hoseSystem = networkGetObject(n.hoseSystemId)
@@ -324,7 +323,7 @@ function HoseSystemConnectorReference:update(dt)
     end
 end
 
-function HoseSystemConnectorReference:updateTick(dt)
+function HoseSystemConnector:updateTick(dt)
     if self.hasHoseSystemPumpMotor then
         self:getValidFillObject()
 
@@ -357,7 +356,7 @@ function HoseSystemConnectorReference:updateTick(dt)
                                         if objectFillLevel > 0 and fillLevel < self:getUnitCapacity(self.fillUnitIndex) then -- self:getCapacity(FillUtil.FILLTYPE_LIQUIDMANURE) then
                                             if self.fillObject.checkPlaneY ~= nil then
                                                 -- Ugh! edit this when done with the raycast stuff on the hose script
-                                                local lastGrabPoint, _ = self:getLastGrabpointRecursively(reference.hoseSystem.grabPoints[HoseSystemConnectorReference:getFillableVehicle(self.currentGrabPointIndex, #reference.hoseSystem.grabPoints)])
+                                                local lastGrabPoint, _ = self:getLastGrabpointRecursively(reference.hoseSystem.grabPoints[HoseSystemConnector:getFillableVehicle(self.currentGrabPointIndex, #reference.hoseSystem.grabPoints)])
 
                                                 if not HoseSystem:getIsConnected(lastGrabPoint.state) then
 
@@ -437,18 +436,18 @@ function HoseSystemConnectorReference:updateTick(dt)
     end
 end
 
-function HoseSystemConnectorReference:draw()
+function HoseSystemConnector:draw()
 end
 
 ---
 -- @param allow
 --
-function HoseSystemConnectorReference:updateLiquidHoseSystem(allow)
+function HoseSystemConnector:updateLiquidHoseSystem(allow)
     if self.currentGrabPointIndex ~= nil and self.currentReferenceIndex ~= nil then
         local reference = self.hoseSystemReferences[self.currentReferenceIndex]
 
         if reference ~= nil then
-            local lastGrabPoint, lastHose = self:getLastGrabpointRecursively(reference.hoseSystem.grabPoints[HoseSystemConnectorReference:getFillableVehicle(self.currentGrabPointIndex, #reference.hoseSystem.grabPoints)], reference.hoseSystem)
+            local lastGrabPoint, lastHose = self:getLastGrabpointRecursively(reference.hoseSystem.grabPoints[HoseSystemConnector:getFillableVehicle(self.currentGrabPointIndex, #reference.hoseSystem.grabPoints)], reference.hoseSystem)
 
             if lastGrabPoint ~= nil and lastHose ~= nil then
                 local fillType = self:getUnitLastValidFillType(self.fillUnitIndex)
@@ -464,7 +463,7 @@ end
 
 ---
 --
-function HoseSystemConnectorReference:getIsPlayerInReferenceRange()
+function HoseSystemConnector:getIsPlayerInReferenceRange()
     local playerTrans = { getWorldTranslation(g_currentMission.player.rootNode) }
     local playerDistanceSequence = 1.3 -- use 1.3 as hardcoded value for now
 
@@ -491,7 +490,7 @@ end
 ---
 -- @param object
 --
-function HoseSystemConnectorReference:getAllowedFillUnitIndex(object)
+function HoseSystemConnector:getAllowedFillUnitIndex(object)
     if self.fillUnits == nil then
         return 0
     end
@@ -518,7 +517,7 @@ end
 
 ---
 --
-function HoseSystemConnectorReference:getValidFillObject()
+function HoseSystemConnector:getValidFillObject()
     self.currentReferenceIndex = nil
     self.currentGrabPointIndex = nil
 
@@ -539,7 +538,7 @@ function HoseSystemConnectorReference:getValidFillObject()
             local reference = self.hoseSystemReferences[self.currentReferenceIndex]
 
             if reference ~= nil then
-                local lastGrabPoint, _ = self:getLastGrabpointRecursively(reference.hoseSystem.grabPoints[HoseSystemConnectorReference:getFillableVehicle(self.currentGrabPointIndex, #reference.hoseSystem.grabPoints)])
+                local lastGrabPoint, _ = self:getLastGrabpointRecursively(reference.hoseSystem.grabPoints[HoseSystemConnector:getFillableVehicle(self.currentGrabPointIndex, #reference.hoseSystem.grabPoints)])
 
                 if lastGrabPoint ~= nil then
                     -- check if the last grabPoint is connected
@@ -617,7 +616,7 @@ end
 -- @param grabPoint
 -- @param hoseSystem
 --
-function HoseSystemConnectorReference:getLastGrabpointRecursively(grabPoint, hoseSystem)
+function HoseSystemConnector:getLastGrabpointRecursively(grabPoint, hoseSystem)
     if grabPoint ~= nil then
         if grabPoint.connectorVehicle ~= nil then
             if grabPoint.connectorVehicle.grabPoints ~= nil then
@@ -643,7 +642,7 @@ end
 -- @param index
 -- @param max
 --
-function HoseSystemConnectorReference:getFillableVehicle(index, max)
+function HoseSystemConnector:getFillableVehicle(index, max)
     return index > 1 and 1 or max
 end
 
@@ -651,7 +650,7 @@ end
 -- Todo: but what if we have more? Can whe pump with multiple hoses? Does that lower the pumpEfficiency or increase the throughput? There is a cleaner way todo this.
 ---
 --
-function HoseSystemConnectorReference:getConnectedReference()
+function HoseSystemConnector:getConnectedReference()
     if self.hoseSystemReferences ~= nil then
         for referenceIndex, reference in pairs(self.hoseSystemReferences) do
             if reference.isUsed and reference.flowOpened and reference.isLocked then
@@ -677,7 +676,7 @@ end
 -- @param force
 -- @param noEventSend
 --
-function HoseSystemConnectorReference:toggleLock(index, state, force, noEventSend)
+function HoseSystemConnector:toggleLock(index, state, force, noEventSend)
     local reference = self.hoseSystemReferences[index]
 
     if reference ~= nil and not reference.parkable and reference.isLocked ~= state or force then
@@ -703,7 +702,7 @@ end
 -- @param force
 -- @param noEventSend
 --
-function HoseSystemConnectorReference:toggleManureFlow(index, state, force, noEventSend)
+function HoseSystemConnector:toggleManureFlow(index, state, force, noEventSend)
     local reference = self.hoseSystemReferences[index]
 
     if reference ~= nil and not reference.parkable and reference.flowOpened ~= state or force then
@@ -728,7 +727,7 @@ end
 -- @param state
 -- @param noEventSend
 --
-function HoseSystemConnectorReference:setIsUsed(index, state, hoseSystem, noEventSend)
+function HoseSystemConnector:setIsUsed(index, state, hoseSystem, noEventSend)
     if self.hoseSystemReferences ~= nil then
         local reference = self.hoseSystemReferences[index]
 
@@ -772,6 +771,6 @@ end
 
 ---
 --
-function HoseSystemConnectorReference:getIsOverloadingAllowed()
+function HoseSystemConnector:getIsOverloadingAllowed()
     return false
 end

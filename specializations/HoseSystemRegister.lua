@@ -1,11 +1,10 @@
 --
---	
+-- HoseSystemRegistrationHelper
 --
---	@author: 	 Wopster
---	@descripion: Register specializations for the HoseSystem
---	@history:	 
---				 
+-- Authors: Wopster
+-- Description: The register class to load specializations and handle features like getting hoses inrange and attach hoses from savegame
 --
+-- Copyright (c) Wopster, 2017
 
 HoseSystemRegistrationHelper = {
     baseDirectory = g_currentModDirectory,
@@ -26,12 +25,12 @@ for _, directory in pairs(files) do
     source(directory .. '.lua')
 end
 
-if SpecializationUtil.specializations['hoseSystemConnectorReference'] == nil then
-    SpecializationUtil.registerSpecialization('hoseSystemConnectorReference', 'HoseSystemConnectorReference', HoseSystemRegistrationHelper.baseDirectory .. 'specializations/HoseSystemConnectorReference.lua')
+if SpecializationUtil.specializations['hoseSystemConnector'] == nil then
+    SpecializationUtil.registerSpecialization('hoseSystemConnector', 'HoseSystemConnector', HoseSystemRegistrationHelper.baseDirectory .. 'specializations/vehicles/HoseSystemConnector.lua')
 end
 
 if SpecializationUtil.specializations['hoseSystemPumpMotor'] == nil then
-    SpecializationUtil.registerSpecialization('hoseSystemPumpMotor', 'HoseSystemPumpMotor', HoseSystemRegistrationHelper.baseDirectory .. 'specializations/HoseSystemPumpMotor.lua')
+    SpecializationUtil.registerSpecialization('hoseSystemPumpMotor', 'HoseSystemPumpMotor', HoseSystemRegistrationHelper.baseDirectory .. 'specializations/vehicles/HoseSystemPumpMotor.lua')
 end
 
 function HoseSystemRegistrationHelper:loadMap(name)
@@ -39,7 +38,7 @@ function HoseSystemRegistrationHelper:loadMap(name)
     self.minDistance = 2
 
     if not g_currentMission.hoseSystemRegistrationHelperIsLoaded then
-        -- Register the hoseSystemConnectorReference to vehicles
+        -- Register the hoseSystemConnector and PumpMotor to vehicles
         self:register()
 
         -- Register the fill mode for the hose system
@@ -125,6 +124,8 @@ end
 function HoseSystemRegistrationHelper:draw()
 end
 
+---
+--
 function HoseSystemRegistrationHelper:getIsPlayerInGrabPointRange()
     if g_currentMission.player.hoseSystem == nil then
         g_currentMission.player.hoseSystem = {}
@@ -177,13 +178,13 @@ function HoseSystemRegistrationHelper:register()
             end
 
             if customEnvironment ~= nil then
-                if rawget(SpecializationUtil.specializations, customEnvironment .. '.HoseSystemConnector') ~= nil or rawget(SpecializationUtil.specializations, customEnvironment .. '.hoseSystemConnector') ~= nil then
+                if rawget(SpecializationUtil.specializations, customEnvironment .. '.HoseSystemVehicle') ~= nil or rawget(SpecializationUtil.specializations, customEnvironment .. '.hoseSystemVehicle') ~= nil then
                     -- Found connector specialization
                     if HoseSystem.debugRendering then
                         HoseSystemUtil:log(3, 'HoseSystemConnector specialization added to: ' .. customEnvironment)
                     end
 
-                    table.insert(vehicle.specializations, SpecializationUtil.getSpecialization('hoseSystemConnectorReference'))
+                    table.insert(vehicle.specializations, SpecializationUtil.getSpecialization('hoseSystemConnector'))
                     table.insert(vehicle.specializations, SpecializationUtil.getSpecialization('hoseSystemPumpMotor')) -- insert pump as well.. no way to check this without doing it dirty
                 end
             end
@@ -191,6 +192,10 @@ function HoseSystemRegistrationHelper:register()
     end
 end
 
+---
+-- @param xmlFile
+-- @param referenceIds
+--
 function HoseSystemRegistrationHelper:loadVehicles(xmlFile, referenceIds)
     local i = 0
 
