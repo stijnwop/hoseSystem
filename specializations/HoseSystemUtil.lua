@@ -18,7 +18,7 @@ HoseSystemUtil = {
 function HoseSystemUtil:log(logLevel, logEntry, logCallstack)
     if logLevel <= HoseSystem.logLevel then
         local level = Utils.getNoNil(HoseSystemUtil.logLevels[logLevel], HoseSystemUtil.logLevels[#HoseSystemUtil.logLevels])
-        print(('HoseSystem [%s] - %s'):format(level, tostring(logEntry)))
+        print(('HoseSystem [%s]%s'):format(level, HoseSystemUtil.print_r(level, logEntry)))
 
         if logCallstack ~= nil and logCallstack then
             printCallstack()
@@ -289,7 +289,7 @@ end
 function HoseSystemUtil:print_r(t, name, indent)
     local tableList = {}
 
-    local table_r = function(t, name, indent, full)
+    table_r = function(t, name, indent, full)
         local id = not full and name or type(name) ~= "number" and tostring(name) or '[' .. name .. ']'
         local tag = indent .. id .. ' : '
         local out = {}
@@ -313,14 +313,13 @@ function HoseSystemUtil:print_r(t, name, indent)
                 end
             end
         else
-            local val = type(t) ~= "number" and type(t) ~= "boolean" and '"' .. tostring(t) .. '"' or tostring(t)
-            table.insert(out, tag .. val)
+            table.insert(out, tag .. tostring(t))
         end
 
         return table.concat(out, '\n')
     end
 
-    return table_r(t, name or 'Value', indent or '')
+    return table_r(t, name or '', indent or '')
 end
 
 addConsoleCommand("gsToggleHoseSystemDebugRendering", "Toggles the debug rendering of the HoseSystem", "consoleCommandToggleHoseSystemDebugRendering", HoseSystemUtil)

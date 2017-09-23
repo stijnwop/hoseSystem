@@ -48,6 +48,7 @@ function HoseSystemRegistrationHelper:loadMap(name)
         MaterialUtil.registerMaterialType('hoseSystem')
         loadI3DFile(HoseSystemRegistrationHelper.baseDirectory .. 'particleSystems/materialHolder.i3d')
 
+        g_currentMission.hoseSystemLog = HoseSystemUtil.log
         g_currentMission.hoseSystemRegistrationHelperIsLoaded = true
     else
         HoseSystemUtil:log(1, "The HoseSystemRegistrationHelper has been loaded already! Remove one of the copy's!")
