@@ -1,16 +1,12 @@
 --
--- Created by IntelliJ IDEA.
--- User: stijn
--- Date: 14-4-2017
--- Time: 00:09
--- To change this template use File | Settings | File Templates.
+-- HoseSystemFillTriggerInteractive
 --
+-- Authors: Wopster
+-- Description: Class to handle all interactions with fill triggers
+--
+-- Copyright (c) Wopster, 2017
 
-HoseSystemFillTriggerInteractive = {
-    left = 1,
-    middle = 0,
-    right = -1
-}
+HoseSystemFillTriggerInteractive = {}
 
 local HoseSystemFillTriggerInteractive_mt = Class(HoseSystemFillTriggerInteractive)
 
@@ -33,7 +29,7 @@ end
 function HoseSystemFillTriggerInteractive:update(dt)
     if self.object.isServer then
         if self.object.grabPoints ~= nil then
-            for _, gp in pairs(self.object.grabPoints) do -- Todo: make rayCastNodes as child for grabPoint.node
+            for _, gp in pairs(self.object.grabPoints) do
                 if HoseSystem:getIsDetached(gp.state) then
                     local x, y, z = getWorldTranslation(gp.raycastNode)
                     local dx, dy, dz = localDirectionToWorld(gp.raycastNode, 0, 0, -1)
@@ -44,37 +40,36 @@ function HoseSystemFillTriggerInteractive:update(dt)
                     raycastClosest(x, y, z, dx, dy, dz, 'fillableObjectRaycastCallback', 2, self)
 
                     if self.object.lastRaycastDistance ~= 0 then
-                        -- Todo: set is Underplane on grabPoint so we don't have to raycast (EVENT)
                         local isUnderFillplane, planeY = self.object.lastRaycastObject:checkPlaneY(y)
 
                         if isUnderFillplane and HoseSystemFillTriggerInteractive:allowFillTypeAffectDirtMask(self.object.lastRaycastObject.fillType) then
-                            -- todo: make this direction based!
-                            local difference = HoseSystemUtil:mathRound(math.abs(planeY - y), 3)
+                            -- Todo: make this direction based!
+                            --                            local difference = HoseSystemUtil:mathRound(math.abs(planeY - y), 3)
 
                             if self.object:getDirtAmount() < 1 then
                                 self.object:setDirtAmount(1)
                             end
 
-                            -- if not gp.hadPitContact then
-                            local param = gp.id > 1 and difference or -1 * difference
-
-                            for _, node in pairs(self.object.washableNodes) do
-                                local x, y, z, w = getShaderParameter(node, 'RDT')
-                                -- Round value to have better check on the param
-                                x = HoseSystemUtil:mathRound(x, 3)
-
-                                local update = false
-
-                                if gp.id > 1 then
-                                    update = x < param
-                                else
-                                    update = param < x
-                                end
-
-                                if update and math.abs(x - param) > 0.01 then
-                                    setShaderParameter(node, 'RDT', param, y, z, w, false)
-                                end
-                            end
+                            -- Todo: Moved feature to version 1.1
+                            --                            local param = gp.id > 1 and difference or -1 * difference
+                            --
+                            --                            for _, node in pairs(self.object.washableNodes) do
+                            --                                local x, y, z, w = getShaderParameter(node, 'RDT')
+                            --                                -- Round value to have better check on the param
+                            --                                x = HoseSystemUtil:mathRound(x, 3)
+                            --
+                            --                                local update = false
+                            --
+                            --                                if gp.id > 1 then
+                            --                                    update = x < param
+                            --                                else
+                            --                                    update = param < x
+                            --                                end
+                            --
+                            --                                if update and math.abs(x - param) > 0.01 then
+                            --                                    setShaderParameter(node, 'RDT', param, y, z, w, false)
+                            --                                end
+                            --                            end
                         end
                     end
 
@@ -99,6 +94,13 @@ end
 function HoseSystemFillTriggerInteractive:draw()
 end
 
+---
+-- @param transformId
+-- @param x
+-- @param y
+-- @param z
+-- @param distance
+--
 function HoseSystemFillTriggerInteractive:fillableObjectRaycastCallback(transformId, x, y, z, distance)
     if transformId ~= 0 then
         if transformId == g_currentMission.terrainRootNode then
@@ -124,6 +126,9 @@ function HoseSystemFillTriggerInteractive:fillableObjectRaycastCallback(transfor
     return true
 end
 
+---
+-- @param fillType
+--
 function HoseSystemFillTriggerInteractive:allowFillTypeAffectDirtMask(fillType)
     return fillType == FillUtil.FILLTYPE_LIQUIDMANURE or fillType == FillUtil.FILLTYPE_DIGESTATE
 end
