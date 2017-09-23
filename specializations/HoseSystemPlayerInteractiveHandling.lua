@@ -9,16 +9,25 @@
 HoseSystemPlayerInteractiveHandling = {}
 local HoseSystemPlayerInteractiveHandling_mt = Class(HoseSystemPlayerInteractiveHandling, HoseSystemPlayerInteractive)
 
+---
+-- @param object
+-- @param mt
+--
 function HoseSystemPlayerInteractiveHandling:new(object, mt)
     local interactiveHandling = HoseSystemPlayerInteractive:new(object, mt == nil and HoseSystemPlayerInteractiveHandling_mt or mt)
 
     return interactiveHandling
 end
 
+---
+--
 function HoseSystemPlayerInteractiveHandling:delete()
     HoseSystemPlayerInteractiveHandling:superClass().delete(self)
 end
 
+---
+-- @param dt
+--
 function HoseSystemPlayerInteractiveHandling:update(dt)
     HoseSystemPlayerInteractiveHandling:superClass().update(self, dt)
 
@@ -107,6 +116,8 @@ function HoseSystemPlayerInteractiveHandling:update(dt)
     end
 end
 
+---
+--
 function HoseSystemPlayerInteractiveHandling:draw()
 end
 

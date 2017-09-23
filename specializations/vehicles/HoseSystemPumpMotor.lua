@@ -70,6 +70,9 @@ function HoseSystemPumpMotor.prerequisitesPresent(specializations)
     return SpecializationUtil.hasSpecialization(Fillable, specializations)
 end
 
+---
+-- @param savegame
+--
 function HoseSystemPumpMotor:load(savegame)
     if not self.hasHoseSystemPumpMotor then
         return
@@ -138,6 +141,8 @@ function HoseSystemPumpMotor:load(savegame)
     }
 end
 
+---
+--
 function HoseSystemPumpMotor:delete()
     if not self.hasHoseSystemPumpMotor then
         return
@@ -148,6 +153,10 @@ function HoseSystemPumpMotor:delete()
     end
 end
 
+---
+-- @param streamId
+-- @param connection
+--
 function HoseSystemPumpMotor:readStream(streamId, connection)
     if not self.hasHoseSystemPumpMotor then
         return
@@ -158,6 +167,10 @@ function HoseSystemPumpMotor:readStream(streamId, connection)
     self:setFillMode(streamReadUIntN(streamId, HoseSystemPumpMotor.sendNumBits), true)
 end
 
+---
+-- @param streamId
+-- @param connection
+--
 function HoseSystemPumpMotor:writeStream(streamId, connection)
     if not self.hasHoseSystemPumpMotor then
         return
@@ -168,12 +181,28 @@ function HoseSystemPumpMotor:writeStream(streamId, connection)
     streamWriteUIntN(streamId, self.fillMode, HoseSystemPumpMotor.sendNumBits)
 end
 
+---
+-- @param posX
+-- @param posY
+-- @param isDown
+-- @param isUp
+-- @param button
+--
 function HoseSystemPumpMotor:mouseEvent(posX, posY, isDown, isUp, button)
 end
 
+---
+-- @param unicode
+-- @param sym
+-- @param modifier
+-- @param isDown
+--
 function HoseSystemPumpMotor:keyEvent(unicode, sym, modifier, isDown)
 end
 
+---
+-- @param dt
+--
 function HoseSystemPumpMotor:update(dt)
     if not self.hasHoseSystemPumpMotor then
         return
@@ -195,7 +224,7 @@ function HoseSystemPumpMotor:update(dt)
                         if self.pumpEfficiency.currentScale < self.pumpEfficiency.scaleLimit then
                             self:setFillDirection(self:getFillDirection() + 1)
                         end
-                    else -- TODO: Move down isn't right..
+                    else
                         self.warningMessage.currentId = HoseSystemPumpMotor.TURN_OFF
                         self.warningMessage.currentTime = 0
                     end
@@ -205,6 +234,9 @@ function HoseSystemPumpMotor:update(dt)
     end
 end
 
+---
+-- @param dt
+--
 function HoseSystemPumpMotor:updateTick(dt)
     if not self.hasHoseSystemPumpMotor then
         return
@@ -306,6 +338,8 @@ function HoseSystemPumpMotor:updateTick(dt)
     end
 end
 
+---
+--
 function HoseSystemPumpMotor:draw()
     if not self.hasHoseSystemPumpMotor then
         return
@@ -716,9 +750,6 @@ function setFillModeEvent.sendEvent(vehicle, int, noEventSend)
         end;
     end;
 end
-
----
--- Extern accessible events
 
 IsSuckingEvent = {}
 IsSuckingEvent_mt = Class(IsSuckingEvent, Event)

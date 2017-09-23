@@ -8,6 +8,10 @@
 
 AnimatedObjectExtension = {}
 
+---
+-- @param superFunc
+-- @param nodeId
+--
 function AnimatedObjectExtension:load(superFunc, nodeId)
 	if superFunc(self, nodeId) then
 		if g_currentMission.animatedObjects == nil then

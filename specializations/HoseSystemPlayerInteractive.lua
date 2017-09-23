@@ -1,14 +1,18 @@
 --
--- Created by IntelliJ IDEA.
--- User: stijn
--- Date: 14-4-2017
--- Time: 00:09
--- To change this template use File | Settings | File Templates.
+-- HoseSystemPlayerInteractive
 --
+-- Authors: Wopster
+-- Description: Main player interaction class
+--
+-- Copyright (c) Wopster, 2017
 
 HoseSystemPlayerInteractive = {}
 local HoseSystemPlayerInteractive_mt = Class(HoseSystemPlayerInteractive)
 
+---
+-- @param object
+-- @param mt
+--
 function HoseSystemPlayerInteractive:new(object, mt)
     local playerInteractive = {
         object = object
@@ -19,15 +23,25 @@ function HoseSystemPlayerInteractive:new(object, mt)
     return playerInteractive
 end
 
+---
+--
 function HoseSystemPlayerInteractive:delete()
 end
 
+---
+-- @param dt
+--
 function HoseSystemPlayerInteractive:update(dt)
 end
 
+---
+--
 function HoseSystemPlayerInteractive:draw()
 end
 
+---
+-- @param strict
+--
 function HoseSystemPlayerInteractive:getIsPlayerValid(strict)
     if g_currentMission.player.hoseSystem == nil then
         g_currentMission.player.hoseSystem = {}
@@ -69,13 +83,11 @@ function HoseSystemPlayerInteractive:playerOnLeave(superFunc)
         superFunc(self)
     end
 
-    --    if self.isServer then
     if self.hoseSystem ~= nil then
         if self.hoseSystem.interactiveHandling ~= nil and self.hoseSystem.interactiveHandling.drop ~= nil then
             self.hoseSystem.interactiveHandling:drop(self.hoseSystem.index, self)
         end
     end
-    --    end
 end
 
 ---

@@ -6,14 +6,18 @@
 --
 -- Copyright (c) Wopster, 2017
 
-HoseSystemConnector = {
-    name = g_currentModName,
-}
+HoseSystemConnector = {}
 
+---
+-- @param specializations
+--
 function HoseSystemConnector.prerequisitesPresent(specializations)
     return true
 end
 
+---
+-- @param savegame
+--
 function HoseSystemConnector:load(savegame)
     self.toggleLock = HoseSystemConnector.toggleLock
     self.toggleManureFlow = HoseSystemConnector.toggleManureFlow
@@ -66,6 +70,9 @@ function HoseSystemConnector:load(savegame)
     HoseSystemConnector:updateCurrentMissionInfo(self)
 end
 
+---
+-- @param savegame
+--
 function HoseSystemConnector:postLoad(savegame)
     if savegame ~= nil and not savegame.resetVehicles then
         for id, reference in ipairs(self.hoseSystemReferences) do
@@ -77,6 +84,12 @@ function HoseSystemConnector:postLoad(savegame)
     end
 end
 
+---
+-- @param self
+-- @param xmlFile
+-- @param base
+-- @param references
+--
 function HoseSystemConnector.loadHoseReferences(self, xmlFile, base, references)
     local i = 0
 
@@ -151,6 +164,9 @@ function HoseSystemConnector.loadHoseReferences(self, xmlFile, base, references)
     end
 end
 
+---
+-- @param object
+--
 function HoseSystemConnector:updateCurrentMissionInfo(object)
     if #object.hoseSystemReferences > 0 then
         if g_currentMission.hoseSystemReferences == nil then
@@ -169,6 +185,8 @@ function HoseSystemConnector:updateCurrentMissionInfo(object)
     end
 end
 
+---
+--
 function HoseSystemConnector:preDelete()
     if self.hoseSystemReferences ~= nil and g_currentMission.hoseSystemHoses ~= nil then
         for referenceId, reference in pairs(self.hoseSystemReferences) do
@@ -185,11 +203,17 @@ function HoseSystemConnector:preDelete()
     end
 end
 
+---
+--
 function HoseSystemConnector:delete()
     HoseSystemUtil:removeElementFromList(g_currentMission.hoseSystemReferences, self)
     HoseSystemUtil:removeElementFromList(g_currentMission.dockingSystemReferences, self)
 end
 
+---
+-- @param streamId
+-- @param connection
+--
 function HoseSystemConnector:readStream(streamId, connection)
     if connection:getIsServer() then
         for id = 1, streamReadUInt8(streamId) do
@@ -219,6 +243,10 @@ function HoseSystemConnector:readStream(streamId, connection)
     end
 end
 
+---
+-- @param streamId
+-- @param connection
+--
 function HoseSystemConnector:writeStream(streamId, connection)
     if not connection:getIsServer() then
         streamWriteUInt8(streamId, #self.hoseSystemReferences)
@@ -244,6 +272,9 @@ function HoseSystemConnector:writeStream(streamId, connection)
     end
 end
 
+---
+-- @param nodeIdent
+--
 function HoseSystemConnector:getSaveAttributesAndNodes(nodeIdent)
     local nodes = ""
 
@@ -260,12 +291,28 @@ function HoseSystemConnector:getSaveAttributesAndNodes(nodeIdent)
     return nil, nodes
 end
 
+---
+-- @param posX
+-- @param posY
+-- @param isDown
+-- @param isUp
+-- @param button
+--
 function HoseSystemConnector:mouseEvent(posX, posY, isDown, isUp, button)
 end
 
+---
+-- @param unicode
+-- @param sym
+-- @param modifier
+-- @param isDown
+--
 function HoseSystemConnector:keyEvent(unicode, sym, modifier, isDown)
 end
 
+---
+-- @param dt
+--
 function HoseSystemConnector:update(dt)
     if self.hoseSystemsToload ~= nil then
         for _, n in pairs(self.hoseSystemsToload) do
@@ -275,7 +322,7 @@ function HoseSystemConnector:update(dt)
         self.hoseSystemsToload = nil
     end
 
-    -- run this client sided only?
+    -- run this client sided only
     if not self.isClient then
         return
     end
@@ -323,6 +370,9 @@ function HoseSystemConnector:update(dt)
     end
 end
 
+---
+-- @param dt
+--
 function HoseSystemConnector:updateTick(dt)
     if self.hasHoseSystemPumpMotor then
         self:getValidFillObject()
@@ -436,6 +486,8 @@ function HoseSystemConnector:updateTick(dt)
     end
 end
 
+---
+--
 function HoseSystemConnector:draw()
 end
 
@@ -646,11 +698,12 @@ function HoseSystemConnector:getFillableVehicle(index, max)
     return index > 1 and 1 or max
 end
 
--- Todo: Moved to version 1.1
--- Todo: but what if we have more? Can whe pump with multiple hoses? Does that lower the pumpEfficiency or increase the throughput? There is a cleaner way todo this.
 ---
 --
 function HoseSystemConnector:getConnectedReference()
+    -- Todo: Moved to version 1.1
+    -- Todo: but what if we have more? Can whe pump with multiple hoses? Does that lower the pumpEfficiency or increase the throughput? Priority reference? There is a cleaner way todo this.
+
     if self.hoseSystemReferences ~= nil then
         for referenceIndex, reference in pairs(self.hoseSystemReferences) do
             if reference.isUsed and reference.flowOpened and reference.isLocked then
@@ -725,6 +778,7 @@ end
 ---
 -- @param index
 -- @param state
+-- @param hoseSystem
 -- @param noEventSend
 --
 function HoseSystemConnector:setIsUsed(index, state, hoseSystem, noEventSend)

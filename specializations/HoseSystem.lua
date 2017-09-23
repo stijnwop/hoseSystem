@@ -7,8 +7,8 @@
 -- Copyright (c) Wopster, 2017
 
 HoseSystem = {
-    debugRendering = false,
-    logLevel = 1,
+    debugRendering = true,
+    logLevel = 3,
     baseDirectory = g_currentModDirectory
 }
 
@@ -329,10 +329,6 @@ function HoseSystem:writeStream(streamId, connection)
             end
         end
 
-        writeNetworkNodeObjectId(streamId, self.vehicleToMountHoseSystem)
-        streamWriteInt8(streamId, self.referenceIdToMountHoseSystem)
-        streamWriteBool(streamId, self.referenceIsExtendable)
-
         for _, class in pairs(self.polymorphismClasses) do
             if class.writeStream ~= nil then
                 class:writeStream(streamId, connection)
@@ -379,12 +375,6 @@ function HoseSystem:readStream(streamId, connection)
                 self.poly.interactiveHandling:setGrabPointIsUsed(index, HoseSystem:getIsConnected(grabPoint.state), grabPoint.hasExtenableJointIndex, false, true)
             end
         end
-
-        local vehicleToMountHoseSystem = readNetworkNodeObjectId(streamId)
-        local referenceIdToMountHoseSystem = streamReadInt8(streamId)
-        local referenceIsExtendable = streamReadBool(streamId)
-
-        self.poly.references:loadFillableObjectAndReference(vehicleToMountHoseSystem, referenceIdToMountHoseSystem, referenceIsExtendable, true)
 
         for _, class in pairs(self.polymorphismClasses) do
             if class.readStream ~= nil then

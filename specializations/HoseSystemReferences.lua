@@ -1,14 +1,18 @@
 --
--- Created by IntelliJ IDEA.
--- User: stijn
--- Date: 15-4-2017
--- Time: 16:22
--- To change this template use File | Settings | File Templates.
+-- HoseSystemReferences
 --
+-- Authors: Wopster
+-- Description: Class that handles the reference interaction
+--
+-- Copyright (c) Wopster, 2017
 
 HoseSystemReferences = {}
 local HoseSystemReferences_mt = Class(HoseSystemReferences)
 
+---
+-- @param object
+-- @param mt
+--
 function HoseSystemReferences:new(object, mt)
     local references = {
         object = object
@@ -29,17 +33,36 @@ function HoseSystemReferences:new(object, mt)
     return references
 end
 
+---
+--
 function HoseSystemReferences:delete()
 end
 
+---
+-- @param streamId
+-- @param connection
+--
 function HoseSystemReferences:readStream(streamId, connection)
-    -- Todo: implement the stream!
+    local vehicleToMountHoseSystem = readNetworkNodeObjectId(streamId)
+    local referenceIdToMountHoseSystem = streamReadInt8(streamId)
+    local referenceIsExtendable = streamReadBool(streamId)
+
+    self:loadFillableObjectAndReference(vehicleToMountHoseSystem, referenceIdToMountHoseSystem, referenceIsExtendable, true)
 end
 
+---
+-- @param streamId
+-- @param connection
+--
 function HoseSystemReferences:writeStream(streamId, connection)
-    -- Todo: implement the stream!
+    writeNetworkNodeObjectId(streamId, self.object.vehicleToMountHoseSystem)
+    streamWriteInt8(streamId, self.object.referenceIdToMountHoseSystem)
+    streamWriteBool(streamId, self.object.referenceIsExtendable)
 end
 
+---
+-- @param dt
+--
 function HoseSystemReferences:update(dt)
     -- iterate over grabPoints to sync the vehicles with all clients
     self:iterateNetworkObjects()
@@ -57,9 +80,17 @@ function HoseSystemReferences:update(dt)
     end
 end
 
+---
+--
 function HoseSystemReferences:draw()
 end
 
+---
+-- @param vehicle
+-- @param referenceId
+-- @param isExtendable
+-- @param noEventSend
+--
 function HoseSystemReferences:loadFillableObjectAndReference(vehicle, referenceId, isExtendable, noEventSend)
     self.object.vehicleToMountHoseSystem = vehicle
     self.object.referenceIdToMountHoseSystem = referenceId
@@ -71,10 +102,6 @@ function HoseSystemReferences:loadFillableObjectAndReference(vehicle, referenceI
                 g_server:broadcastEvent(HoseSystemLoadFillableObjectAndReferenceEvent:new(self.object, self.object.vehicleToMountHoseSystem, self.object.referenceIdToMountHoseSystem, self.object.referenceIsExtendable))
             end
 
-            --            print('vehicleToMountHoseSystem ' .. tostring(self.vehicleToMountHoseSystem))
-            --            print('referenceIdToMountHoseSystem ' .. tostring(self.object.referenceIdToMountHoseSystem))
-            --            print('referenceIsExtendable ' .. tostring(self.referenceIsExtendable))
-
             self.vehicleToMountHoseSystemSend = self.object.vehicleToMountHoseSystem
             self.referenceIdToMountHoseSystemSend = self.object.referenceIdToMountHoseSystem
             self.referenceIsExtendableSend = self.object.referenceIsExtendable
@@ -82,6 +109,8 @@ function HoseSystemReferences:loadFillableObjectAndReference(vehicle, referenceI
     end
 end
 
+---
+--
 function HoseSystemReferences:iterateNetworkObjects()
     if self.object.grabPointsToload ~= nil then
         for _, n in pairs(self.object.grabPointsToload) do
@@ -108,12 +137,6 @@ function HoseSystemReferences:searchReferences(grabPoint)
                     for i, reference in pairs(hoseSystemReference.hoseSystemReferences) do
                         if not reference.isUsed then
                             if HoseSystemReferences:getCanConnect(x, y, z, sequence, grabPoint, reference) then
-                                -- self.inRangeVehicle = reference.isObject and g_currentMission:getNodeObject(liquidManureHoseReference.nodeId) or liquidManureHoseReference -- getNodeObject does work in MP?
-                                -- self.inRangeReference = reference.id
-                                -- self.inRangeIsExtendable = false
-
-                                -- self:loadFillableObjectAndReference(reference.isObject and g_currentMission:getNodeObject(liquidManureHoseReference.nodeId) or liquidManureHoseReference, reference.id, false)
-                                -- local object = reference.isObject and g_currentMission:getNodeObject(liquidManureHoseReference.nodeId) or liquidManureHoseReference
                                 local object = reference.isObject and hoseSystemReference.fillLevelObject or hoseSystemReference
                                 self:loadFillableObjectAndReference(networkGetObjectId(object), i, false)
                                 reset = false
@@ -142,9 +165,6 @@ function HoseSystemReferences:searchReferences(grabPoint)
                                             self:loadFillableObjectAndReference(networkGetObjectId(hoseSystemHose), i, reference.connectable)
                                             sequence = dist
                                             reset = false
-                                            -- self.inRangeVehicle = liquidManureHose
-                                            -- self.inRangeReference = reference.id
-                                            -- self.inRangeIsExtendable = true
                                             break
                                         end
                                     end
@@ -157,12 +177,16 @@ function HoseSystemReferences:searchReferences(grabPoint)
         end
     end
 
-    -- do this per side? This will do for now.
     if reset then -- only reset when not in range of something
         self:loadFillableObjectAndReference(0, 0, false)
     end
 end
 
+---
+-- @param inverse
+-- @param node1
+-- @param node2
+--
 function HoseSystemReferences:getCanExtend(inverse, node1, node2)
     local rot = math.abs(Utils.getYRotationBetweenNodes(node1, node2))
 
@@ -173,6 +197,14 @@ function HoseSystemReferences:getCanExtend(inverse, node1, node2)
     return HoseSystemUtil:mathRound(rot, 1) >= 2.3
 end
 
+---
+-- @param x
+-- @param y
+-- @param z
+-- @param sequence
+-- @param grabPoint
+-- @param reference
+--
 function HoseSystemReferences:getCanConnect(x, y, z, sequence, grabPoint, reference)
     local rx, ry, rz = getWorldTranslation(reference.node)
     local dist = Utils.vector2LengthSq(x - rx, z - rz)
@@ -208,10 +240,18 @@ function HoseSystemReferences:getCanConnect(x, y, z, sequence, grabPoint, refere
     return false
 end
 
+---
+-- @param object
+--
 function HoseSystemReferences:getHasReferenceInRange(object)
     return object.vehicleToMountHoseSystem ~= 0 and object.referenceIdToMountHoseSystem ~= 0
 end
 
+---
+-- @param object
+-- @param index
+-- @param grabPoint
+--
 function HoseSystemReferences:getReference(object, index, grabPoint)
     -- When we are dealing with map objects change the object to the parent that holds the rigid body node
     if object ~= nil then
@@ -231,7 +271,9 @@ function HoseSystemReferences:getReference(object, index, grabPoint)
     return nil
 end
 
-
+---
+-- @param object
+--
 function HoseSystemReferences:getReferenceVehicle(object)
     if object ~= nil and object.hoseSystemParent ~= nil then
         return object.hoseSystemParent
@@ -240,6 +282,10 @@ function HoseSystemReferences:getReferenceVehicle(object)
     return object
 end
 
+---
+-- @param object
+-- @param index
+--
 function HoseSystemReferences:getAllowsDetach(object, index)
     local grabPoint = object.grabPoints[index]
 
@@ -250,7 +296,7 @@ function HoseSystemReferences:getAllowsDetach(object, index)
 
             if reference ~= nil then
                 if not reference.parkable and vehicle.pumpIsStarted then
-                    g_currentMission:showBlinkingWarning(g_i18n:getText('pumpMotor_warningTurnOffFirst'), 50) -- warn about the pump being on this is not visual so people tend to act dumb!
+                    g_currentMission:showBlinkingWarning(g_i18n:getText('pumpMotor_warningTurnOffFirst'), 50) -- Warn about the pump being on because this is not visual so people tend to act dumb!
 
                     return false
                 end
@@ -258,7 +304,7 @@ function HoseSystemReferences:getAllowsDetach(object, index)
                 local flowOpened = reference.flowOpened
                 local isLocked = reference.isLocked
 
-                -- when dealing with an object that has no visual handlings allow detach.
+                -- When dealing with an object that has no visual handlings allow detach.
                 if reference.isObject then
                     if reference.lockAnimatedObjectSaveId == nil then
                         isLocked = false

@@ -11,6 +11,10 @@ HoseSystemLiquidManureFillTrigger = {}
 
 HoseSystemLiquidManureFillTrigger.PLANE_IDLE = 15
 
+---
+-- @param superFunc
+-- @param mt
+--
 function HoseSystemLiquidManureFillTrigger:new(superFunc, mt)
     local trigger = superFunc(self, mt)
 
@@ -22,6 +26,12 @@ function HoseSystemLiquidManureFillTrigger:new(superFunc, mt)
     return trigger
 end
 
+---
+-- @param superFunc
+-- @param nodeId
+-- @param fillLevelObject
+-- @param fillType
+--
 function HoseSystemLiquidManureFillTrigger:load(superFunc, nodeId, fillLevelObject, fillType)
     if superFunc(self, nodeId, fillLevelObject, fillType) then
         local xmlFilename = getUserAttribute(nodeId, 'xmlFilename')
@@ -212,6 +222,9 @@ function HoseSystemLiquidManureFillTrigger:loadHoseSystemReferences(self, nodeId
     end
 end
 
+---
+-- @param superFunc
+--
 function HoseSystemLiquidManureFillTrigger:delete(superFunc)
     if superFunc ~= nil then
         superFunc(self)
@@ -230,6 +243,10 @@ function HoseSystemLiquidManureFillTrigger:delete(superFunc)
     HoseSystemUtil:removeElementFromList(g_currentMission.hoseSystemReferences, self)
 end
 
+---
+-- @param superFunc
+-- @param dt
+--
 function HoseSystemLiquidManureFillTrigger:update(superFunc, dt)
     if superFunc ~= nil then
         superFunc(self, dt)

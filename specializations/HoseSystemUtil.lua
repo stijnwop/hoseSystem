@@ -243,6 +243,12 @@ function HoseSystemUtil:getHoseSystemFromReference(reference)
     return nil
 end
 
+---
+-- @param grabPoints
+-- @param id
+-- @param allowPlayer
+-- @param allowDetached
+--
 function HoseSystemUtil:getDependentGrabPoint(grabPoints, id, allowPlayer, allowDetached)
     for _, grabPoint in pairs(grabPoints) do
         if grabPoint.id ~= id then
@@ -255,6 +261,10 @@ function HoseSystemUtil:getDependentGrabPoint(grabPoints, id, allowPlayer, allow
     return nil
 end
 
+---
+-- @param grabPoints
+-- @param id
+--
 function HoseSystemUtil:getAttachedGrabPoint(grabPoints, id)
     for _, grabPoint in pairs(grabPoints) do
         if grabPoint.id ~= id then
@@ -267,6 +277,10 @@ function HoseSystemUtil:getAttachedGrabPoint(grabPoints, id)
     return nil
 end
 
+---
+-- @param t
+-- @param element
+--
 function HoseSystemUtil:removeElementFromList(t, element)
     if t ~= nil and #t > 0 then
         for i, e in ipairs(t) do
@@ -278,14 +292,25 @@ function HoseSystemUtil:removeElementFromList(t, element)
     end
 end
 
+---
+-- @param table
+--
 function HoseSystemUtil:getFirstElement(table)
     return table[1]
 end
 
+---
+-- @param table
+--
 function HoseSystemUtil:getFirstElement(table)
     return table[#table]
 end
 
+---
+-- @param t
+-- @param name
+-- @param indent
+--
 function HoseSystemUtil:print_r(t, name, indent)
     local tableList = {}
 

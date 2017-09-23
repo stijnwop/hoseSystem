@@ -2,7 +2,7 @@
 -- HoseSystemPlayerInteractiveRestrictions
 --
 -- Authors: Wopster
--- Description: Handles the hose system restrictions
+-- Description: Class to handle the hose system restrictions
 --
 -- Copyright (c) Wopster, 2017
 
@@ -10,6 +10,10 @@ HoseSystemPlayerInteractiveRestrictions = {}
 
 local HoseSystemPlayerInteractiveRestrictions_mt = Class(HoseSystemPlayerInteractiveRestrictions, HoseSystemPlayerInteractive)
 
+---
+-- @param object
+-- @param mt
+--
 function HoseSystemPlayerInteractiveRestrictions:new(object, mt)
     local playerInteractiveRestrictions = {
         object = object
@@ -25,10 +29,15 @@ function HoseSystemPlayerInteractiveRestrictions:new(object, mt)
     return playerInteractiveRestrictions
 end
 
+---
+--
 function HoseSystemPlayerInteractiveRestrictions:delete()
     HoseSystemPlayerInteractiveRestrictions:superClass().delete(self)
 end
 
+---
+-- @param dt
+--
 function HoseSystemPlayerInteractiveRestrictions:update(dt)
     HoseSystemPlayerInteractiveRestrictions:superClass().update(self, dt)
 
@@ -49,6 +58,8 @@ function HoseSystemPlayerInteractiveRestrictions:update(dt)
     end
 end
 
+---
+--
 function HoseSystemPlayerInteractiveRestrictions:draw()
 end
 
@@ -86,14 +97,14 @@ function HoseSystemPlayerInteractiveRestrictions:restrictPlayerDistance(dt, grab
                         local actionRadius = length * length
                         local playerHeight = math.abs(py - y)
 
-                        -- player height difference is not the full hose lenght since there's always an curve on the dependentGrabpoint that will give some lenght loss
+                        -- Player height difference is not the full hose lenght since there's always a curve on the hose that will give some lenght loss
                         if radius < actionRadius and playerHeight < length / 2 then
                             self.lastInRangePosition = { getTranslation(player.rootNode) }
                         else
                             local kx, ky, kz = getWorldTranslation(reference.node)
                             local px, py, pz = getWorldTranslation(player.rootNode)
                             local distance = Utils.vector2Length(px - kx, pz - kz)
---                            local x, y, z = unpack(self.lastInRangePosition)
+                            --                            local x, y, z = unpack(self.lastInRangePosition)
 
                             x = kx + ((px - kx) / distance) * (length - 0.00001 * dt)
                             -- x = kx + ((px - kx) / distance) * (self.hose.length * (self.currentChainCount - 1) - 0.00001 * dt)

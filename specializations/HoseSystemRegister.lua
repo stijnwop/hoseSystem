@@ -33,6 +33,9 @@ if SpecializationUtil.specializations['hoseSystemPumpMotor'] == nil then
     SpecializationUtil.registerSpecialization('hoseSystemPumpMotor', 'HoseSystemPumpMotor', HoseSystemRegistrationHelper.baseDirectory .. 'specializations/vehicles/HoseSystemPumpMotor.lua')
 end
 
+---
+-- @param name
+--
 function HoseSystemRegistrationHelper:loadMap(name)
     self.loadHoseSystemReferenceIds = {}
     self.minDistance = 2
@@ -55,16 +58,34 @@ function HoseSystemRegistrationHelper:loadMap(name)
     end
 end
 
+---
+--
 function HoseSystemRegistrationHelper:deleteMap()
     g_currentMission.hoseSystemRegistrationHelperIsLoaded = false
 end
 
+---
+-- @param unicode
+-- @param sym
+-- @param modifier
+-- @param isDown
+--
 function HoseSystemRegistrationHelper:keyEvent(unicode, sym, modifier, isDown)
 end
 
+---
+-- @param posX
+-- @param posY
+-- @param isDown
+-- @param isUp
+-- @param button
+--
 function HoseSystemRegistrationHelper:mouseEvent(posX, posY, isDown, isUp, button)
 end
 
+---
+-- @param dt
+--
 function HoseSystemRegistrationHelper:update(dt)
     self:getIsPlayerInGrabPointRange()
 
@@ -122,6 +143,8 @@ function HoseSystemRegistrationHelper:update(dt)
     end
 end
 
+---
+--
 function HoseSystemRegistrationHelper:draw()
 end
 

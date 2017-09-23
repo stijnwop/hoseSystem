@@ -10,6 +10,10 @@ HoseSystemFillTriggerInteractive = {}
 
 local HoseSystemFillTriggerInteractive_mt = Class(HoseSystemFillTriggerInteractive)
 
+---
+-- @param object
+-- @param mt
+--
 function HoseSystemFillTriggerInteractive:new(object, mt)
     local fillTriggerInteractive = {
         object = object
@@ -23,9 +27,14 @@ function HoseSystemFillTriggerInteractive:new(object, mt)
     return fillTriggerInteractive
 end
 
+---
+--
 function HoseSystemFillTriggerInteractive:delete()
 end
 
+---
+-- @param dt
+--
 function HoseSystemFillTriggerInteractive:update(dt)
     if self.object.isServer then
         if self.object.grabPoints ~= nil then
@@ -91,6 +100,8 @@ function HoseSystemFillTriggerInteractive:update(dt)
     end
 end
 
+---
+--
 function HoseSystemFillTriggerInteractive:draw()
 end
 
