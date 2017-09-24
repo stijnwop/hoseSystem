@@ -195,21 +195,19 @@ end
 function HoseSystemRegistrationHelper:register()
     for _, vehicle in pairs(VehicleTypeUtil.vehicleTypes) do
         if vehicle ~= nil then
-            local customEnvironment
-
             if vehicle.name:find('.') then
-                customEnvironment = Utils.splitString('.', vehicle.name)[1]
-            end
+                local customEnvironment = HoseSystemUtil:getFirstElement(Utils.splitString('.', vehicle.name))
 
-            if customEnvironment ~= nil then
-                if rawget(SpecializationUtil.specializations, customEnvironment .. '.HoseSystemVehicle') ~= nil or rawget(SpecializationUtil.specializations, customEnvironment .. '.hoseSystemVehicle') ~= nil then
-                    -- Found connector specialization
-                    if HoseSystem.debugRendering then
-                        HoseSystemUtil:log(3, 'HoseSystemConnector specialization added to: ' .. customEnvironment)
+                if customEnvironment ~= nil then
+                    if rawget(SpecializationUtil.specializations, customEnvironment .. '.HoseSystemVehicle') ~= nil or rawget(SpecializationUtil.specializations, customEnvironment .. '.hoseSystemVehicle') ~= nil then
+                        table.insert(vehicle.specializations, SpecializationUtil.getSpecialization('hoseSystemConnector'))
+                        table.insert(vehicle.specializations, SpecializationUtil.getSpecialization('hoseSystemPumpMotor')) -- insert pump as well.. no way to check this without doing it dirty
+
+                        -- Found hoseSystemVehicle specialization
+                        if HoseSystem.debugRendering then
+                            HoseSystemUtil:log(3, 'Connector and PumpMotor specialization added to: ' .. customEnvironment)
+                        end
                     end
-
-                    table.insert(vehicle.specializations, SpecializationUtil.getSpecialization('hoseSystemConnector'))
-                    table.insert(vehicle.specializations, SpecializationUtil.getSpecialization('hoseSystemPumpMotor')) -- insert pump as well.. no way to check this without doing it dirty
                 end
             end
         end

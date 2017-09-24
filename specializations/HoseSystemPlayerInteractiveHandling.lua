@@ -1018,7 +1018,7 @@ function HoseSystemPlayerInteractiveHandling:addToPhysicsParts(grabPoint, connec
     -- if we disconnect the hose we need to create the joints on the other connected grabPoint
     local gp = grabPoint
     if not isConnecting then
-        gp = connectedGrabPoints[1]
+        gp = HoseSystemUtil:getFirstElement(connectedGrabPoints)
     end
 
     local object = not isConnecting and HoseSystemReferences:getReferenceVehicle(gp.connectorVehicle) or vehicle
