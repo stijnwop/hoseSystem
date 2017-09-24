@@ -119,7 +119,11 @@ function HoseSystemRegistrationHelper:update(dt)
                                     local connectorVehicle = g_currentMission.hoseSystemReferences[connectorVehicleId]
 
                                     if connectorVehicle ~= nil then
-                                        vehicle.poly.interactiveHandling:attach(grabPointId, connectorVehicle, referenceId, isExtendable) -- will be synched later
+                                        if vehicle.poly ~= nil then
+                                            vehicle.poly.interactiveHandling:attach(grabPointId, connectorVehicle, referenceId, isExtendable) -- will be synched later
+                                        else
+                                            HoseSystemUtil:log(1, 'Something went wrong in your savegame, the vehicle that should be connecting is gone!')
+                                        end
                                     else
                                         if HoseSystem.debugRendering then
                                             HoseSystemUtil:log(1, 'Invalid connectorVehicle on gameload!')
