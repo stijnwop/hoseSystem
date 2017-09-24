@@ -302,7 +302,7 @@ end
 ---
 -- @param table
 --
-function HoseSystemUtil:getFirstElement(table)
+function HoseSystemUtil:getLastElement(table)
     return table[#table]
 end
 
