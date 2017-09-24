@@ -35,12 +35,12 @@
     <inputBindings>
         <input name="attachHose" category="VEHICLE" key1="" key2="" button="" device="0" mouse="MOUSE_BUTTON_LEFT"/>
         <input name="detachHose" category="VEHICLE" key1="" key2="" button="" device="0" mouse="MOUSE_BUTTON_RIGHT"/>
-        <input name="toggleManureFlow" category="VEHICLE" key1="" key2="" button="" device="0"
-               mouse="MOUSE_BUTTON_RIGHT"/>
+        <input name="toggleManureFlow" category="VEHICLE" key1="" key2="" button="" device="0" mouse="MOUSE_BUTTON_RIGHT"/>
         <input name="toggleLock" category="VEHICLE" key1="" key2="" button="" device="0" mouse="MOUSE_BUTTON_LEFT"/>
     </inputBindings>
     <storeItems>
         <storeItem xmlFilename="liquidManureHoses/3m/liquidManureHose3m.xml"/>
+        <storeItem xmlFilename="liquidManureHoses/4m/liquidManureHose4m.xml"/>
     </storeItems>
     <l10n>
         <text name="function_liquidManureHose">
