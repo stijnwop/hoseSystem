@@ -171,6 +171,15 @@ function HoseSystemUtil:removeFromPhysicsRecursively(vehicle)
 end
 
 ---
+-- @param node
+--
+function HoseSystemUtil:safeDeleteNode(node)
+    if node ~= nil then
+        delete(node)
+    end
+end
+
+---
 -- @param reference
 --
 function HoseSystemUtil:createHoseSystemJoint(reference)

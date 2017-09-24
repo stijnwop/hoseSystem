@@ -330,7 +330,7 @@ function HoseSystemPlayerInteractiveHandling:attach(index, vehicle, referenceId,
 
             if reference.parkable then
                 -- handle parked hose
-                if self.object.data.length < reference.parkLength then
+                if self.object.data.length <= reference.parkLength then
                     table.insert(grabPoints, index > 1 and self.object.grabPoints[1] or self.object.grabPoints[#self.object.grabPoints])
 
                     if self.object.isServer then
@@ -351,7 +351,9 @@ function HoseSystemPlayerInteractiveHandling:attach(index, vehicle, referenceId,
 
                     self:hardParkHose(grabPoints, object, reference)
                 else
-                    g_currentMission:showBlinkingWarning(string.format(g_i18n:getText('info_hoseParkingPlaceToShort'), reference.parkLength, self.object.data.length), 5000)
+                    if g_currentMission.player == grabPoint.currentOwner then
+                        g_currentMission:showBlinkingWarning(string.format(g_i18n:getText('info_hoseParkingPlaceToShort'), reference.parkLength, self.object.data.length), 5000)
+                    end
 
                     return
                 end
@@ -927,9 +929,9 @@ function HoseSystemPlayerInteractiveHandling:hardUnparkHose(grabPoints, vehicle,
     HoseSystemPlayerInteractiveHandling:hardUnparkHoseComponent(self.object.data.centerNode, self.object.components[(#self.object.components + 1) / 2].node)
     HoseSystemPlayerInteractiveHandling:hardUnparkHoseComponent(grabPoints[2].node, self.object.components[grabPoints[2].componentIndex].node)
 
-    delete(self.object.data.parkStartTargetNode)
-    delete(self.object.data.parkCenterTargetNode)
-    delete(self.object.data.parkEndTargetNode)
+    HoseSystemUtil:safeDeleteNode(self.object.data.parkStartTargetNode)
+    HoseSystemUtil:safeDeleteNode(self.object.data.parkCenterTargetNode)
+    HoseSystemUtil:safeDeleteNode(self.object.data.parkEndTargetNode)
 
     if not reference.isObject then
         HoseSystemUtil:addToPhysicsRecursively(vehicle)
