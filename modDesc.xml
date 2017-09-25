@@ -35,7 +35,8 @@
     <inputBindings>
         <input name="attachHose" category="VEHICLE" key1="" key2="" button="" device="0" mouse="MOUSE_BUTTON_LEFT"/>
         <input name="detachHose" category="VEHICLE" key1="" key2="" button="" device="0" mouse="MOUSE_BUTTON_RIGHT"/>
-        <input name="toggleManureFlow" category="VEHICLE" key1="" key2="" button="" device="0" mouse="MOUSE_BUTTON_RIGHT"/>
+        <input name="toggleManureFlow" category="VEHICLE" key1="" key2="" button="" device="0"
+               mouse="MOUSE_BUTTON_RIGHT"/>
         <input name="toggleLock" category="VEHICLE" key1="" key2="" button="" device="0" mouse="MOUSE_BUTTON_LEFT"/>
     </inputBindings>
     <storeItems>
@@ -127,8 +128,20 @@
             <de>Pumpe ausschalten</de>
         </text>
         <text name="pumpMotor_warningTurnOffFirst">
-            <en>Turn pump off!</en>
+            <en>Turn pump off first!</en>
             <de>Pumpe zuerst ausschalten!</de>
+        </text>
+        <text name="pumpMotor_warningUnitEmpty">
+            <en>The unit is empty!</en>
+            <de>The unit is empty!</de>
+        </text>
+        <text name="pumpMotor_warningObjectEmpty">
+            <en>The pump source is empty!</en>
+            <de>The pump source is empty!</de>
+        </text>
+        <text name="pumpMotor_warningInvalidFilltype">
+            <en>FillType is not supported!</en>
+            <de>FillType is not supported!</de>
         </text>
 
         <!-- Hose system connector references -->

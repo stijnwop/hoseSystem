@@ -11,13 +11,14 @@ HoseSystemPumpMotor = {
     fillModes = {}
 }
 
--- DIRECTION --
 HoseSystemPumpMotor.IN = 0
 HoseSystemPumpMotor.OUT = 1
 
--- WARNING MESSAGES -- 
 HoseSystemPumpMotor.NONE = 0
-HoseSystemPumpMotor.TURN_OFF = 2
+HoseSystemPumpMotor.TURN_OFF = 1
+HoseSystemPumpMotor.UNIT_EMPTY = 2
+HoseSystemPumpMotor.OBJECT_EMPTY = 3
+HoseSystemPumpMotor.INVALID_FILLTYPE = 4
 
 ---
 -- @param name
@@ -84,12 +85,15 @@ function HoseSystemPumpMotor:load(savegame)
     self.setFillDirection = SpecializationUtil.callSpecializationsFunction('setFillDirection')
     self.allowPumpStarted = HoseSystemPumpMotor.allowPumpStarted
     self.setPumpStarted = SpecializationUtil.callSpecializationsFunction('setPumpStarted')
+    self.pumpIn = HoseSystemPumpMotor.pumpIn
+    self.pumpOut = HoseSystemPumpMotor.pumpOut
     self.doPump = HoseSystemPumpMotor.doPump
     self.doFakePump = HoseSystemPumpMotor.doFakePump
     self.getIsTurnedOn = Utils.overwrittenFunction(self.getIsTurnedOn, HoseSystemPumpMotor.getIsTurnedOn)
     self.getIsTurnedOnAllowed = Utils.overwrittenFunction(self.getIsTurnedOnAllowed, HoseSystemPumpMotor.getIsTurnedOnAllowed)
     self.getConsumedPtoTorque = Utils.overwrittenFunction(self.getConsumedPtoTorque, HoseSystemPumpMotor.getConsumedPtoTorque)
     -- self.setIsTurnedOn = Utils.overwrittenFunction(self.setIsTurnedOn, HoseSystemPumpMotor.setIsTurnedOn)
+    self.setWarningMessage = HoseSystemPumpMotor.setWarningMessage
 
     self.attacherMotor = {
         check = false,
@@ -133,6 +137,9 @@ function HoseSystemPumpMotor:load(savegame)
     self.warningMessage.howLongToShow = Utils.getNoNil(getXMLFloat(self.xmlFile, "vehicle.pumpMotor#warningTime"), 1500)
     self.warningMessage.messages = {}
     self.warningMessage.messages[HoseSystemPumpMotor.TURN_OFF] = g_i18n:getText('pumpMotor_warningTurnOffFirst')
+    self.warningMessage.messages[HoseSystemPumpMotor.UNIT_EMPTY] = g_i18n:getText('pumpMotor_warningUnitEmpty')
+    self.warningMessage.messages[HoseSystemPumpMotor.OBJECT_EMPTY] = g_i18n:getText('pumpMotor_warningObjectEmpty')
+    self.warningMessage.messages[HoseSystemPumpMotor.INVALID_FILLTYPE] = g_i18n:getText('pumpMotor_warningInvalidFilltype')
 
     self.pumpMotor = {
         unloadInfoIndex = Utils.getNoNil(getXMLInt(self.xmlFile, "vehicle.pumpMotor#unloadInfoIndex"), 1),
@@ -162,7 +169,7 @@ function HoseSystemPumpMotor:readStream(streamId, connection)
         return
     end
 
-    self:setPumpStarted(streamReadBool(streamId), true)
+    self:setPumpStarted(streamReadBool(streamId), nil, true)
     self:setFillDirection(streamReadUIntN(streamId, HoseSystemPumpMotor.sendNumBits), true)
     self:setFillMode(streamReadUIntN(streamId, HoseSystemPumpMotor.sendNumBits), true)
 end
@@ -225,8 +232,7 @@ function HoseSystemPumpMotor:update(dt)
                             self:setFillDirection(self:getFillDirection() + 1)
                         end
                     else
-                        self.warningMessage.currentId = HoseSystemPumpMotor.TURN_OFF
-                        self.warningMessage.currentTime = 0
+                        self:setWarningMessage(HoseSystemPumpMotor.TURN_OFF)
                     end
                 end
             end
@@ -260,7 +266,7 @@ function HoseSystemPumpMotor:updateTick(dt)
 
         if self.pumpIsStarted then
             if not self.fillObjectFound then -- if we lost the object stop pump
-                self:setPumpStarted(false, true)
+                self:setPumpStarted(false, nil, true)
             end
 
             if self.pumpEfficiency.currentStartUpTime < self.pumpEfficiency.startUpTime then
@@ -274,7 +280,7 @@ function HoseSystemPumpMotor:updateTick(dt)
 
                 if self:getFillDirection() == HoseSystemPumpMotor.IN then
                     if self:getFillLevel(fillType) / self:getCapacity(fillType) >= self.autoStopPercentage.inDirection then
-                        self:setPumpStarted(false, true)
+                        self:setPumpStarted(false, nil, true)
                     end
 
                     if self.isSucking then
@@ -282,7 +288,7 @@ function HoseSystemPumpMotor:updateTick(dt)
                     end
                 else
                     if self:getFillLevel(fillType) <= 0 or not self.fillObjectFound and not self.fillFromFillVolume then
-                        self:setPumpStarted(false, true)
+                        self:setPumpStarted(false, nil, true)
                     end
 
                     updateFillScale = true
@@ -308,7 +314,7 @@ function HoseSystemPumpMotor:updateTick(dt)
             end
         end
     else
-        self:setPumpStarted(false, true)
+        self:setPumpStarted(false, nil, true)
         self.pumpEfficiency.currentStartUpTime = 0
         self.pumpFillEfficiency.currentTime = 0
     end
@@ -423,7 +429,7 @@ function HoseSystemPumpMotor:onDeactivate()
         return
     end
 
-    self:setPumpStarted(false, true)
+    self:setPumpStarted(false, nil, true)
 end
 
 ---
@@ -453,7 +459,7 @@ end
 -- @param noEventSend
 --
 function HoseSystemPumpMotor:setFillDirection(int, noEventSend)
-    self.fillDirection = int > HoseSystemPumpMotor.OUT and 0 or int
+    self.fillDirection = int > HoseSystemPumpMotor.OUT and HoseSystemPumpMotor.IN or int
 
     setFillDirectionEvent.sendEvent(self, int, noEventSend)
 end
@@ -462,14 +468,18 @@ end
 -- @param isStarted
 -- @param noEventSend
 --
-function HoseSystemPumpMotor:setPumpStarted(isStarted, noEventSend)
+function HoseSystemPumpMotor:setPumpStarted(isStarted, warningId, noEventSend)
     if self.pumpIsStarted ~= isStarted then
         self.pumpIsStarted = isStarted
-        self.allowsSpraying = not isStarted -- THIS
+        self.allowsSpraying = not isStarted -- disable manure tankers to start emptying while pumping
 
         self:setIsTurnedOn(isStarted)
 
-        setPumpStartedEvent.sendEvent(self, isStarted, noEventSend)
+        if not isStarted and warningId ~= nil and self.isClient then
+            self:setWarningMessage(warningId)
+        end
+
+        SetPumpStartedEvent.sendEvent(self, isStarted, warningId, noEventSend)
     end
 end
 
@@ -502,6 +512,46 @@ function HoseSystemPumpMotor:allowPumpStarted()
 end
 
 ---
+-- @param dt
+-- @param targetFillLevel
+-- @param targetFillType
+-- @param scale
+--
+function HoseSystemPumpMotor:pumpIn(dt, targetFillLevel, targetFillType, scale)
+    if not self.isServer or self:getFillDirection() ~= HoseSystemPumpMotor.IN then
+        return
+    end
+
+    if self.pumpFillEfficiency.currentScale > 0 then
+        local deltaFillLevel = math.min((self.pumpFillEfficiency.litersPerSecond * self.pumpFillEfficiency.currentScale) * 0.001 * dt, targetFillLevel)
+
+        self:doPump(self.fillObject, targetFillType, deltaFillLevel, self.fillVolumeDischargeInfos[self.pumpMotor.dischargeInfoIndex], self.fillObjectIsObject)
+    end
+end
+
+---
+-- @param dt
+-- @param scale
+--
+function HoseSystemPumpMotor:pumpOut(dt, scale)
+    if not self.isServer or self:getFillDirection() ~= HoseSystemPumpMotor.OUT then
+        return
+    end
+
+    local fillType = self:getUnitLastValidFillType(self.fillUnitIndex)
+    local fillLevel = self:getFillLevel(fillType)
+
+    -- we checked that the fillObject accepts the fillType already
+    if fillLevel > 0 then
+        local deltaFillLevel = math.min((self.pumpFillEfficiency.litersPerSecond * self.pumpFillEfficiency.currentScale) * 0.001 * dt, fillLevel)
+
+        self:doPump(self.fillObject, fillType, deltaFillLevel, self.fillVolumeUnloadInfos[self.pumpMotor.unloadInfoIndex], self.fillObjectIsObject)
+    else
+        self:setPumpStarted(false)
+    end
+end
+
+---
 -- @param targetObject
 -- @param fillType
 -- @param deltaFill
@@ -519,7 +569,7 @@ function HoseSystemPumpMotor:doPump(targetObject, fillType, deltaFill, fillInfo,
         targetObject:resetFillLevelIfNeeded(fillType)
     end
 
-    if self.fillFromFillVolume then
+    if self.fillFromFillVolume then -- Todo: Lookup new fill volume changes
         local fillVolumeInfo = fillDirection == HoseSystemPumpMotor.IN and self.fillVolumeLoadInfo or self.fillVolumeDischargeInfo
         local x, y, z = getWorldTranslation(fillVolumeInfo.node)
         local d1x, d1y, d1z = localDirectionToWorld(fillVolumeInfo.node, fillVolumeInfo.width, 0, 0)
@@ -590,61 +640,77 @@ function HoseSystemPumpMotor:getConsumedPtoTorque(superFunc)
 end
 
 ---
+-- @param id
+--
+function HoseSystemPumpMotor:setWarningMessage(id)
+    self.warningMessage.currentId = id
+    self.warningMessage.currentTime = 0
+end
+
+---
 -- @param message
 --
 function HoseSystemPumpMotor:showWarningMessage(message)
     g_currentMission:showBlinkingWarning(message)
 end
 
--- Event
-setPumpStartedEvent = {}
-setPumpStartedEvent_mt = Class(setPumpStartedEvent, Event)
+SetPumpStartedEvent = {}
+SetPumpStartedEvent_mt = Class(SetPumpStartedEvent, Event)
 
-InitEventClass(setPumpStartedEvent, "setPumpStartedEvent")
+InitEventClass(SetPumpStartedEvent, 'SetPumpStartedEvent')
 
-function setPumpStartedEvent:emptyNew()
-    local self = Event:new(setPumpStartedEvent_mt)
-    self.className = "setPumpStartedEvent"
-
-    return self
+function SetPumpStartedEvent:emptyNew()
+    local event = Event:new(SetPumpStartedEvent_mt)
+    return event
 end
 
-function setPumpStartedEvent:new(vehicle, isStarted)
-    local self = setPumpStartedEvent:emptyNew()
-    self.vehicle = vehicle;
-    self.isStarted = isStarted;
+function SetPumpStartedEvent:new(object, isStarted, warningId)
+    local event = SetPumpStartedEvent:emptyNew()
 
-    return self
+    event.object = object
+    event.isStarted = isStarted
+    event.warningId = warningId
+
+    return event
 end
 
-function setPumpStartedEvent:readStream(streamId, connection)
-    local id = streamReadInt32(streamId);
-    self.vehicle = networkGetObject(id);
-    self.isStarted = streamReadBool(streamId);
-    self:run(connection);
+function SetPumpStartedEvent:readStream(streamId, connection)
+    self.object = readNetworkNodeObject(streamId)
+    self.isStarted = streamReadBool(streamId)
+
+    if streamReadBool(streamId) then
+        self.warningId = streamReadUInt8(streamId)
+    end
+
+    self:run(connection)
 end
 
-function setPumpStartedEvent:writeStream(streamId, connection)
-    streamWriteInt32(streamId, networkGetObjectId(self.vehicle));
-    streamWriteBool(streamId, self.isStarted);
+function SetPumpStartedEvent:writeStream(streamId, connection)
+    writeNetworkNodeObject(streamId, self.object)
+    streamWriteBool(streamId, self.isStarted)
+    streamWriteBool(streamId, self.warningId ~= nil)
+
+    if self.warningId ~= nil then
+        streamWriteUInt8(streamId, self.warningId)
+    end
 end
 
-function setPumpStartedEvent:run(connection)
-    self.vehicle:setPumpStarted(self.isStarted, true);
+function SetPumpStartedEvent:run(connection)
+    self.object:setPumpStarted(self.isStarted, self.warningId, true)
 
     if not connection:getIsServer() then
-        g_server:broadcastEvent(setPumpStartedEvent:new(self.vehicle, self.isStarted), nil, connection, self.object);
-    end;
+        g_server:broadcastEvent(self, false, connection, self.object)
+    end
 end
 
-function setPumpStartedEvent.sendEvent(vehicle, isStarted, noEventSend)
+function SetPumpStartedEvent.sendEvent(object, isStarted, warningId, noEventSend)
     if noEventSend == nil or noEventSend == false then
         if g_server ~= nil then
-            g_server:broadcastEvent(setPumpStartedEvent:new(vehicle, isStarted), nil, nil, vehicle);
+            g_server:broadcastEvent(SetPumpStartedEvent:new(object, isStarted, warningId), nil, nil, object)
         else
-            g_client:getServerConnection():sendEvent(setPumpStartedEvent:new(vehicle, isStarted));
-        end;
-    end;
+            g_client:getServerConnection():sendEvent(SetPumpStartedEvent:new(object, isStarted, warningId))
+        end
+    end
 end
 
 ---

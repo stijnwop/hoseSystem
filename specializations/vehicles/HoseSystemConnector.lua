@@ -236,10 +236,14 @@ function HoseSystemConnector:readStream(streamId, connection)
 
         self.fillObjectFound = streamReadBool(streamId)
         self.fillFromFillVolume = streamReadBool(streamId)
-        local currentReferenceIndex = streamReadInt8(streamId)
-        self.currentReferenceIndex = currentReferenceIndex ~= 0 and currentReferenceIndex or nil
-        local currentGrabPointIndex = streamReadInt8(streamId)
-        self.currentGrabPointIndex = currentGrabPointIndex ~= 0 and currentGrabPointIndex or nil
+
+        if streamReadBool(streamId) then
+            self.currentReferenceIndex = streamReadInt8(streamId)
+        end
+
+        if streamReadBool(streamId) then
+            self.currentGrabPointIndex = streamReadInt8(streamId)
+        end
     end
 end
 
@@ -267,8 +271,16 @@ function HoseSystemConnector:writeStream(streamId, connection)
 
         streamWriteBool(streamId, self.fillObjectFound)
         streamWriteBool(streamId, self.fillFromFillVolume)
-        streamWriteInt8(streamId, self.currentReferenceIndex ~= nil and self.currentReferenceIndex or 0)
-        streamWriteInt8(streamId, self.currentGrabPointIndex ~= nil and self.currentGrabPointIndex or 0)
+
+        streamWriteBool(streamId, self.currentReferenceIndex ~= nil)
+        if self.currentReferenceIndex ~= nil then
+            streamWriteInt8(streamId, self.currentReferenceIndex)
+        end
+
+        streamWriteBool(streamId, self.currentGrabPointIndex ~= nil)
+        if self.currentGrabPointIndex ~= nil then
+            streamWriteInt8(streamId, self.currentGrabPointIndex)
+        end
     end
 end
 
@@ -391,82 +403,63 @@ function HoseSystemConnector:updateTick(dt)
                 --                    print("CurrentChainCount= " .. reference.hoseSystem.currentChainCount .. "maxTime= " .. self.pumpFillEfficiency.maxTime .. 'What we do to it= ' .. count)
                 --                end
 
-                if self.pumpIsStarted then
-                    if self.fillObject ~= nil then
-                        if self.fillDirection == HoseSystemPumpMotor.IN then
-                            local objectFillTypes = self.fillObject:getCurrentFillTypes() -- Note for objects this changed! self.fillIsObject and (fillObject.currentFillType == nil and fillObject.fillType or fillObject:getCurrentFillTypes()) or
+                if self.pumpIsStarted and self.fillObject ~= nil then
+                    if self.fillDirection == HoseSystemPumpMotor.IN then
+                        local objectFillTypes = self.fillObject:getCurrentFillTypes()
 
-                            -- isn't below dubble code?
-                            if self.fillObject:getFreeCapacity() ~= self.fillObject:getCapacity() then
-                                for _, objectFillType in pairs(objectFillTypes) do
-                                    if self:allowUnitFillType(self.fillUnitIndex, objectFillType, false) then
-                                        local objectFillLevel = self.fillObject:getFillLevel(objectFillType)
-                                        local fillLevel = self:getUnitFillLevel(self.fillUnitIndex)
+                        -- isn't below dubble code?
+                        if self.fillObject:getFreeCapacity() ~= self.fillObject:getCapacity() then
+                            for _, objectFillType in pairs(objectFillTypes) do
+                                if self:allowUnitFillType(self.fillUnitIndex, objectFillType, false) then
+                                    local objectFillLevel = self.fillObject:getFillLevel(objectFillType)
+                                    local fillLevel = self:getUnitFillLevel(self.fillUnitIndex)
 
-                                        if objectFillLevel > 0 and fillLevel < self:getUnitCapacity(self.fillUnitIndex) then -- self:getCapacity(FillUtil.FILLTYPE_LIQUIDMANURE) then
-                                            if self.fillObject.checkPlaneY ~= nil then
-                                                -- Ugh! edit this when done with the raycast stuff on the hose script
-                                                local lastGrabPoint, _ = self:getLastGrabpointRecursively(reference.hoseSystem.grabPoints[HoseSystemConnector:getFillableVehicle(self.currentGrabPointIndex, #reference.hoseSystem.grabPoints)])
+                                    if objectFillLevel > 0 and fillLevel < self:getUnitCapacity(self.fillUnitIndex) then
+                                        if self.fillObject.checkPlaneY ~= nil then
+                                            local lastGrabPoint, _ = self:getLastGrabpointRecursively(reference.hoseSystem.grabPoints[HoseSystemConnector:getFillableVehicle(self.currentGrabPointIndex, #reference.hoseSystem.grabPoints)])
 
-                                                if not HoseSystem:getIsConnected(lastGrabPoint.state) then
+                                            if not HoseSystem:getIsConnected(lastGrabPoint.state) then
+                                                local _, y, _ = getWorldTranslation(lastGrabPoint.raycastNode)
 
-                                                    local _, y, _ = getWorldTranslation(lastGrabPoint.raycastNode)
-                                                    --
-                                                    --                                                    isSucking, y = self.fillObject:checkPlaneY(y)
-                                                    if reference.hoseSystem.lastRaycastDistance ~= 0 then
-                                                        isSucking, _ = self.fillObject:checkPlaneY(y)
-                                                    end
-                                                else
-                                                    isSucking = reference ~= nil
+                                                if reference.hoseSystem.lastRaycastDistance ~= 0 then
+                                                    isSucking, _ = self.fillObject:checkPlaneY(y)
                                                 end
                                             else
                                                 isSucking = reference ~= nil
                                             end
-
-                                            if self.pumpFillEfficiency.currentScale > 0 then
-                                                local deltaFillLevel = math.min((self.pumpFillEfficiency.litersPerSecond * self.pumpFillEfficiency.currentScale) * 0.001 * dt, objectFillLevel)
-
-                                                self:doPump(self.fillObject, objectFillType, deltaFillLevel, self.fillVolumeDischargeInfos[self.pumpMotor.dischargeInfoIndex], self.fillObjectIsObject)
-                                            end
                                         else
-                                            self:setPumpStarted(false)
-                                            -- TODO: Send message to client that object is empty
+                                            isSucking = reference ~= nil
                                         end
+
+                                        self:pumpIn(dt, objectFillLevel, objectFillType)
                                     else
-                                        self:setPumpStarted(false)
-                                        -- TODO: Send message to client that we dont allow fillType
+                                        self:setPumpStarted(false, HoseSystemPumpMotor.UNIT_EMPTY)
+                                        -- TODO: Send message to client that unit is empty
                                     end
+                                else
+                                    self:setPumpStarted(false, HoseSystemPumpMotor.INVALID_FILLTYPE)
+                                    -- TODO: Send message to client that we dont allow fillType
                                 end
-                            else
-                                self:setPumpStarted(false)
-                                -- TODO: Send message to client that object is empty
                             end
                         else
-                            local fillType = self:getUnitLastValidFillType(self.fillUnitIndex)
-                            local fillLevel = self:getFillLevel(fillType)
-
-                            -- we checked that the fillObject accepts the fillType already
-                            if fillLevel > 0 then
-                                local deltaFillLevel = math.min((self.pumpFillEfficiency.litersPerSecond * self.pumpFillEfficiency.currentScale) * 0.001 * dt, fillLevel)
-
-                                self:doPump(self.fillObject, fillType, deltaFillLevel, self.fillVolumeUnloadInfos[self.pumpMotor.unloadInfoIndex], self.fillObjectIsObject)
-                            else
-                                self:setPumpStarted(false)
-                            end
+                            self:setPumpStarted(false, HoseSystemPumpMotor.OBJECT_EMPTY)
+                            -- TODO: Send message to client that object is empty
                         end
+                    else
+                        self:pumpOut(dt)
                     end
                 end
+            end
 
-                if self.isSucking ~= isSucking then
-                    self.isSucking = isSucking
-                    g_server:broadcastEvent(IsSuckingEvent:new(self, self.isSucking))
-                end
+            if self.isSucking ~= isSucking then
+                self.isSucking = isSucking
+                g_server:broadcastEvent(IsSuckingEvent:new(self, self.isSucking))
+            end
 
-                if self.fillObjectFound then
-                    if self.fillObject ~= nil and self.fillObject.checkPlaneY ~= nil then -- we are raycasting a fillplane
-                        if self.fillObject.updateShaderPlane ~= nil then
-                            self.fillObject:updateShaderPlane(self.pumpIsStarted, self.fillDirection, self.pumpFillEfficiency.litersPerSecond)
-                        end
+            if self.fillObjectFound then
+                if self.fillObject ~= nil and self.fillObject.checkPlaneY ~= nil then -- we are raycasting a fillplane
+                    if self.fillObject.updateShaderPlane ~= nil then
+                        self.fillObject:updateShaderPlane(self.pumpIsStarted, self.fillDirection, self.pumpFillEfficiency.litersPerSecond)
                     end
                 end
             end
