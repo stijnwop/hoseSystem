@@ -395,8 +395,7 @@ function HoseSystemConnector:updateTick(dt)
             if self:getFillMode() == self.pumpMotorFillMode then
                 local reference = self.hoseSystemReferences[self.currentReferenceIndex]
 
-                -- Todo: Moved feature to version 1.1
-                -- Todo: determine pump efficiency based on hose chain lenght
+                -- Todo: Moved feature to version 1.1 determine pump efficiency based on hose chain lenght
                 --                if reference ~= nil then
                 --                    local count = self.pumpFillEfficiency.maxTimeStatic / 10 * reference.hoseSystem.currentChainCount
                 --                    self.pumpFillEfficiency.maxTime = reference.hoseSystem.currentChainCount > 0 and  self.pumpFillEfficiency.maxTimeStatic + count or self.pumpFillEfficiency.maxTimeStatic
@@ -434,16 +433,13 @@ function HoseSystemConnector:updateTick(dt)
                                         self:pumpIn(dt, objectFillLevel, objectFillType)
                                     else
                                         self:setPumpStarted(false, HoseSystemPumpMotor.UNIT_EMPTY)
-                                        -- TODO: Send message to client that unit is empty
                                     end
                                 else
                                     self:setPumpStarted(false, HoseSystemPumpMotor.INVALID_FILLTYPE)
-                                    -- TODO: Send message to client that we dont allow fillType
                                 end
                             end
                         else
                             self:setPumpStarted(false, HoseSystemPumpMotor.OBJECT_EMPTY)
-                            -- TODO: Send message to client that object is empty
                         end
                     else
                         self:pumpOut(dt)
@@ -498,9 +494,6 @@ function HoseSystemConnector:updateLiquidHoseSystem(allow)
                 local fillType = self:getUnitLastValidFillType(self.fillUnitIndex)
 
                 lastHose:toggleEmptyingEffect(allow and self.pumpIsStarted and self.fillDirection == HoseSystemPumpMotor.OUT, lastGrabPoint.id > 1 and 1 or -1, lastGrabPoint.id, fillType)
-                --if not reference.hoseSystem.grabPoints[self.currentGrabPointIndex].connectable then
-                -- hoseSystem.emptyEffects.showEmptyEffects = self.pumpIsStarted and self.fillDirection == HoseSystemPumpMotor.OUT and self:getFillLevel(self.currentFillType) > 0
-                --end
             end
         end
     end
@@ -695,7 +688,7 @@ end
 --
 function HoseSystemConnector:getConnectedReference()
     -- Todo: Moved to version 1.1
-    -- Todo: but what if we have more? Can whe pump with multiple hoses? Does that lower the pumpEfficiency or increase the throughput? Priority reference? There is a cleaner way todo this.
+    -- but what if we have more? Can whe pump with multiple hoses? Does that lower the pumpEfficiency or increase the throughput? Priority reference? There is a cleaner way to-do this.
 
     if self.hoseSystemReferences ~= nil then
         for referenceIndex, reference in pairs(self.hoseSystemReferences) do
