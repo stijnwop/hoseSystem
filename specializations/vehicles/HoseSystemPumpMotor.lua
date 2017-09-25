@@ -116,7 +116,7 @@ function HoseSystemPumpMotor:load(savegame)
         currentScale = 0,
         currentTime = 0,
         maxTimeStatic = maxTime,
-        maxTime = maxTime, -- TODO: let the hose determine this, hose on hose would delay this!
+        maxTime = maxTime,
         litersPerSecond = Utils.getNoNil(getXMLFloat(self.xmlFile, "vehicle.pumpMotor#litersPerSecond"), 100)
     }
 
