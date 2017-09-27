@@ -445,7 +445,7 @@ end
 function HoseSystemPumpMotor:setFillMode(int, noEventSend)
     self.fillMode = math.floor(int) -- cast it to int!
 
-    setFillModeEvent.sendEvent(self, int, noEventSend)
+    SetFillModeEvent.sendEvent(self, int, noEventSend)
 end
 
 ---
