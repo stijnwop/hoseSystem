@@ -7,6 +7,11 @@
 -- Copyright (c) Wopster, 2017
 
 HoseSystemPlayerInteractiveHandling = {}
+
+HoseSystemPlayerInteractiveHandling.KINEMATIC_HELPER_TRANS_OFFSET = { -0.4, -0.1, 0.3 }
+HoseSystemPlayerInteractiveHandling.JOINT_XZ_ROT_LIMIT = 5 -- deg
+HoseSystemPlayerInteractiveHandling.BLINKING_WARNING_TIME = 5000 -- ms
+
 local HoseSystemPlayerInteractiveHandling_mt = Class(HoseSystemPlayerInteractiveHandling, HoseSystemPlayerInteractive)
 
 ---
@@ -55,8 +60,8 @@ function HoseSystemPlayerInteractiveHandling:update(dt)
                         local reference = HoseSystemReferences:getReference(object, self.object.referenceIdToMountHoseSystem, grabPoint)
 
                         local node = grabPoint.node
-                        if reference ~= nil then
-                            node = reference.parkable and grabPoint.node or reference.node
+                        if reference ~= nil and reference.parkable then
+                            node = reference.node
                         end
 
                         HoseSystemUtil:renderHelpTextOnNode(node, g_i18n:getText('action_attachHose'):format(self.object.typeDesc), g_i18n:getText('input_mouseInteract'):format(string.lower(MouseHelper.getButtonName(Input.MOUSE_BUTTON_LEFT))))
@@ -88,14 +93,12 @@ function HoseSystemPlayerInteractiveHandling:update(dt)
                     end
                 elseif HoseSystem:getIsConnected(grabPoint.state) or HoseSystem:getIsParked(grabPoint.state) then
                     --
-                    if HoseSystemReferences:getAllowsDetach(self.object, index) then -- or grabPoint.connectorRef.connectable then
-                        if grabPoint.hasJointIndex then -- or grabPoint.connectorRef.hasJointIndex then -- Put the index through it with the jointIndex!
+                    if HoseSystemReferences:getAllowsDetach(self.object, index) then
+                        if grabPoint.hasJointIndex then
                             HoseSystemUtil:renderHelpTextOnNode(grabPoint.node, g_i18n:getText('action_detachHose'):format(self.object.typeDesc), g_i18n:getText('input_mouseInteract'):format(string.lower(MouseHelper.getButtonName(Input.MOUSE_BUTTON_RIGHT))))
 
                             if InputBinding.hasEvent(InputBinding.detachHose) then
-                                --if self:allowsDetach(index) then
                                 local vehicle = grabPoint.connectorVehicle
-                                --                                local reference = grabPoint.connectable and vehicle.grabPoints[grabPoint.connectorRefId] or vehicle.hoseSystemReferences[grabPoint.connectorRefId]
                                 local reference = HoseSystemReferences:getReference(vehicle, grabPoint.connectorRefId, grabPoint)
 
                                 if reference ~= nil then
@@ -171,7 +174,7 @@ function HoseSystemPlayerInteractiveHandling:grab(index, player, syncState, noEv
                 }
 
                 link(player.toolsRootNode, player.hoseSystem.kinematicHelper.node)
-                setTranslation(player.hoseSystem.kinematicHelper.node, -0.4, -0.1, 0.3) -- fixed location
+                setTranslation(player.hoseSystem.kinematicHelper.node, unpack(HoseSystemPlayerInteractiveHandling.KINEMATIC_HELPER_TRANS_OFFSET)) -- fixed location
 
                 -- Set kinematicHelper node dependent on player rotation
                 local angle = HoseSystemUtil:calculateCosAngle(grabPoint.node, player.toolsRootNode, 3)
@@ -283,8 +286,7 @@ function HoseSystemPlayerInteractiveHandling:drop(index, player, syncState, noEv
                     -- set the joint limits back to the state that it only rotates on the connector
                     for index, gp in pairs(self.object.grabPoints) do
                         if index ~= grabPoint.id and HoseSystem:getIsConnected(gp.state) then
-                            -- set rot on 5 deg for some realistic movement
-                            self:setJointRotAndTransLimit({ 5, 0, 5 }, { 0, 0, 0 })
+                            self:setJointRotAndTransLimit({ HoseSystemPlayerInteractiveHandling.JOINT_XZ_ROT_LIMIT, 0, HoseSystemPlayerInteractiveHandling.JOINT_XZ_ROT_LIMIT }, { 0, 0, 0 })
                         end
                     end
                 end
@@ -353,7 +355,7 @@ function HoseSystemPlayerInteractiveHandling:attach(index, vehicle, referenceId,
                     self:hardParkHose(grabPoints, object, reference)
                 else
                     if g_currentMission.player == grabPoint.currentOwner then
-                        g_currentMission:showBlinkingWarning(string.format(g_i18n:getText('info_hoseParkingPlaceToShort'), reference.parkLength, self.object.data.length), 5000)
+                        g_currentMission:showBlinkingWarning(string.format(g_i18n:getText('info_hoseParkingPlaceToShort'), reference.parkLength, self.object.data.length), HoseSystemPlayerInteractiveHandling.BLINKING_WARNING_TIME)
                     end
 
                     return
@@ -555,12 +557,12 @@ function HoseSystemPlayerInteractiveHandling:constructPlayerJoint(jointDesc, pla
     constructor:setRotationLimitSpring(rotLimitSpring[1], rotLimitDamping[1], rotLimitSpring[2], rotLimitDamping[2], rotLimitSpring[3], rotLimitDamping[3])
     constructor:setTranslationLimitSpring(transLimitSpring[1], translimitDamping[1], transLimitSpring[2], translimitDamping[1], transLimitSpring[3], translimitDamping[3])
 
-    for i = 0, 2 do
-        constructor:setRotationLimit(i, 0, 0)
-        constructor:setTranslationLimit(i, true, 0, 0)
+    for axis = 0, 2 do
+        constructor:setRotationLimit(axis, 0, 0)
+        constructor:setTranslationLimit(axis, true, 0, 0)
     end
 
-    local forceLimit = playerHoseDesc.mass * 25 -- only when stucked behind object
+    --    local forceLimit = playerHoseDesc.mass * 25 -- only when stucked behind object
     --    constructor:setBreakable(forceLimit, forceLimit)
 
     local jointIndex = constructor:finalize()
@@ -678,7 +680,8 @@ function HoseSystemPlayerInteractiveHandling:hardConnect(grabPoint, vehicle, ref
 
         setDirection(vehicle.components[grabPoint.componentIndex].node, direction[1], direction[2], direction[3], upVector[1], upVector[2], upVector[3])
 
-        local translation = { localToLocal(vehicle.components[grabPoint.componentIndex].node, grabPoint.node, 0, 0, (grabPoint.connectable or reference.connectable) and -0.025 or 0) } -- Todo: make offset value dynamic
+        -- Todo: make offset value dynamic
+        local translation = { localToLocal(vehicle.components[grabPoint.componentIndex].node, grabPoint.node, 0, 0, (grabPoint.connectable or reference.connectable) and -0.025 or 0) }
         setTranslation(vehicle.components[grabPoint.componentIndex].node, unpack(translation))
 
         link(reference.node, vehicle.components[grabPoint.componentIndex].node)
@@ -840,7 +843,7 @@ function HoseSystemPlayerInteractiveHandling:hardParkHose(grabPoints, vehicle, r
     setIsCompoundChild(self.object.components[(#self.object.components + 1) / 2].node, true)
     setIsCompoundChild(self.object.components[grabPoints[2].componentIndex].node, true)
 
-    -- Center node needs some dummy objects
+    -- Center node needs some dummy data
     HoseSystemPlayerInteractiveHandling:hardParkHoseComponent(index, grabPoints[1], reference, startTargetNode, self.object.components[grabPoints[1].componentIndex].node, reference.startTransOffset, reference.startRotOffset)
     HoseSystemPlayerInteractiveHandling:hardParkHoseComponent(index, { node = self.object.data.centerNode, id = 2 }, reference, centerTargetNode, self.object.components[(#self.object.components + 1) / 2].node, { 0, 0, 0 }, { 0, 0, 0 }, self.object.data.length / 2)
     HoseSystemPlayerInteractiveHandling:hardParkHoseComponent(index, grabPoints[2], reference, endTargetNode, self.object.components[grabPoints[2].componentIndex].node, reference.endTransOffset, reference.endRotOffset, self.object.data.length)
@@ -1054,7 +1057,7 @@ function HoseSystemPlayerInteractiveHandling:createCustomComponentJoint(grabPoin
                 anchor1 = reference.node,
                 anchor2 = reference.node,
                 isConnector = false,
-                rotLimit = { 5, 0, 5 },
+                rotLimit = { HoseSystemPlayerInteractiveHandling.JOINT_XZ_ROT_LIMIT, 0, HoseSystemPlayerInteractiveHandling.JOINT_XZ_ROT_LIMIT },
                 transLimit = { 0, 0, 0 }
             })
         end
