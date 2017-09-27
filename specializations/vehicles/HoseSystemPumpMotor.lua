@@ -461,7 +461,7 @@ end
 function HoseSystemPumpMotor:setFillDirection(int, noEventSend)
     self.fillDirection = int > HoseSystemPumpMotor.OUT and HoseSystemPumpMotor.IN or int
 
-    setFillDirectionEvent.sendEvent(self, int, noEventSend)
+    SetFillDirectionEvent.sendEvent(self, int, noEventSend)
 end
 
 ---
@@ -654,6 +654,8 @@ function HoseSystemPumpMotor:showWarningMessage(message)
     g_currentMission:showBlinkingWarning(message)
 end
 
+--
+
 SetPumpStartedEvent = {}
 SetPumpStartedEvent_mt = Class(SetPumpStartedEvent, Event)
 
@@ -713,109 +715,109 @@ function SetPumpStartedEvent.sendEvent(object, isStarted, warningId, noEventSend
     end
 end
 
----
+--
 
-setFillDirectionEvent = {};
-setFillDirectionEvent_mt = Class(setFillDirectionEvent, Event);
+SetFillDirectionEvent = {}
+SetFillDirectionEvent_mt = Class(SetFillDirectionEvent, Event)
 
-InitEventClass(setFillDirectionEvent, "setFillDirectionEvent");
+InitEventClass(SetFillDirectionEvent, 'SetFillDirectionEvent')
 
-function setFillDirectionEvent:emptyNew()
-    local self = Event:new(setFillDirectionEvent_mt);
-    self.className = "setFillDirectionEvent";
-
-    return self;
+function SetFillDirectionEvent:emptyNew()
+    local event = Event:new(SetFillDirectionEvent_mt)
+    return event
 end
 
-function setFillDirectionEvent:new(vehicle, int)
-    local self = setFillDirectionEvent:emptyNew();
-    self.vehicle = vehicle;
-    self.int = int;
+function SetFillDirectionEvent:new(object, int)
+    local event = SetFillDirectionEvent:emptyNew()
 
-    return self;
+    event.object = object
+    event.int = int
+
+    return self
 end
 
-function setFillDirectionEvent:readStream(streamId, connection)
-    local id = streamReadInt32(streamId);
-    self.vehicle = networkGetObject(id);
-    self.int = streamReadUIntN(streamId, HoseSystemPumpMotor.sendNumBits);
-    self:run(connection);
+function SetFillDirectionEvent:readStream(streamId, connection)
+    self.object = readNetworkNodeObject(streamId)
+    self.int = streamReadUIntN(streamId, HoseSystemPumpMotor.sendNumBits)
+
+    self:run(connection)
 end
 
-function setFillDirectionEvent:writeStream(streamId, connection)
-    streamWriteInt32(streamId, networkGetObjectId(self.vehicle));
-    streamWriteUIntN(streamId, self.int, HoseSystemPumpMotor.sendNumBits);
+function SetFillDirectionEvent:writeStream(streamId, connection)
+    writeNetworkNodeObject(streamId, self.object)
+    streamWriteUIntN(streamId, self.int, HoseSystemPumpMotor.sendNumBits)
 end
 
-function setFillDirectionEvent:run(connection)
-    self.vehicle:setFillDirection(self.int, true);
+function SetFillDirectionEvent:run(connection)
+    self.object:setFillDirection(self.int, true)
 
     if not connection:getIsServer() then
-        g_server:broadcastEvent(setFillDirectionEvent:new(self.vehicle, self.int), nil, connection, self.object);
-    end;
+        g_server:broadcastEvent(self, false, connection, self.object)
+    end
 end
 
-function setFillDirectionEvent.sendEvent(vehicle, int, noEventSend)
+function SetFillDirectionEvent.sendEvent(object, int, noEventSend)
     if noEventSend == nil or noEventSend == false then
         if g_server ~= nil then
-            g_server:broadcastEvent(setFillDirectionEvent:new(vehicle, int), nil, nil, vehicle);
+            g_server:broadcastEvent(SetFillDirectionEvent:new(object, int), nil, nil, object)
         else
-            g_client:getServerConnection():sendEvent(setFillDirectionEvent:new(vehicle, int));
-        end;
-    end;
+            g_client:getServerConnection():sendEvent(SetFillDirectionEvent:new(object, int))
+        end
+    end
 end
 
----
+--
 
-setFillModeEvent = {}
-setFillModeEvent_mt = Class(setFillModeEvent, Event)
+SetFillModeEvent = {}
+SetFillModeEvent_mt = Class(SetFillModeEvent, Event)
 
-InitEventClass(setFillModeEvent, "setFillModeEvent")
+InitEventClass(SetFillModeEvent, 'SetFillModeEvent')
 
-function setFillModeEvent:emptyNew()
-    local self = Event:new(setFillModeEvent_mt);
-    self.className = "setFillModeEvent";
-
-    return self;
+function SetFillModeEvent:emptyNew()
+    local event = Event:new(SetFillModeEvent_mt)
+    return event
 end
 
-function setFillModeEvent:new(vehicle, int)
-    local self = setFillModeEvent:emptyNew();
-    self.vehicle = vehicle;
-    self.int = int;
+function SetFillModeEvent:new(object, int)
+    local event = SetFillModeEvent:emptyNew()
 
-    return self;
+    event.object = object
+    event.int = int
+
+    return event
 end
 
-function setFillModeEvent:readStream(streamId, connection)
-    local id = streamReadInt32(streamId);
-    self.vehicle = networkGetObject(id);
-    self.int = streamReadUIntN(streamId, HoseSystemPumpMotor.sendNumBits);
-    self:run(connection);
+function SetFillModeEvent:readStream(streamId, connection)
+    self.object = readNetworkNodeObject(streamId)
+    self.int = streamReadUIntN(streamId, HoseSystemPumpMotor.sendNumBits)
+
+    self:run(connection)
 end
 
-function setFillModeEvent:writeStream(streamId, connection)
-    streamWriteInt32(streamId, networkGetObjectId(self.vehicle));
-    streamWriteUIntN(streamId, self.int, HoseSystemPumpMotor.sendNumBits);
+function SetFillModeEvent:writeStream(streamId, connection)
+    writeNetworkNodeObject(streamId, self.object)
+    streamWriteUIntN(streamId, self.int, HoseSystemPumpMotor.sendNumBits)
 end
 
-function setFillModeEvent:run(connection)
-    self.vehicle:setFillMode(self.int, true);
+function SetFillModeEvent:run(connection)
+    self.object:setFillMode(self.int, true)
 
     if not connection:getIsServer() then
-        g_server:broadcastEvent(setFillModeEvent:new(self.vehicle, self.int), nil, connection, self.object);
-    end;
+        g_server:broadcastEvent(self, false, connection, self.object)
+    end
 end
 
-function setFillModeEvent.sendEvent(vehicle, int, noEventSend)
+function SetFillModeEvent.sendEvent(object, int, noEventSend)
     if noEventSend == nil or noEventSend == false then
         if g_server ~= nil then
-            g_server:broadcastEvent(setFillModeEvent:new(vehicle, int), nil, nil, vehicle);
+            g_server:broadcastEvent(SetFillModeEvent:new(object, int), nil, nil, object)
         else
-            g_client:getServerConnection():sendEvent(setFillModeEvent:new(vehicle, int));
-        end;
-    end;
+            g_client:getServerConnection():sendEvent(SetFillModeEvent:new(object, int))
+        end
+    end
 end
+
+--
 
 IsSuckingEvent = {}
 IsSuckingEvent_mt = Class(IsSuckingEvent, Event)
@@ -823,35 +825,36 @@ IsSuckingEvent_mt = Class(IsSuckingEvent, Event)
 InitEventClass(IsSuckingEvent, 'IsSuckingEvent')
 
 function IsSuckingEvent:emptyNew()
-    local self = Event:new(IsSuckingEvent_mt)
-    self.className = 'IsSuckingEvent'
-
-    return self
+    local event = Event:new(IsSuckingEvent_mt)
+    return event
 end
 
-function IsSuckingEvent:new(vehicle, isSucking)
-    local self = IsSuckingEvent:emptyNew()
+function IsSuckingEvent:new(object, isSucking)
+    local event = IsSuckingEvent:emptyNew()
 
-    self.vehicle = vehicle
-    self.isSucking = isSucking
+    event.object = object
+    event.isSucking = isSucking
 
-    return self
+    return event
 end
 
 function IsSuckingEvent:writeStream(streamId, connection)
-    writeNetworkNodeObject(streamId, self.vehicle)
+    writeNetworkNodeObject(streamId, self.object)
     streamWriteBool(streamId, self.isSucking)
 end
 
 function IsSuckingEvent:readStream(streamId, connection)
-    self.vehicle = readNetworkNodeObject(streamId)
+    self.object = readNetworkNodeObject(streamId)
     self.isSucking = streamReadBool(streamId)
+
     self:run(connection)
 end
 
 function IsSuckingEvent:run(connection)
-    self.vehicle.isSucking = self.isSucking
+    self.object.isSucking = self.isSucking
 end
+
+--
 
 SendUpdateOnFillEvent = {}
 SendUpdateOnFillEvent_mt = Class(SendUpdateOnFillEvent, Event)
@@ -859,22 +862,20 @@ SendUpdateOnFillEvent_mt = Class(SendUpdateOnFillEvent, Event)
 InitEventClass(SendUpdateOnFillEvent, 'SendUpdateOnFillEvent')
 
 function SendUpdateOnFillEvent:emptyNew()
-    local self = Event:new(SendUpdateOnFillEvent_mt)
-    self.className = 'SendUpdateOnFillEvent'
-
-    return self
+    local event = Event:new(SendUpdateOnFillEvent_mt)
+    return event
 end
 
 function SendUpdateOnFillEvent:new(vehicle, fillObjectFound, fillFromFillVolume, fillUnitIndex, fillObjectHasPlane)
-    local self = SendUpdateOnFillEvent:emptyNew()
+    local event = SendUpdateOnFillEvent:emptyNew()
 
-    self.vehicle = vehicle
-    self.fillObjectFound = fillObjectFound
-    self.fillFromFillVolume = fillFromFillVolume
-    self.fillUnitIndex = fillUnitIndex
-    self.fillObjectHasPlane = fillObjectHasPlane
+    event.vehicle = vehicle
+    event.fillObjectFound = fillObjectFound
+    event.fillFromFillVolume = fillFromFillVolume
+    event.fillUnitIndex = fillUnitIndex
+    event.fillObjectHasPlane = fillObjectHasPlane
 
-    return self
+    return event
 end
 
 function SendUpdateOnFillEvent:writeStream(streamId, connection)
