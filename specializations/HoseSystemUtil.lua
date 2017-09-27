@@ -56,6 +56,9 @@ HoseSystemUtil.eventHelper = {
 HoseSystemUtil.DIRECTION_RIGHT = 1
 HoseSystemUtil.DIRECTION_LEFT = -1
 
+HoseSystemUtil.MAX_PROJECT_THRESHOLD = 0.95
+HoseSystemUtil.MIN_PROJECT_THRESHOLD = 0.05
+
 ---
 -- Lua's default function tonumber does not convert booleans to number
 -- @param b
@@ -150,7 +153,7 @@ function HoseSystemUtil:renderHelpTextOnNode(node, actionText, inputBinding)
         local worldX, worldY, worldZ = localToWorld(node, 0, 0.1, 0)
         local x, y, z = project(worldX, worldY, worldZ)
 
-        if x < 0.95 and y < 0.95 and z < 1 and x > 0.05 and y > 0.05 and z > 0 then
+        if x < HoseSystemUtil.MAX_PROJECT_THRESHOLD and y < HoseSystemUtil.MAX_PROJECT_THRESHOLD and z < 1 and x > HoseSystemUtil.MIN_PROJECT_THRESHOLD and y > HoseSystemUtil.MIN_PROJECT_THRESHOLD and z > 0 then
             setTextAlignment(RenderText.ALIGN_CENTER)
             setTextColor(1, 1, 1, 1)
             renderText(x, y + 0.01, 0.017, inputBinding)

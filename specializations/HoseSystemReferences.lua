@@ -7,6 +7,16 @@
 -- Copyright (c) Wopster, 2017
 
 HoseSystemReferences = {}
+
+HoseSystemReferences.SEQUENCE = 0.6 * 0.6
+HoseSystemReferences.VEHICLE_DISTANCE = 1.3
+
+HoseSystemReferences.BLINKING_WARNING_TIME = 50 -- ms
+
+HoseSystemReferences.EXTEND_Y_ROT_OFFSET = 2.3
+HoseSystemReferences.EXTEND_Y_ROT_OFFSET_INVERSE = 0.6
+HoseSystemReferences.RADIANS_LIMIT = math.rad(80)
+
 local HoseSystemReferences_mt = Class(HoseSystemReferences)
 
 ---
@@ -126,7 +136,7 @@ end
 --
 function HoseSystemReferences:searchReferences(grabPoint)
     local x, y, z = getWorldTranslation(grabPoint.node)
-    local sequence = 0.6 * 0.6
+    local sequence = HoseSystemReferences.SEQUENCE
     local reset = true
 
     if not grabPoint.connectable then
@@ -160,7 +170,7 @@ function HoseSystemReferences:searchReferences(grabPoint)
                                 if dist < sequence then
                                     local vehicleDistance = math.abs(y - ry)
 
-                                    if vehicleDistance < 1.3 then
+                                    if vehicleDistance < HoseSystemReferences.VEHICLE_DISTANCE then
                                         if HoseSystemReferences:getCanExtend(reference.id > 1, reference.node, grabPoint.node) then
                                             self:loadFillableObjectAndReference(networkGetObjectId(hoseSystemHose), i, reference.connectable)
                                             sequence = dist
@@ -191,10 +201,10 @@ function HoseSystemReferences:getCanExtend(inverse, node1, node2)
     local rot = math.abs(Utils.getYRotationBetweenNodes(node1, node2))
 
     if inverse then
-        return HoseSystemUtil:mathRound(rot, 1) <= 0.6
+        return HoseSystemUtil:mathRound(rot, 1) <= HoseSystemReferences.EXTEND_Y_ROT_OFFSET_INVERSE
     end
 
-    return HoseSystemUtil:mathRound(rot, 1) >= 2.3
+    return HoseSystemUtil:mathRound(rot, 1) >= HoseSystemReferences.EXTEND_Y_ROT_OFFSET
 end
 
 ---
@@ -215,7 +225,7 @@ function HoseSystemReferences:getCanConnect(x, y, z, sequence, grabPoint, refere
 
             if not reference.parkable then
                 if not grabPoint.connectable then
-                    if cosAngle > math.rad(-80) and cosAngle < math.rad(80) then -- > -10° < 10° -- > cosAngle > -0.17365 and cosAngle < 0.17365 then -- > -80° < 80°
+                    if cosAngle > -HoseSystemReferences.RADIANS_LIMIT and cosAngle < HoseSystemReferences.RADIANS_LIMIT then -- > -10° < 10° -- > cosAngle > -0.17365 and cosAngle < 0.17365 then -- > -80° < 80°
                         return true
                     end
                 end
@@ -230,8 +240,8 @@ function HoseSystemReferences:getCanConnect(x, y, z, sequence, grabPoint, refere
         local rmx, rmy, rmz = getWorldTranslation(reference.maxParkLengthNode)
         local distance = Utils.vector2LengthSq(x - rmx, z - rmz)
 
-        if distance < reference.inRangeDistance then
-            if math.abs(y - rmy) < 1.3 then
+        if distance < sequence then
+            if math.abs(y - rmy) < reference.inRangeDistance then
                 return true
             end
         end
@@ -296,7 +306,7 @@ function HoseSystemReferences:getAllowsDetach(object, index)
 
             if reference ~= nil then
                 if not reference.parkable and vehicle.pumpIsStarted then
-                    g_currentMission:showBlinkingWarning(g_i18n:getText('pumpMotor_warningTurnOffFirst'), 50) -- Warn about the pump being on because this is not visual so people tend to act dumb!
+                    g_currentMission:showBlinkingWarning(g_i18n:getText('pumpMotor_warningTurnOffFirst'), HoseSystemReferences.BLINKING_WARNING_TIME) -- Warn about the pump being on because this is not visual so people tend to act dumb!
 
                     return false
                 end

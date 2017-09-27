@@ -44,6 +44,8 @@ HoseSystem.STATE_DETACHED = 1
 HoseSystem.STATE_CONNECTED = 2
 HoseSystem.STATE_PARKED = 3
 
+HoseSystem.MOVED_DISTANCE_THRESHOLD = 0.001
+
 HoseSystem.cctCollisionMask = 32 -- 110010 avoid CTT bit mask
 HoseSystem.hoseCollisionMask = 8194
 
@@ -508,7 +510,7 @@ function HoseSystem:updateSpline(force)
     local movedDistance1 = Utils.vector3Length(p1[1] - js.lastPosition[1][1], p1[2] - js.lastPosition[1][2], p1[3] - js.lastPosition[1][3])
     local movedDistance2 = Utils.vector3Length(p2[1] - js.lastPosition[2][1], p2[2] - js.lastPosition[2][2], p2[3] - js.lastPosition[2][3])
 
-    if movedDistance1 > 0.001 or movedDistance2 > 0.001 or force then
+    if movedDistance1 > HoseSystem.MOVED_DISTANCE_THRESHOLD or movedDistance2 > HoseSystem.MOVED_DISTANCE_THRESHOLD or force then
         js.lastPosition[1] = p1
         js.lastPosition[2] = p2
 

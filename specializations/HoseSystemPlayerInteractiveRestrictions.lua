@@ -8,6 +8,13 @@
 
 HoseSystemPlayerInteractiveRestrictions = {}
 
+HoseSystemPlayerInteractiveRestrictions.RESPAWN_OFFSET = 0.00001
+HoseSystemPlayerInteractiveRestrictions.STRETCH_PERCENTAGE = 1.15 -- %
+HoseSystemPlayerInteractiveRestrictions.MAX_HOSECHAIN_COUNT = 4
+
+HoseSystemPlayerInteractiveRestrictions.BLINKING_WARNING_TIME = 5000 -- ms
+HoseSystemPlayerInteractiveRestrictions.CHECK_TRESHOLD_TIME = 750 -- ms
+
 local HoseSystemPlayerInteractiveRestrictions_mt = Class(HoseSystemPlayerInteractiveRestrictions, HoseSystemPlayerInteractive)
 
 ---
@@ -71,73 +78,70 @@ function HoseSystemPlayerInteractiveRestrictions:restrictPlayerDistance(dt, grab
     local player = grabPoint.currentOwner
 
     if player ~= nil and player.positionIsDirty then
-        if player.hoseSystem.interactiveHandling ~= nil then
-            if grabPoint.id == player.hoseSystem.index then
-                if HoseSystem:getIsAttached(grabPoint.state) then
-                    local dependentGrabpoint = HoseSystemUtil:getDependentGrabPoint(self.object.grabPoints, grabPoint.id, false, false)
+        if player.hoseSystem.interactiveHandling ~= nil and grabPoint.id == player.hoseSystem.index then
+            if HoseSystem:getIsAttached(grabPoint.state) then
+                local dependentGrabpoint = HoseSystemUtil:getDependentGrabPoint(self.object.grabPoints, grabPoint.id, false, false)
 
-                    if dependentGrabpoint ~= nil then
-                        -- If we have a player use the grabpoint as reference
-                        local reference = HoseSystem:getIsConnected(dependentGrabpoint.state) and HoseSystemReferences:getReference(dependentGrabpoint.connectorVehicle, dependentGrabpoint.connectorRefId, dependentGrabpoint) or dependentGrabpoint
+                if dependentGrabpoint ~= nil then
+                    -- If we have a player use the grabpoint as reference
+                    local reference = HoseSystem:getIsConnected(dependentGrabpoint.state) and HoseSystemReferences:getReference(dependentGrabpoint.connectorVehicle, dependentGrabpoint.connectorRefId, dependentGrabpoint) or dependentGrabpoint
 
-                        if reference == nil then
-                            return
-                        end
+                    if reference == nil then
+                        return
+                    end
 
-                        if HoseSystem:getIsConnected(dependentGrabpoint.state) and HoseSystemPlayerInteractiveRestrictions:getIsVehicleAboveSpeedLimit(dependentGrabpoint.connectorVehicle, 1) then
-                            return
-                        end
+                    if HoseSystem:getIsConnected(dependentGrabpoint.state) and HoseSystemPlayerInteractiveRestrictions:getIsVehicleAboveSpeedLimit(dependentGrabpoint.connectorVehicle, 1) then
+                        return
+                    end
 
-                        local x, y, z = getWorldTranslation(reference.node)
+                    local x, y, z = getWorldTranslation(reference.node)
+                    local px, py, pz = getWorldTranslation(player.rootNode)
+                    local dx, dz = px - x, pz - z
+                    local radius = dx * dx + dz * dz
+                    local length = self.object.data.length
+                    --                                local actionRadius = self.currentChainCount > 1 and (length * length) * 1.2 or length * length -- give it some space when moving a chain because well..
+                    local actionRadius = length * length
+                    local playerHeight = math.abs(py - y)
+
+                    -- Player height difference is not the full hose lenght since there's always a curve on the hose that will give some lenght loss
+                    if radius < actionRadius and playerHeight < length / 2 then
+                        self.lastInRangePosition = { getTranslation(player.rootNode) }
+                    else
+                        local kx, ky, kz = getWorldTranslation(reference.node)
                         local px, py, pz = getWorldTranslation(player.rootNode)
-                        local dx, dz = px - x, pz - z
-                        local radius = dx * dx + dz * dz
-                        local length = self.object.data.length
-                        --                                local actionRadius = self.currentChainCount > 1 and (length * length) * 1.2 or length * length -- give it some space when moving a chain because well..
-                        local actionRadius = length * length
-                        local playerHeight = math.abs(py - y)
+                        local distance = Utils.vector2Length(px - kx, pz - kz)
 
-                        -- Player height difference is not the full hose lenght since there's always a curve on the hose that will give some lenght loss
-                        if radius < actionRadius and playerHeight < length / 2 then
-                            self.lastInRangePosition = { getTranslation(player.rootNode) }
-                        else
-                            local kx, ky, kz = getWorldTranslation(reference.node)
-                            local px, py, pz = getWorldTranslation(player.rootNode)
-                            local distance = Utils.vector2Length(px - kx, pz - kz)
-                            --                            local x, y, z = unpack(self.lastInRangePosition)
+                        x = kx + ((px - kx) / distance) * (length - HoseSystemPlayerInteractiveRestrictions.RESPAWN_OFFSET * dt)
+                        -- x = kx + ((px - kx) / distance) * (self.hose.length * (self.currentChainCount - 1) - HoseSystemPlayerInteractiveRestrictions.RESPAWN_OFFSET * dt)
+                        y = ky + ((py - ky) / Utils.vector2Length(px - kx, py - ky)) * (length / 2 - HoseSystemPlayerInteractiveRestrictions.RESPAWN_OFFSET * dt)
 
-                            x = kx + ((px - kx) / distance) * (length - 0.00001 * dt)
-                            -- x = kx + ((px - kx) / distance) * (self.hose.length * (self.currentChainCount - 1) - 0.00001 * dt)
-                            y = ky + ((py - ky) / Utils.vector2Length(px - kx, py - ky)) * (length / 2 - 0.00001 * dt)
+                        -- Prevent from spawning into the ground
+                        if y < ky and py > y then
+                            y = py
+                        end
 
-                            -- Prevent from spawning into the ground
-                            if y < ky and py > y then
-                                y = py
-                            end
+                        -- y =
+                        z = kz + ((pz - kz) / distance) * (length - HoseSystemPlayerInteractiveRestrictions.RESPAWN_OFFSET * dt)
+                        -- z = kz + ((pz - kz) / distance) * (self.hose.length * (self.currentChainCount - 1) - HoseSystemPlayerInteractiveRestrictions.RESPAWN_OFFSET * dt)
 
-                            -- y =
-                            z = kz + ((pz - kz) / distance) * (length - 0.00001 * dt)
-                            -- z = kz + ((pz - kz) / distance) * (self.hose.length * (self.currentChainCount - 1) - 0.00001 * dt)
+                        player:moveToAbsoluteInternal(x, y, z)
+                        self.lastInRangePosition = { x, y, z }
 
-                            player:moveToAbsoluteInternal(x, y, z)
-                            self.lastInRangePosition = { x, y, z }
-
-                            if not self.rangeRestrictionMessageShown and player == g_currentMission.player then
-                                self.rangeRestrictionMessageShown = true
-                                g_currentMission:showBlinkingWarning(g_i18n:getText('info_hoseRangeRestriction'), 5000)
-                            end
+                        if not self.rangeRestrictionMessageShown and player == g_currentMission.player then
+                            self.rangeRestrictionMessageShown = true
+                            g_currentMission:showBlinkingWarning(g_i18n:getText('info_hoseRangeRestriction'), HoseSystemPlayerInteractiveRestrictions.BLINKING_WARNING_TIME)
                         end
                     end
                 end
             end
         end
 
-        if self.currentChainCount >= 4 then
+        if self.currentChainCount >= HoseSystemPlayerInteractiveRestrictions.MAX_HOSECHAIN_COUNT then
             player.walkingIsLocked = true
 
             if not self.playerRestrictionChainToLongShown and player == g_currentMission.player then
                 self.playerRestrictionChainToLongShown = true
-                g_currentMission:showBlinkingWarning(g_i18n:getText('info_hoseRangeRestrictionChainToLong'), 5000)
+                g_currentMission:showBlinkingWarning(g_i18n:getText('info_hoseRangeRestrictionChainToLong'), HoseSystemPlayerInteractiveRestrictions.BLINKING_WARNING_TIME)
             end
         else
             player.walkingIsLocked = false
@@ -166,7 +170,7 @@ function HoseSystemPlayerInteractiveRestrictions:restrictReferenceDistance(dt, g
                     local ax, ay, az = getWorldTranslation(self.object.components[grabPoint.componentIndex].node)
                     local bx, by, bz = getWorldTranslation(self.object.components[dependentGrabpoint.componentIndex].node)
                     local distance = Utils.vector3Length(bx - ax, by - ay, bz - az)
-                    local allowedDistance = self.object.data.length * 1.15 -- give it a bit more space to move
+                    local allowedDistance = self.object.data.length * HoseSystemPlayerInteractiveRestrictions.STRETCH_PERCENTAGE -- give it a bit more space to move
 
                     if distance > allowedDistance or distance < (allowedDistance - 1) then
                         if HoseSystem.debugRendering then
@@ -179,7 +183,7 @@ function HoseSystemPlayerInteractiveRestrictions:restrictReferenceDistance(dt, g
                             self.object.poly.interactiveHandling:detach(grabPoint.id, grabPoint.connectorVehicle, grabPoint.connectorRefId, reference.connectable ~= nil and reference.connectable)
                         end
 
-                        self.lastRestrictCheckTime = g_currentMission.time + 750
+                        self.lastRestrictCheckTime = g_currentMission.time + HoseSystemPlayerInteractiveRestrictions.CHECK_TRESHOLD_TIME
                     end
                 end
             end
