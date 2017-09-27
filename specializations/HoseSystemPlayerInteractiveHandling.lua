@@ -163,9 +163,7 @@ function HoseSystemPlayerInteractiveHandling:grab(index, player, syncState, noEv
             end
         elseif syncState == HoseSystemUtil.eventHelper.STATE_SERVER then
             if self.object.isServer then
-                -- Todo: calculate mass of hose components.. save it in self on game load.
-                -- For now just set 4kg for every meter.
-                player.hoseSystem.mass = (0.004 * self.object.data.length) * 100
+                player.hoseSystem.mass = self.object.data.generatedMass
                 player.hoseSystem.kinematicHelper = {
                     node = clone(player.pickUpKinematicHelper.node, true, false, true)
                 }

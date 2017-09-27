@@ -92,6 +92,9 @@ function HoseSystem:load(savegame)
         centerNode = Utils.indexToObject(self.components, getXMLString(self.xmlFile, 'vehicle.hoseSystem#centerNode'))
     }
 
+    -- For now just set 4kg for every meter.
+    self.data.generatedMass = (0.04 * self.data.length) * 100
+
     self.supportedFillTypes = {}
 
     local fillTypeCategories = getXMLString(self.xmlFile, 'vehicle.hoseSystem#supportedFillTypeCategories')
