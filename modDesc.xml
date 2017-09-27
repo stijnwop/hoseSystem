@@ -10,7 +10,7 @@
         <en>
             <![CDATA[With a liquid manure hose you are able to pump a liquid fill type from source to target. If applicable you could extend the liquid manure hose to reach larger ranges.]]></en>
         <de>
-            <![CDATA[With a liquid manure hose you are able to pump a liquid fill type from source to target. If applicable you could extend the liquid manure hose to reach larger ranges.]]></de>
+            <![CDATA[Mit einem Gülleschlauch können Sie Flüssigkeiten umpumpen. Wahlweise können Sie auch die Schläuche mit Verlängerungen erweitern.]]></de>
     </description>
     <iconFilename>store.dds</iconFilename>
     <multiplayer supported="true"/>
@@ -48,13 +48,13 @@
             <en>With a liquid manure hose you are able to pump a liquid fill type from source to target. If applicable
                 you could extend the liquid manure hose to reach larger ranges.
             </en>
-            <de>With a liquid manure hose you are able to pump a liquid fill type from source to target. If applicable
-                you could extend the liquid manure hose to reach larger ranges.
+            <de>Mit einem Gülleschlauch können Sie Flüssigkeiten umpumpen. Wahlweise können Sie auch die Schläuche mit
+                Verlängerungen erweitern.
             </de>
         </text>
         <text name="configuration_ext_liquidManureHose">
             <en>Extendable</en>
-            <de>Extendable</de>
+            <de>Verlängerbar</de>
         </text>
         <text name="configuration_nor_liquidManureHose">
             <en>Normal</en>
@@ -66,47 +66,47 @@
         </text>
         <text name="input_mouseInteract">
             <en>Press mouse button %s to</en>
-            <de>Press mouse button %s to</de>
+            <de>Drücke Maustaste %s zum</de>
         </text>
         <text name="action_grabHose">
-            <en>grab liquid manure hose</en>
-            <de>grab liquid manure hose</de>
+            <en>grab %s</en>
+            <de>%s greifen</de>
         </text>
         <text name="action_dropHose">
-            <en>drop liquid manure hose</en>
-            <de>drop liquid manure hose</de>
+            <en>drop %s</en>
+            <de>%s hinlegen</de>
         </text>
         <text name="action_attachHose">
-            <en>attach liquid manure hose</en>
-            <de>attach liquid manure hose</de>
+            <en>attach %s</en>
+            <de>%s koppeln</de>
         </text>
         <text name="action_detachHose">
-            <en>detach liquid manure hose</en>
-            <de>detach liquid manure hose</de>
+            <en>detach %s</en>
+            <de>%s trennen</de>
         </text>
         <text name="info_hoseRangeRestriction">
-            <en>The liquid manure hose range restriction won't allow you to go any further</en>
-            <de>The liquid manure hose range restriction won't allow you to go any further</de>
+            <en>The hose range restriction won't allow you to go any further!</en>
+            <de>Die maximale Schlauchlänge ist erreicht. Sie können sich nicht weiter entfernen!</de>
         </text>
         <text name="info_hoseRangeRestrictionChainToLong">
             <en>You are not a super human!</en>
-            <de>You are not a super human!</de>
+            <de>Du bist kein Superheld!</de>
         </text>
         <text name="info_hoseParkingPlaceToShort">
             <en>The %sm parking place is to small for the %sm hose!</en>
-            <de>The %sm parking place is to small for the %sm hose!</de>
+            <de>Der %sm Lagerplatz ist zu klein für den %sm Schlauch!</de>
         </text>
         <!-- Input below -->
         <text name="input_attachHose">
-            <en>Attach liquid manure hose</en>
-            <de>Attach liquid manure hose</de>
+            <en>Attach hose system</en>
+            <de>Schlauchsystem ankoppeln</de>
         </text>
         <text name="input_detachHose">
-            <en>Detach liquid manure hose</en>
-            <de>Detach liquid manure hose</de>
+            <en>Detach hose system</en>
+            <de>Schlauch trennen</de>
         </text>
 
-        <!-- Hose system pump notor -->
+        <!-- Hose system pump motor -->
         <text name="pumpMotor_changeDirection">
             <en>Change pump direction to %s</en>
             <de>Pumprichtung in %s wechseln</de>
@@ -119,6 +119,7 @@
             <en>In</en>
             <de>befüllen</de>
         </text>
+
         <text name="pumpMotor_activatePump">
             <en>Activate pump</en>
             <de>Pumpe einschalten</de>
@@ -127,61 +128,58 @@
             <en>Deactivate pump</en>
             <de>Pumpe ausschalten</de>
         </text>
+
         <text name="pumpMotor_warningTurnOffFirst">
             <en>Turn pump off first!</en>
             <de>Pumpe zuerst ausschalten!</de>
         </text>
         <text name="pumpMotor_warningUnitEmpty">
-            <en>The unit is empty!</en>
-            <de>The unit is empty!</de>
+            <en>The source pump unit is empty!</en>
+            <de>Der Behälter ist leer!</de>
         </text>
         <text name="pumpMotor_warningObjectEmpty">
             <en>The pump source is empty!</en>
-            <de>The pump source is empty!</de>
+            <de>Der Behälter ist leer!</de>
         </text>
         <text name="pumpMotor_warningInvalidFilltype">
             <en>FillType is not supported!</en>
-            <de>FillType is not supported!</de>
+            <de>Dieser FillType wird nicht unterstützt!</de>
         </text>
 
         <!-- Hose system connector references -->
         <text name="input_toggleManureFlow">
             <en>Toggle manure flow</en>
-            <de>Toggle manure flow</de>
+            <de>Güllefluss umschalten</de>
         </text>
         <text name="input_toggleLock">
             <en>Toggle lock</en>
-            <de>Toggle lock</de>
+            <de>Schloss umschalten</de>
         </text>
 
-        <text name="action_mouseInteract">
-            <en>Press mouse button %s to</en>
-            <de>Press mouse button %s to</de>
-        </text>
         <text name="action_toggleLock">
-            <en>%s manure hose</en>
-            <de>%s manure hose</de>
+            <en>%s %s</en>
+            <de>%s %s</de>
         </text>
         <text name="action_toggleLockStateLock">
             <en>Lock</en>
-            <de>Lock</de>
+            <de>Verschließen</de>
         </text>
         <text name="action_toggleLockStateUnlock">
             <en>Unlock</en>
-            <de>Unlock</de>
+            <de>Öffnen</de>
         </text>
 
         <text name="action_toggleManureFlow">
             <en>%s manure flow</en>
-            <de>%s manure flow</de>
+            <de>%s Güllefluss</de>
         </text>
         <text name="action_toggleManureFlowStateOpen">
             <en>Open</en>
-            <de>Open</de>
+            <de>Offen</de>
         </text>
         <text name="action_toggleManureFlowStateClose">
             <en>Close</en>
-            <de>Close</de>
+            <de>Geschlossen</de>
         </text>
     </l10n>
 </modDesc>
