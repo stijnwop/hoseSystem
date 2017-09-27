@@ -8,6 +8,8 @@
 
 HoseSystemFillTriggerInteractive = {}
 
+HoseSystemFillTriggerInteractive.RAYCAST_DISTANCE = 2 -- meters
+
 local HoseSystemFillTriggerInteractive_mt = Class(HoseSystemFillTriggerInteractive)
 
 ---
@@ -46,7 +48,7 @@ function HoseSystemFillTriggerInteractive:update(dt)
                     self.object.lastRaycastDistance = 0
                     self.object.lastRaycastObject = nil
 
-                    raycastClosest(x, y, z, dx, dy, dz, 'fillableObjectRaycastCallback', 2, self)
+                    raycastClosest(x, y, z, dx, dy, dz, 'fillableObjectRaycastCallback', HoseSystemFillTriggerInteractive.RAYCAST_DISTANCE, self)
 
                     if self.object.lastRaycastDistance ~= 0 then
                         local isUnderFillplane, planeY = self.object.lastRaycastObject:checkPlaneY(y)
@@ -84,9 +86,10 @@ function HoseSystemFillTriggerInteractive:update(dt)
 
                     if HoseSystem.debugRendering then
                         local xyz = { worldToLocal(gp.raycastNode, x, y, z) }
-                        xyz[3] = xyz[3] - 2
-                        xyz = { localToWorld(gp.raycastNode, xyz[1], xyz[2], xyz[3]) }
                         local color = { 1, 0 }
+
+                        xyz[3] = xyz[3] - HoseSystemFillTriggerInteractive.RAYCAST_DISTANCE
+                        xyz = { localToWorld(gp.raycastNode, xyz[1], xyz[2], xyz[3]) }
 
                         if self.object.lastRaycastDistance ~= 0 then
                             color = { 0, 1 }
