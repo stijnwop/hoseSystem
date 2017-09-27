@@ -9,7 +9,10 @@
 
 HoseSystemLiquidManureFillTrigger = {}
 
+HoseSystemLiquidManureFillTrigger.PLAYER_DISTANCE = 1.3
 HoseSystemLiquidManureFillTrigger.PLANE_IDLE = 15
+HoseSystemLiquidManureFillTrigger.LEVEL_CHANGE_TRESHOLD_TIME = 100 -- ms
+HoseSystemLiquidManureFillTrigger.RESET_CHANGE_TRESHOLD_TIME = 500 -- ms
 
 ---
 -- @param superFunc
@@ -302,7 +305,7 @@ function HoseSystemLiquidManureFillTrigger:update(superFunc, dt)
         end
 
         -- Set plane to idle when there's no recent changes to the fill level
-        if not self.shaderOnIdle and self.lastFillLevelChangeTime + 100 < g_currentMission.time then
+        if not self.shaderOnIdle and self.lastFillLevelChangeTime + HoseSystemLiquidManureFillTrigger.LEVEL_CHANGE_TRESHOLD_TIME < g_currentMission.time then
             self:updateShaderPlane(false)
         end
     end
@@ -317,7 +320,7 @@ function HoseSystemLiquidManureFillTrigger:getNearestReference(playerTrans)
     end
 
     local x, y, z = unpack(playerTrans)
-    local nearestDisSequence = 1.5
+    local nearestDisSequence = HoseSystemLiquidManureFillTrigger.PLAYER_DISTANCE
 
     for referenceIndex, reference in pairs(self.hoseSystemReferences) do
         if reference.isUsed and reference.hoseSystem ~= nil then
@@ -325,6 +328,8 @@ function HoseSystemLiquidManureFillTrigger:getNearestReference(playerTrans)
                 if HoseSystem:getIsConnected(grabPoint.state) and grabPoint.connectorRefId == referenceIndex then
                     local gx, gy, gz = getWorldTranslation(reference.node)
                     local dist = Utils.vector3Length(x - gx, y - gy, z - gz)
+
+                    nearestDisSequence = Utils.getNoNil(reference.inRangeDistance, nearestDisSequence)
 
                     if dist < nearestDisSequence then
                         nearestDisSequence = dist
@@ -362,7 +367,7 @@ end
 -- @param allowEmptying
 --
 function HoseSystemLiquidManureFillTrigger:allowFillType(fillType, allowEmptying)
-    return fillType == FillUtil.FILLTYPE_UNKNOWN or fillType == self.fillType -- Confirm working
+    return fillType == FillUtil.FILLTYPE_UNKNOWN or fillType == self.fillType
 end
 
 ---
@@ -375,7 +380,7 @@ end
 -- @param fillType
 --
 function HoseSystemLiquidManureFillTrigger:resetFillLevelIfNeeded(fillType)
-    if self.lastFillLevelChangeTime + 500 > g_currentMission.time then
+    if self.lastFillLevelChangeTime + HoseSystemLiquidManureFillTrigger.RESET_CHANGE_TRESHOLD_TIME > g_currentMission.time then
         return false
     end
 

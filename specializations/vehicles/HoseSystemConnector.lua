@@ -8,6 +8,8 @@
 
 HoseSystemConnector = {}
 
+HoseSystemConnector.PLAYER_DISTANCE = 1.3
+
 ---
 -- @param specializations
 --
@@ -503,7 +505,7 @@ end
 --
 function HoseSystemConnector:getIsPlayerInReferenceRange()
     local playerTrans = { getWorldTranslation(g_currentMission.player.rootNode) }
-    local playerDistanceSequence = 1.3 -- use 1.3 as hardcoded value for now
+    local playerDistanceSequence = HoseSystemConnector.PLAYER_DISTANCE
 
     if self.hoseSystemReferences ~= nil then
         for referenceId, reference in pairs(self.hoseSystemReferences) do
