@@ -57,6 +57,15 @@ HoseSystemUtil.DIRECTION_RIGHT = 1
 HoseSystemUtil.DIRECTION_LEFT = -1
 
 ---
+-- Lua's default function tonumber does not convert booleans to number
+-- @param b
+--
+function btonumber(b)
+    return b and 1 or 0
+end
+
+---
+-- Lua has no math.round function
 -- @param number
 -- @param idp
 --
@@ -68,10 +77,15 @@ end
 ---
 -- @param j1
 -- @param j2
+-- @param pos
 --
-function HoseSystemUtil:calculateCosAngle(j1, j2)
-    local x1, y1, z1 = localDirectionToWorld(j1, 1, 0, 0)
-    local x2, y2, z2 = localDirectionToWorld(j2, 1, 0, 0)
+function HoseSystemUtil:calculateCosAngle(j1, j2, pos)
+    if pos == nil or pos > 3 then
+        pos = 1
+    end
+
+    local x1, y1, z1 = localDirectionToWorld(j1, btonumber(pos == 1), btonumber(pos == 2), btonumber(pos == 3))
+    local x2, y2, z2 = localDirectionToWorld(j2, btonumber(pos == 1), btonumber(pos == 2), btonumber(pos == 3))
 
     return x1 * x2 + y1 * y2 + z1 * z2
 end

@@ -174,9 +174,11 @@ function HoseSystemPlayerInteractiveHandling:grab(index, player, syncState, noEv
                 setTranslation(player.hoseSystem.kinematicHelper.node, -0.4, -0.1, 0.3) -- fixed location
 
                 -- Set kinematicHelper node dependent on player rotation
-                local yRot = math.abs(Utils.getYRotationBetweenNodes(grabPoint.node, player.toolsRootNode))
-                yRot = yRot >= 1.5 and (index > 1 and math.rad(0) or math.rad(180)) or (index > 1 and math.rad(180) or math.rad(0))
-                setRotation(player.hoseSystem.kinematicHelper.node, 0, yRot, 0)
+                local angle = HoseSystemUtil:calculateCosAngle(grabPoint.node, player.toolsRootNode, 3)
+                local y = angle > 0 and math.rad(0) or math.rad(180)
+
+                print(tonumber(3 == 3))
+                setRotation(player.hoseSystem.kinematicHelper.node, 0, y, 0)
 
                 player.hoseSystem.jointIndex = HoseSystemPlayerInteractiveHandling:constructPlayerJoint({
                     actor1 = player.hoseSystem.kinematicHelper.node,
