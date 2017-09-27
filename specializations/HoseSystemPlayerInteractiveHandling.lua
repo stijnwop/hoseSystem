@@ -59,10 +59,7 @@ function HoseSystemPlayerInteractiveHandling:update(dt)
                     if object ~= nil then
                         local reference = HoseSystemReferences:getReference(object, self.object.referenceIdToMountHoseSystem, grabPoint)
 
-                        local node = grabPoint.node
-                        if reference ~= nil and reference.parkable then
-                            node = reference.node
-                        end
+                        local node = reference ~= nil and reference.node or grabPoint.node
 
                         HoseSystemUtil:renderHelpTextOnNode(node, g_i18n:getText('action_attachHose'):format(self.object.typeDesc), g_i18n:getText('input_mouseInteract'):format(string.lower(MouseHelper.getButtonName(Input.MOUSE_BUTTON_LEFT))))
 
