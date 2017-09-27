@@ -8,9 +8,11 @@
     </title>
     <description>
         <en>
-            <![CDATA[With a liquid manure hose you are able to pump a liquid fill type from source to target. If applicable you could extend the liquid manure hose to reach larger ranges.]]></en>
+            <![CDATA[With a liquid manure hose you are able to pump a liquid fill type from source to target. If applicable you could extend the liquid manure hose to reach larger ranges.]]>
+        </en>
         <de>
-            <![CDATA[Mit einem Gülleschlauch können Sie Flüssigkeiten umpumpen. Wahlweise können Sie auch die Schläuche mit Verlängerungen erweitern.]]></de>
+            <![CDATA[Mit einem Gülleschlauch können Sie Flüssigkeiten umpumpen. Wahlweise können Sie auch die Schläuche mit Verlängerungen erweitern.]]>
+        </de>
     </description>
     <iconFilename>store.dds</iconFilename>
     <multiplayer supported="true"/>
@@ -45,10 +47,12 @@
     </storeItems>
     <l10n>
         <text name="function_liquidManureHose">
-            <en>With a liquid manure hose you are able to pump a liquid fill type from source to target. If applicable
+            <en>
+                With a liquid manure hose you are able to pump a liquid fill type from source to target. If applicable
                 you could extend the liquid manure hose to reach larger ranges.
             </en>
-            <de>Mit einem Gülleschlauch können Sie Flüssigkeiten umpumpen. Wahlweise können Sie auch die Schläuche mit
+            <de>
+                Mit einem Gülleschlauch können Sie Flüssigkeiten umpumpen. Wahlweise können Sie auch die Schläuche mit
                 Verlängerungen erweitern.
             </de>
         </text>
