@@ -177,7 +177,6 @@ function HoseSystemPlayerInteractiveHandling:grab(index, player, syncState, noEv
                 local angle = HoseSystemUtil:calculateCosAngle(grabPoint.node, player.toolsRootNode, 3)
                 local y = angle > 0 and math.rad(0) or math.rad(180)
 
-                print(tonumber(3 == 3))
                 setRotation(player.hoseSystem.kinematicHelper.node, 0, y, 0)
 
                 player.hoseSystem.jointIndex = HoseSystemPlayerInteractiveHandling:constructPlayerJoint({
