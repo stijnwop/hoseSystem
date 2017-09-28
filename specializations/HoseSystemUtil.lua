@@ -21,6 +21,10 @@ HoseSystemUtil.DEBUG = 3
 --
 function HoseSystemUtil:log(logLevel, logEntry, logCallstack)
     if logLevel <= HoseSystem.logLevel then
+        if logLevel == HoseSystemUtil.DEBUG and not HoseSystem.debugRendering then -- avoid debug print lines when the debugRendering is disabled
+            return
+        end
+
         local level = Utils.getNoNil(HoseSystemUtil.logLevels[logLevel], HoseSystemUtil.logLevels[#HoseSystemUtil.logLevels])
         print(('HoseSystem [%s]%s'):format(level, HoseSystemUtil.print_r(level, logEntry)))
 
@@ -38,7 +42,7 @@ function HoseSystemUtil:consoleCommandToggleHoseSystemDebugRendering(logLevel)
 
     logLevel = tonumber(logLevel)
 
-    if logLevel ~= 0 then
+    if logLevel ~= nil and logLevel ~= 0 and logLevel > 0 then
         if logLevel > #HoseSystemUtil.logLevels then
             return ("HoseSystem log level must be lower then %i!"):format(#HoseSystemUtil.logLevels)
         end
