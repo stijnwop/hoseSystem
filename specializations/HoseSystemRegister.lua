@@ -53,7 +53,7 @@ function HoseSystemRegistrationHelper:loadMap(name)
         g_currentMission.hoseSystemLog = HoseSystemUtil.log
         g_currentMission.hoseSystemRegistrationHelperIsLoaded = true
     else
-        HoseSystemUtil:log(1, "The HoseSystemRegistrationHelper has been loaded already! Remove one of the copy's!")
+        HoseSystemUtil:log(HoseSystemUtil.ERROR, "The HoseSystemRegistrationHelper has been loaded already! Remove one of the copy's!")
     end
 end
 
@@ -121,11 +121,11 @@ function HoseSystemRegistrationHelper:update(dt)
                                         if vehicle.poly ~= nil then
                                             vehicle.poly.interactiveHandling:attach(grabPointId, connectorVehicle, referenceId, isExtendable) -- will be synched later
                                         else
-                                            HoseSystemUtil:log(1, 'Something went wrong in your savegame, the vehicle that should be connecting is gone!')
+                                            HoseSystemUtil:log(HoseSystemUtil.ERROR, 'Something went wrong in your savegame, the vehicle that should be connecting is gone!')
                                         end
                                     else
                                         if HoseSystem.debugRendering then
-                                            HoseSystemUtil:log(1, 'Invalid connectorVehicle on gameload!')
+                                            HoseSystemUtil:log(HoseSystemUtil.ERROR, 'Invalid connectorVehicle on gameload!')
                                         end
                                     end
                                 end
@@ -215,16 +215,15 @@ function HoseSystemRegistrationHelper.loadVehicle(super, vehicleData, asyncCallb
                 local specialization = specializations[i]
 
                 if specialization.preLoadHoseSystem ~= nil then
-
                     super.xmlFile = loadXMLFile('TempConfig', vehicleData.filename)
 
                     local vehicleLoadState = specializations[i].preLoadHoseSystem(super, vehicleData.savegame)
 
                     if vehicleLoadState ~= nil and vehicleLoadState ~= BaseMission.VEHICLE_LOAD_OK then
-                        HoseSystemUtil:log(1, specializationName .. "-specialization 'preLoadHoseSystem' failed!")
+                        HoseSystemUtil:log(HoseSystemUtil.ERROR, specializationName .. "-specialization 'preLoadHoseSystem' failed!")
 
                         if asyncCallbackFunction ~= nil then
-                            asyncCallbackFunction(asyncCallbackObject, nil, vehicleLoadState, asyncCallbackArguments);
+                            asyncCallbackFunction(asyncCallbackObject, nil, vehicleLoadState, asyncCallbackArguments)
                         end
 
                         return vehicleLoadState
@@ -250,7 +249,7 @@ function HoseSystemRegistrationHelper:register(vehicle, specializations, name)
         table.insert(specializations, SpecializationUtil.getSpecialization('hoseSystemConnector'))
 
         if HoseSystem.debugRendering then
-            HoseSystemUtil:log(3, 'Connector specialization added to: ' .. name)
+            HoseSystemUtil:log(HoseSystemUtil.DEBUG, 'Connector specialization added to: ' .. name)
         end
     end
 
@@ -258,7 +257,7 @@ function HoseSystemRegistrationHelper:register(vehicle, specializations, name)
         table.insert(specializations, SpecializationUtil.getSpecialization('hoseSystemPumpMotor'))
 
         if HoseSystem.debugRendering then
-            HoseSystemUtil:log(3, 'PumpMotor specialization added to: ' .. name)
+            HoseSystemUtil:log(HoseSystemUtil.DEBUG, 'PumpMotor specialization added to: ' .. name)
         end
     end
 end

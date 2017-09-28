@@ -10,6 +10,10 @@ HoseSystemUtil = {
     logLevels = { 'Error', 'Warning', 'Debug' },
 }
 
+HoseSystemUtil.ERROR = 1
+HoseSystemUtil.WARNING = 2
+HoseSystemUtil.DEBUG = 3
+
 ---
 -- @param logLevel
 -- @param logEntry
@@ -36,7 +40,7 @@ function HoseSystemUtil:consoleCommandToggleHoseSystemDebugRendering(logLevel)
 
     if logLevel ~= 0 then
         if logLevel > #HoseSystemUtil.logLevels then
-            return "HoseSystem log level must be lower then 3!"
+            return ("HoseSystem log level must be lower then %i!"):format(#HoseSystemUtil.logLevels)
         end
 
         HoseSystem.logLevel = logLevel

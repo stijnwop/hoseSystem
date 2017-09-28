@@ -174,7 +174,7 @@ function HoseSystemPlayerInteractiveRestrictions:restrictReferenceDistance(dt, g
 
                     if distance > allowedDistance or distance < (allowedDistance - 1) then
                         if HoseSystem.debugRendering then
-                            HoseSystemUtil:log(3, 'Restriction detach distance: ' .. distance)
+                            HoseSystemUtil:log(HoseSystemUtil.DEBUG, 'Restriction detach distance: ' .. distance)
                         end
 
                         if HoseSystem:getIsAttached(dependentGrabpoint.state) then
