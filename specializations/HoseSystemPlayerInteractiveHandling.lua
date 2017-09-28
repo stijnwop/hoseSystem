@@ -201,8 +201,8 @@ function HoseSystemPlayerInteractiveHandling:grab(index, player, syncState, noEv
             -- Set collision mask on hose components to disable collision with CCT
             -- Since we cannot set non collidable objects for the CCT we just set the collision mask of the object
             if grabPoint.componentIndex ~= nil then
-                setCollisionMask(self.object.components[grabPoint.componentIndex].node, HoseSystem.cctCollisionMask)
-                setCollisionMask(self.object.components[(#self.object.components + 1) / 2].node, HoseSystem.cctCollisionMask)
+                setCollisionMask(self.object.components[grabPoint.componentIndex].node, HoseSystem.CCT_COLLISION_MASK)
+                setCollisionMask(self.object.components[(#self.object.components + 1) / 2].node, HoseSystem.CCT_COLLISION_MASK)
             end
         end
     end
@@ -288,8 +288,8 @@ function HoseSystemPlayerInteractiveHandling:drop(index, player, syncState, noEv
             end
 
             if grabPoint.componentIndex ~= nil then
-                setCollisionMask(self.object.components[grabPoint.componentIndex].node, HoseSystem.hoseCollisionMask)
-                setCollisionMask(self.object.components[(#self.object.components + 1) / 2].node, HoseSystem.hoseCollisionMask)
+                setCollisionMask(self.object.components[grabPoint.componentIndex].node, HoseSystem.HOSESYSTEM_COLLISION_MASK)
+                setCollisionMask(self.object.components[(#self.object.components + 1) / 2].node, HoseSystem.HOSESYSTEM_COLLISION_MASK)
             end
         end
     end

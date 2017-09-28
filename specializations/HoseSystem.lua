@@ -46,8 +46,8 @@ HoseSystem.STATE_PARKED = 3
 
 HoseSystem.MOVED_DISTANCE_THRESHOLD = 0.001
 
-HoseSystem.cctCollisionMask = 32 -- 110010 avoid CTT bit mask
-HoseSystem.hoseCollisionMask = 8194
+HoseSystem.CCT_COLLISION_MASK = 32 -- 0x00000020 avoid CTT bit mask
+HoseSystem.HOSESYSTEM_COLLISION_MASK = 8194
 
 ---
 -- @param specializations
