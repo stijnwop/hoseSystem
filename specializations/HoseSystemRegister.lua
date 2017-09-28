@@ -11,6 +11,8 @@ HoseSystemRegistrationHelper = {
     runAtFirstFrame = true
 }
 
+HoseSystemRegistrationHelper.HOSE_SYSTEM_SPEC_KEY = 'hoseSystemVehicle'
+
 local srcDirectory = HoseSystemRegistrationHelper.baseDirectory .. 'specializations'
 local eventDirectory = HoseSystemRegistrationHelper.baseDirectory .. 'specializations/events'
 
@@ -41,9 +43,6 @@ function HoseSystemRegistrationHelper:loadMap(name)
     self.minDistance = 2
 
     if not g_currentMission.hoseSystemRegistrationHelperIsLoaded then
-        -- Register the hoseSystemConnector and PumpMotor to vehicles
-        self:register()
-
         -- Register the fill mode for the hose system
         HoseSystemPumpMotor.registerFillMode('hoseSystem')
 
@@ -195,25 +194,71 @@ function HoseSystemRegistrationHelper:getIsPlayerInGrabPointRange()
 end
 
 ---
+-- @param super
+-- @param vehicleData
+-- @param asyncCallbackFunction
+-- @param asyncCallbackObject
+-- @param asyncCallbackArguments
 --
-function HoseSystemRegistrationHelper:register()
-    for _, vehicle in pairs(VehicleTypeUtil.vehicleTypes) do
-        if vehicle ~= nil then
-            if vehicle.name:find('.') then
-                local customEnvironment = HoseSystemUtil:getFirstElement(Utils.splitString('.', vehicle.name))
+function HoseSystemRegistrationHelper.loadVehicle(super, vehicleData, asyncCallbackFunction, asyncCallbackObject, asyncCallbackArguments)
+    local customEnvironment, _ = Utils.getModNameAndBaseDirectory(vehicleData.filename)
 
-                if customEnvironment ~= nil then
-                    if rawget(SpecializationUtil.specializations, customEnvironment .. '.HoseSystemVehicle') ~= nil or rawget(SpecializationUtil.specializations, customEnvironment .. '.hoseSystemVehicle') ~= nil then
-                        table.insert(vehicle.specializations, SpecializationUtil.getSpecialization('hoseSystemConnector'))
-                        table.insert(vehicle.specializations, SpecializationUtil.getSpecialization('hoseSystemPumpMotor')) -- insert pump as well.. no way to check this without doing it dirty
+    if customEnvironment ~= nil then
+        local typeDef = VehicleTypeUtil.vehicleTypes[vehicleData.typeName]
+        local specializations = typeDef.specializations
+        local specializationNames = typeDef.specializationNames
 
-                        -- Found hoseSystemVehicle specialization
-                        if HoseSystem.debugRendering then
-                            HoseSystemUtil:log(3, 'Connector and PumpMotor specialization added to: ' .. customEnvironment)
+        for i = 1, #specializations do
+            local specializationName = specializationNames[i]
+
+            if specializationName:lower() == string.format('%s.%s', customEnvironment, HoseSystemRegistrationHelper.HOSE_SYSTEM_SPEC_KEY):lower() then
+                local specialization = specializations[i]
+
+                if specialization.preLoadHoseSystem ~= nil then
+
+                    super.xmlFile = loadXMLFile('TempConfig', vehicleData.filename)
+
+                    local vehicleLoadState = specializations[i].preLoadHoseSystem(super, vehicleData.savegame)
+
+                    if vehicleLoadState ~= nil and vehicleLoadState ~= BaseMission.VEHICLE_LOAD_OK then
+                        HoseSystemUtil:log(1, specializationName .. "-specialization 'preLoadHoseSystem' failed!")
+
+                        if asyncCallbackFunction ~= nil then
+                            asyncCallbackFunction(asyncCallbackObject, nil, vehicleLoadState, asyncCallbackArguments);
                         end
+
+                        return vehicleLoadState
                     end
+
+                    HoseSystemRegistrationHelper:register(super, typeDef.specializations, customEnvironment)
+
+                    delete(super.xmlFile)
+                    super.xmlFile = nil
                 end
             end
+        end
+    end
+end
+
+---
+-- @param vehicle
+-- @param specializations
+-- @param name
+--
+function HoseSystemRegistrationHelper:register(vehicle, specializations, name)
+    if vehicle.hasHoseSystemConnectors then
+        table.insert(specializations, SpecializationUtil.getSpecialization('hoseSystemConnector'))
+
+        if HoseSystem.debugRendering then
+            HoseSystemUtil:log(3, 'Connector specialization added to: ' .. name)
+        end
+    end
+
+    if vehicle.hasHoseSystemPumpMotor then
+        table.insert(specializations, SpecializationUtil.getSpecialization('hoseSystemPumpMotor'))
+
+        if HoseSystem.debugRendering then
+            HoseSystemUtil:log(3, 'PumpMotor specialization added to: ' .. name)
         end
     end
 end
@@ -242,3 +287,6 @@ function HoseSystemRegistrationHelper:loadVehicles(xmlFile, referenceIds)
 end
 
 addModEventListener(HoseSystemRegistrationHelper)
+
+-- Register the hoseSystemConnector and PumpMotor to vehicles
+Vehicle.load = Utils.prependedFunction(Vehicle.load, HoseSystemRegistrationHelper.loadVehicle)
