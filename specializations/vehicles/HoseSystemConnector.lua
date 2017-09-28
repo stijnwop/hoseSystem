@@ -20,24 +20,25 @@ end
 ---
 -- @param savegame
 --
-function HoseSystemConnector:load(savegame)
+function HoseSystemConnector:preLoad(savegame)
     self.toggleLock = HoseSystemConnector.toggleLock
     self.toggleManureFlow = HoseSystemConnector.toggleManureFlow
     self.setIsUsed = HoseSystemConnector.setIsUsed
     self.getConnectedReference = HoseSystemConnector.getConnectedReference
-
-    -- new
     self.getValidFillObject = HoseSystemConnector.getValidFillObject
     self.getAllowedFillUnitIndex = HoseSystemConnector.getAllowedFillUnitIndex
-
     self.getLastGrabpointRecursively = HoseSystemConnector.getLastGrabpointRecursively
     self.getIsPlayerInReferenceRange = HoseSystemConnector.getIsPlayerInReferenceRange
-
     self.updateLiquidHoseSystem = HoseSystemConnector.updateLiquidHoseSystem
 
     -- overwrittenFunctions
     self.getIsOverloadingAllowed = Utils.overwrittenFunction(self.getIsOverloadingAllowed, HoseSystemConnector.getIsOverloadingAllowed)
+end
 
+---
+-- @param savegame
+--
+function HoseSystemConnector:load(savegame)
     self.hoseSystemReferences = {}
     self.dockingSystemReferences = {}
 
@@ -145,17 +146,20 @@ function HoseSystemConnector.loadHoseReferences(self, xmlFile, base, references)
 
             if entry.parkable then
                 entry.parkAnimationName = Utils.getNoNil(getXMLString(xmlFile, key .. '#parkAnimationName'), nil)
-                local offsetDirection = Utils.getNoNil(getXMLString(xmlFile, key .. '#offsetDirection'), 'right')
                 entry.parkLength = Utils.getNoNil(getXMLFloat(xmlFile, key .. '#parkLength'), 5) -- Default length of 5m
+                local offsetDirection = Utils.getNoNil(getXMLString(xmlFile, key .. '#offsetDirection'), 'right')
                 entry.offsetDirection = string.lower(offsetDirection) ~= 'right' and HoseSystemUtil.DIRECTION_LEFT or HoseSystemUtil.DIRECTION_RIGHT
                 entry.startTransOffset = Utils.getNoNil(Utils.getVectorNFromString(getXMLString(xmlFile, key .. '#startTransOffset'), 3), { 0, 0, 0 })
                 entry.startRotOffset = Utils.getNoNil(Utils.getVectorNFromString(getXMLString(xmlFile, key .. '#startRotOffset'), 3), { 0, 0, 0 })
                 entry.endTransOffset = Utils.getNoNil(Utils.getVectorNFromString(getXMLString(xmlFile, key .. '#endTransOffset'), 3), { 0, 0, 0 })
                 entry.endRotOffset = Utils.getNoNil(Utils.getVectorNFromString(getXMLString(xmlFile, key .. '#endRotOffset'), 3), { 0, 0, 0 })
+
                 local maxNode = createTransformGroup(('hoseSystemReference_park_maxNode_%d'):format(entry.id))
-                link(entry.node, maxNode)
                 local trans = { localToWorld(node, 0, 0, entry.offsetDirection ~= 1 and -entry.parkLength or entry.parkLength) }
+
+                link(entry.node, maxNode)
                 setWorldTranslation(maxNode, unpack(trans))
+
                 entry.maxParkLengthNode = maxNode
             end
 
