@@ -74,11 +74,7 @@ end
 ---
 -- @param savegame
 --
-function HoseSystemPumpMotor:load(savegame)
-    if not self.hasHoseSystemPumpMotor then
-        return
-    end
-
+function HoseSystemPumpMotor:preLoad(savegame)
     self.getFillMode = HoseSystemPumpMotor.getFillMode
     self.setFillMode = SpecializationUtil.callSpecializationsFunction('setFillMode')
     self.getFillDirection = HoseSystemPumpMotor.getFillDirection
@@ -94,7 +90,12 @@ function HoseSystemPumpMotor:load(savegame)
     self.getConsumedPtoTorque = Utils.overwrittenFunction(self.getConsumedPtoTorque, HoseSystemPumpMotor.getConsumedPtoTorque)
     -- self.setIsTurnedOn = Utils.overwrittenFunction(self.setIsTurnedOn, HoseSystemPumpMotor.setIsTurnedOn)
     self.setWarningMessage = HoseSystemPumpMotor.setWarningMessage
+end
 
+---
+-- @param savegame
+--
+function HoseSystemPumpMotor:load(savegame)
     self.attacherMotor = {
         check = false,
         isStarted = false
@@ -130,7 +131,6 @@ function HoseSystemPumpMotor:load(savegame)
         self.samplePump = SoundUtil.loadSample(self.xmlFile, {}, "vehicle.pumpSound", nil, self.baseDirectory, linkNode)
     end
 
-    -- Function warningMessage.. instead of switching stuff around
     self.warningMessage = {}
     self.warningMessage.currentId = HoseSystemPumpMotor.NONE
     self.warningMessage.currentTime = 0
@@ -151,10 +151,6 @@ end
 ---
 --
 function HoseSystemPumpMotor:delete()
-    if not self.hasHoseSystemPumpMotor then
-        return
-    end
-
     if self.isClient then
         SoundUtil.deleteSample(self.samplePump)
     end
@@ -165,10 +161,6 @@ end
 -- @param connection
 --
 function HoseSystemPumpMotor:readStream(streamId, connection)
-    if not self.hasHoseSystemPumpMotor then
-        return
-    end
-
     self:setPumpStarted(streamReadBool(streamId), nil, true)
     self:setFillDirection(streamReadUIntN(streamId, HoseSystemPumpMotor.sendNumBits), true)
     self:setFillMode(streamReadUIntN(streamId, HoseSystemPumpMotor.sendNumBits), true)
@@ -179,10 +171,6 @@ end
 -- @param connection
 --
 function HoseSystemPumpMotor:writeStream(streamId, connection)
-    if not self.hasHoseSystemPumpMotor then
-        return
-    end
-
     streamWriteBool(streamId, self.pumpIsStarted)
     streamWriteUIntN(streamId, self.fillDirection, HoseSystemPumpMotor.sendNumBits)
     streamWriteUIntN(streamId, self.fillMode, HoseSystemPumpMotor.sendNumBits)
@@ -211,10 +199,6 @@ end
 -- @param dt
 --
 function HoseSystemPumpMotor:update(dt)
-    if not self.hasHoseSystemPumpMotor then
-        return
-    end
-
     if self:getIsActive() then
         if self:getIsActiveForInput() and not self:hasInputConflictWithSelection() then
             if InputBinding.hasEvent(InputBinding.ACTIVATE_OBJECT) then
@@ -244,10 +228,6 @@ end
 -- @param dt
 --
 function HoseSystemPumpMotor:updateTick(dt)
-    if not self.hasHoseSystemPumpMotor then
-        return
-    end
-
     if self.attacherMotor.check then
         local vehicle = self:getRootAttacherVehicle()
         self.attacherMotor.isStarted = vehicle.isMotorStarted ~= nil and vehicle.isMotorStarted
@@ -347,10 +327,6 @@ end
 ---
 --
 function HoseSystemPumpMotor:draw()
-    if not self.hasHoseSystemPumpMotor then
-        return
-    end
-
     if self.attacherMotor.isStarted then
         if self.warningMessage.currentId ~= HoseSystemPumpMotor.NONE then
             g_currentMission:showBlinkingWarning(self.warningMessage.messages[self.warningMessage.currentId])
@@ -397,10 +373,6 @@ end
 -- @param jointDescIndex
 --
 function HoseSystemPumpMotor:onAttach(attacherVehicle, jointDescIndex)
-    if not self.hasHoseSystemPumpMotor then
-        return
-    end
-
     self.attacherMotor.check = true
 end
 
@@ -409,10 +381,6 @@ end
 -- @param jointDescIndex
 --
 function HoseSystemPumpMotor:onDetach(attacherVehicle, jointDescIndex)
-    if not self.hasHoseSystemPumpMotor then
-        return
-    end
-
     self.warningMessage.currentId = HoseSystemPumpMotor.NONE
     self.attacherMotor.check = false
     self.attacherMotor.isStarted = false
@@ -425,10 +393,6 @@ end
 ---
 --
 function HoseSystemPumpMotor:onDeactivate()
-    if not self.hasHoseSystemPumpMotor then
-        return
-    end
-
     self:setPumpStarted(false, nil, true)
 end
 
