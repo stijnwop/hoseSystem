@@ -8,6 +8,7 @@
 
 HoseSystemIsUsedEvent = {}
 HoseSystemIsUsedEvent_mt = Class(HoseSystemIsUsedEvent, Event)
+
 InitEventClass(HoseSystemIsUsedEvent, 'HoseSystemIsUsedEvent')
 
 function HoseSystemIsUsedEvent:emptyNew()

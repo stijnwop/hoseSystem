@@ -7,8 +7,8 @@
 -- Copyright (c) Wopster, 2017
 
 HoseSystemLoadFillableObjectAndReferenceEvent = {}
-
 HoseSystemLoadFillableObjectAndReferenceEvent_mt = Class(HoseSystemLoadFillableObjectAndReferenceEvent, Event)
+
 InitEventClass(HoseSystemLoadFillableObjectAndReferenceEvent, 'HoseSystemLoadFillableObjectAndReferenceEvent')
 
 function HoseSystemLoadFillableObjectAndReferenceEvent:emptyNew()

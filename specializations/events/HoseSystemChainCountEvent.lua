@@ -8,6 +8,7 @@
 
 HoseSystemChainCountEvent = {}
 HoseSystemChainCountEvent_mt = Class(HoseSystemChainCountEvent, Event)
+
 InitEventClass(HoseSystemChainCountEvent, 'HoseSystemChainCountEvent')
 
 function HoseSystemChainCountEvent:emptyNew()

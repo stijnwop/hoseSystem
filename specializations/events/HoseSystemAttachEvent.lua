@@ -6,7 +6,6 @@
 --
 -- Copyright (c) Wopster, 2017
 
-
 HoseSystemAttachEvent = {}
 
 HoseSystemAttachEvent_mt = Class(HoseSystemAttachEvent, Event)

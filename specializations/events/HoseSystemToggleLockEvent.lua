@@ -6,9 +6,9 @@
 --
 -- Copyright (c) Wopster, 2017
 
-
 HoseSystemToggleLockEvent = {}
 HoseSystemToggleLockEvent_mt = Class(HoseSystemToggleLockEvent, Event)
+
 InitEventClass(HoseSystemToggleLockEvent, 'HoseSystemToggleLockEvent')
 
 function HoseSystemToggleLockEvent:emptyNew()

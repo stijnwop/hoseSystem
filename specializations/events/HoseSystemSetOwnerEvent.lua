@@ -8,6 +8,7 @@
 
 HoseSystemSetOwnerEvent = {}
 HoseSystemSetOwnerEvent_mt = Class(HoseSystemSetOwnerEvent, Event)
+
 InitEventClass(HoseSystemSetOwnerEvent, 'HoseSystemSetOwnerEvent')
 
 function HoseSystemSetOwnerEvent:emptyNew()

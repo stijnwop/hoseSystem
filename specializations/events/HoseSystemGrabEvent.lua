@@ -7,8 +7,8 @@
 -- Copyright (c) Wopster, 2017
 
 HoseSystemGrabEvent = {}
-
 HoseSystemGrabEvent_mt = Class(HoseSystemGrabEvent, Event)
+
 InitEventClass(HoseSystemGrabEvent, 'HoseSystemGrabEvent')
 
 function HoseSystemGrabEvent:emptyNew()
@@ -31,14 +31,14 @@ function HoseSystemGrabEvent:writeStream(streamId, connection)
     writeNetworkNodeObject(streamId, self.object)
     streamWriteUIntN(streamId, self.index - 1, HoseSystemUtil.eventHelper.GRABPOINTS_NUM_SEND_BITS)
     writeNetworkNodeObject(streamId, self.player)
-    streamWriteUIntN(streamId, self.syncState, 3)
+    streamWriteUInt8(streamId, self.syncState)
 end
 
 function HoseSystemGrabEvent:readStream(streamId, connection)
     self.object = readNetworkNodeObject(streamId)
     self.index = streamReadUIntN(streamId, HoseSystemUtil.eventHelper.GRABPOINTS_NUM_SEND_BITS) + 1
     self.player = readNetworkNodeObject(streamId)
-    self.syncState = streamReadUIntN(streamId, 3)
+    self.syncState = streamReadUInt8(streamId)
     self:run(connection)
 end
 

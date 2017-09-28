@@ -7,8 +7,8 @@
 -- Copyright (c) Wopster, 2017
 
 HoseSystemDetachEvent = {}
-
 HoseSystemDetachEvent_mt = Class(HoseSystemDetachEvent, Event)
+
 InitEventClass(HoseSystemDetachEvent, 'HoseSystemDetachEvent')
 
 function HoseSystemDetachEvent:emptyNew()
