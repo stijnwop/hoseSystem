@@ -162,11 +162,11 @@
 
         <text name="action_toggleLockStateLock">
             <en>Lock %s</en>
-            <de>%s zu schließen</de>
+            <de>%s zu verriegeln</de>
         </text>
         <text name="action_toggleLockStateUnlock">
             <en>Unlock %s</en>
-            <de>%s zu öffnen</de>
+            <de>%s zu entriegeln</de>
         </text>
 
         <text name="action_toggleManureFlow">
