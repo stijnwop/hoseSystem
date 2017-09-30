@@ -211,7 +211,7 @@ function HoseSystemRegistrationHelper.loadVehicle(super, vehicleData, asyncCallb
         for i = 1, #specializations do
             local specializationName = specializationNames[i]
 
-            if specializationName:lower() == string.format('%s.%s', customEnvironment, HoseSystemRegistrationHelper.HOSE_SYSTEM_SPEC_KEY):lower() then
+            if specializationName ~= nil and specializationName:lower() == string.format('%s.%s', customEnvironment, HoseSystemRegistrationHelper.HOSE_SYSTEM_SPEC_KEY):lower() then
                 local specialization = specializations[i]
 
                 if specialization.preLoadHoseSystem ~= nil then
