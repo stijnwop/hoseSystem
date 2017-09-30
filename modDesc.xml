@@ -66,27 +66,27 @@
         </text>
         <text name="typeDesc_liquidManureHose">
             <en>Liquid manure hose</en>
-            <de>Gülleschlauch</de>
+            <de>den Gülleschlauch</de>
         </text>
         <text name="input_mouseInteract">
             <en>Press mouse button %s to</en>
-            <de>Drücke Maustaste %s zum</de>
+            <de>Drücke Maustaste %s um</de>
         </text>
         <text name="action_grabHose">
             <en>grab %s</en>
-            <de>%s greifen</de>
+            <de>%s zu greifen</de>
         </text>
         <text name="action_dropHose">
             <en>drop %s</en>
-            <de>%s hinlegen</de>
+            <de>%s hinzulegen</de>
         </text>
         <text name="action_attachHose">
             <en>attach %s</en>
-            <de>%s koppeln</de>
+            <de>%s zu koppeln</de>
         </text>
         <text name="action_detachHose">
             <en>detach %s</en>
-            <de>%s trennen</de>
+            <de>%s zu entfernen</de>
         </text>
         <text name="info_hoseRangeRestriction">
             <en>The hose range restriction won't allow you to go any further!</en>
@@ -103,7 +103,7 @@
         <!-- Input below -->
         <text name="input_attachHose">
             <en>Attach hose system</en>
-            <de>Schlauchsystem ankoppeln</de>
+            <de>Schlauch ankoppeln</de>
         </text>
         <text name="input_detachHose">
             <en>Detach hose system</en>
@@ -160,30 +160,26 @@
             <de>Schloss umschalten</de>
         </text>
 
-        <text name="action_toggleLock">
-            <en>%s %s</en>
-            <de>%s %s</de>
-        </text>
         <text name="action_toggleLockStateLock">
-            <en>Lock</en>
-            <de>Verschließen</de>
+            <en>Lock %s</en>
+            <de>%s zu schließen</de>
         </text>
         <text name="action_toggleLockStateUnlock">
-            <en>Unlock</en>
-            <de>Öffnen</de>
+            <en>Unlock %s</en>
+            <de>%s zu öffnen</de>
         </text>
 
         <text name="action_toggleManureFlow">
             <en>%s manure flow</en>
-            <de>%s Güllefluss</de>
+            <de>den Güllefluss %s</de>
         </text>
         <text name="action_toggleManureFlowStateOpen">
             <en>Open</en>
-            <de>Offen</de>
+            <de>zu öffen</de>
         </text>
         <text name="action_toggleManureFlowStateClose">
             <en>Close</en>
-            <de>Geschlossen</de>
+            <de>zu schließen</de>
         </text>
     </l10n>
 </modDesc>

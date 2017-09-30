@@ -356,10 +356,10 @@ function HoseSystemConnector:update(dt)
                     if reference.lockAnimationName ~= nil and self.animations[reference.lockAnimationName] ~= nil and #self.animations[reference.lockAnimationName].parts > 0 then
                         local _, firstPartAnimation = next(self.animations[reference.lockAnimationName].parts, nil)
 
-                        if firstPartAnimation.node ~= nil and g_i18n:hasText('action_toggleLock') and g_i18n:hasText('action_toggleLockStateLock') and g_i18n:hasText('action_toggleLockStateUnlock') then
+                        if firstPartAnimation.node ~= nil and g_i18n:hasText('action_toggleLockStateLock') and g_i18n:hasText('action_toggleLockStateUnlock') then
                             local state = self:getAnimationTime(reference.lockAnimationName) == 0
 
-                            HoseSystemUtil:renderHelpTextOnNode(firstPartAnimation.node, string.format(g_i18n:getText('action_toggleLock'), state and g_i18n:getText('action_toggleLockStateLock') or g_i18n:getText('action_toggleLockStateUnlock'), reference.hoseSystem.typeDesc), string.format(g_i18n:getText('input_mouseInteract'), string.lower(MouseHelper.getButtonName(Input.MOUSE_BUTTON_LEFT))))
+                            HoseSystemUtil:renderHelpTextOnNode(firstPartAnimation.node, string.format(state and g_i18n:getText('action_toggleLockStateLock') or g_i18n:getText('action_toggleLockStateUnlock'), reference.hoseSystem.typeDesc), string.format(g_i18n:getText('input_mouseInteract'), string.lower(MouseHelper.getButtonName(Input.MOUSE_BUTTON_LEFT))))
 
                             if InputBinding.hasEvent(InputBinding.toggleLock) then
                                 self:toggleLock(referenceId, state, false)
