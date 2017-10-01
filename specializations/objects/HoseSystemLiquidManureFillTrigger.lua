@@ -40,7 +40,8 @@ function HoseSystemLiquidManureFillTrigger:load(superFunc, nodeId, fillLevelObje
         local xmlFilename = getUserAttribute(nodeId, 'xmlFilename')
 
         if xmlFilename == nil then
-            return false
+            HoseSystemUtil:log(HoseSystemUtil.WARNING, 'HoseSystem is trying to load the fillTrigger XML file, but the file could not be found! Loading default fillTriggers..')
+            return true
         end
 
         self.getCapacity = HoseSystemLiquidManureFillTrigger.getCapacity
@@ -95,7 +96,7 @@ function HoseSystemLiquidManureFillTrigger:load(superFunc, nodeId, fillLevelObje
 
                     local objectXMLIdentifier = getXMLString(xmlFile, objectXMLKey .. '#identifier')
 
-                    if objectXMLIdentifier == objectIdentifier then
+                    if objectXMLIdentifier:lower() == objectIdentifier:lower() then
                         key = objectXMLKey
                         break
                     end
@@ -134,12 +135,15 @@ function HoseSystemLiquidManureFillTrigger:load(superFunc, nodeId, fillLevelObje
                     end
 
                     HoseSystemLiquidManureFillTrigger:loadHoseSystemReferences(self, nodeId, xmlFile, string.format('%s.hoseSystemReferences.', key), self.hoseSystemReferences)
+                else
+                    HoseSystemUtil:log(HoseSystemUtil.ERROR, 'HoseSystemFillTrigger identifier could not be found!')
                 end
             end
         end
 
-        local referencesCount = #self.hoseSystemReferences
+        delete(xmlFile)
 
+        local referencesCount = #self.hoseSystemReferences
 
         if referencesCount > 0 then
             if g_currentMission.hoseSystemReferences == nil then
@@ -184,7 +188,7 @@ function HoseSystemLiquidManureFillTrigger:loadHoseSystemReferences(self, nodeId
         end
 
         if #references == 2 ^ HoseSystemUtil.eventHelper.REFERENCES_NUM_SEND_BITS then
-            print(('HoseSystem warning - Max number of references is %s!'):format(2 ^ HoseSystemUtil.eventHelper.REFERENCES_NUM_SEND_BITS))
+            HoseSystemUtil:log(HoseSystemUtil.ERROR, ('Max number of references is %s!'):format(2 ^ HoseSystemUtil.eventHelper.REFERENCES_NUM_SEND_BITS))
             break
         end
 
