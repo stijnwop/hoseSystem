@@ -27,7 +27,7 @@ If you are planning to use a copy of the current development branch, please unde
 ## How to use the HoseSystem on your mod?
 Easy! Add the HoseSystemVehicle specialization to your mod and set the XML entries.
 
-***The latest version of the HoseSystemVehicle.lua can be found in the _modding directory***
+***The latest version of the HoseSystemVehicle.lua can be found in the _modding directory of this repository!***
 
 Full tutorial can be found in the this [Manual](https://www.dropbox.com/s/t7wm0nsqd4hb8u6/Manual%20Attaching.pdf?dl=0) pdf file.
 
