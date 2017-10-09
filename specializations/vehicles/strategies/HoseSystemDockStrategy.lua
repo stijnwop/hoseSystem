@@ -1,8 +1,15 @@
--- Todo: credits
+--
+-- HoseSystemDockStrategy
+--
+-- Authors: Wopster
+-- Description: Strategy for loading dockings
+--
+-- Copyright (c) Wopster, 2017
+
 
 HoseSystemDockStrategy = {}
 
-HoseSystemDockStrategy.type = 'dock'
+HoseSystemDockStrategy.TYPE = 'dock'
 
 local HoseSystemDockStrategy_mt = Class(HoseSystemDockStrategy)
 
@@ -25,10 +32,14 @@ end
 function HoseSystemDockStrategy:delete()
 end
 
-function HoseSystemDockStrategy:loadDock(type, xmlFile, base, entry)
-    if type ~= HoseSystemConnector.getInitialType(HoseSystemDockStrategy.type) then
+---
+-- @param type
+-- @param xmlFile
+-- @param key
+-- @param entry
+--
+function HoseSystemDockStrategy:loadDock(type, xmlFile, key, entry)
+    if type ~= HoseSystemConnector.getInitialType(HoseSystemDockStrategy.TYPE) then
         return entry
     end
-
-    print("Loading dock")
 end

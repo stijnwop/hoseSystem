@@ -13,10 +13,12 @@ HoseSystemConnector = {
 HoseSystemConnector.typesToInt = {}
 
 HoseSystemConnector.PLAYER_DISTANCE = 1.3
+HoseSystemConnector.DEFAULT_INRANGE_DISTANCE = 1.3
 
 local srcDirectory = HoseSystemConnector.baseDirectory .. 'specializations/vehicles/strategies'
 
 local files = {
+    ('%s/%s'):format(srcDirectory, 'HoseSystemHoseCouplingStrategy.lua'),
     ('%s/%s'):format(srcDirectory, 'HoseSystemDockStrategy.lua')
 }
 
@@ -55,8 +57,8 @@ function HoseSystemConnector.getInitialType(name)
     return nil
 end
 
-HoseSystemConnector.registerType('hoseCoupling')
-HoseSystemConnector.registerType(HoseSystemDockStrategy.type)
+HoseSystemConnector.registerType(HoseSystemHoseCouplingStrategy.TYPE)
+HoseSystemConnector.registerType(HoseSystemDockStrategy.TYPE)
 
 ---
 -- @param specializations
@@ -90,6 +92,7 @@ function HoseSystemConnector:load(savegame)
     self.connectStrategies = {}
 
     table.insert(self.connectStrategies, HoseSystemDockStrategy:new(self))
+    table.insert(self.connectStrategies, HoseSystemHoseCouplingStrategy:new(self))
 
     self.hoseSystemReferences = {}
     self.dockingSystemReferences = {}
@@ -196,9 +199,6 @@ function HoseSystemConnector.loadHoseReferences(self, xmlFile, base, references)
             typeString = 'hoseCoupling'
         end
 
-        local entry = HoseSystemConnector.callStrategyFunction(self, 'load' .. HoseSystemUtil:firstToUpper(typeString), { type, xmlFile, base })
-
-        -- Todo: move below to hose coupling strategy
         local createNode = Utils.getNoNil(getXMLBool(xmlFile, key .. '#createNode'), false)
         local node = not createNode and Utils.indexToObject(self.components, getXMLString(xmlFile, key .. '#index')) or createTransformGroup(('hoseSystemReference_node_%d'):format(i + 1))
 
@@ -219,42 +219,19 @@ function HoseSystemConnector.loadHoseReferences(self, xmlFile, base, references)
         end
 
         if node ~= nil then
+            -- defaults
             local entry = {
                 id = i + 1,
+                type = type,
                 node = node,
-                isUsed = false,
-                flowOpened = false,
-                isLocked = false,
-                hoseSystem = nil,
-                grabPoints = nil,
-                isObject = false,
-                componentIndex = Utils.getNoNil(getXMLFloat(xmlFile, key .. 'componentIndex'), 0) + 1,
-                inRangeDistance = Utils.getNoNil(getXMLFloat(xmlFile, key .. 'inRangeDistance'), 1.3),
-                parkable = Utils.getNoNil(getXMLBool(xmlFile, key .. '#parkable'), false),
-                lockAnimationName = Utils.getNoNil(getXMLString(xmlFile, key .. '#lockAnimationName'), nil),
-                manureFlowAnimationName = Utils.getNoNil(getXMLString(xmlFile, key .. '#manureFlowAnimationName'), nil)
+                inRangeDistance = Utils.getNoNil(getXMLFloat(xmlFile, key .. 'inRangeDistance'), HoseSystemConnector.DEFAULT_INRANGE_DISTANCE),
             }
 
-            if entry.parkable then
-                entry.parkAnimationName = Utils.getNoNil(getXMLString(xmlFile, key .. '#parkAnimationName'), nil)
-                entry.parkLength = Utils.getNoNil(getXMLFloat(xmlFile, key .. '#parkLength'), 5) -- Default length of 5m
-                local offsetDirection = Utils.getNoNil(getXMLString(xmlFile, key .. '#offsetDirection'), 'right')
-                entry.offsetDirection = string.lower(offsetDirection) ~= 'right' and HoseSystemUtil.DIRECTION_LEFT or HoseSystemUtil.DIRECTION_RIGHT
-                entry.startTransOffset = Utils.getNoNil(Utils.getVectorNFromString(getXMLString(xmlFile, key .. '#startTransOffset'), 3), { 0, 0, 0 })
-                entry.startRotOffset = Utils.getNoNil(Utils.getVectorNFromString(getXMLString(xmlFile, key .. '#startRotOffset'), 3), { 0, 0, 0 })
-                entry.endTransOffset = Utils.getNoNil(Utils.getVectorNFromString(getXMLString(xmlFile, key .. '#endTransOffset'), 3), { 0, 0, 0 })
-                entry.endRotOffset = Utils.getNoNil(Utils.getVectorNFromString(getXMLString(xmlFile, key .. '#endRotOffset'), 3), { 0, 0, 0 })
-
-                local maxNode = createTransformGroup(('hoseSystemReference_park_maxNode_%d'):format(entry.id))
-                local trans = { localToWorld(node, 0, 0, entry.offsetDirection ~= 1 and -entry.parkLength or entry.parkLength) }
-
-                link(entry.node, maxNode)
-                setWorldTranslation(maxNode, unpack(trans))
-
-                entry.maxParkLengthNode = maxNode
-            end
+            entry = HoseSystemConnector.callStrategyFunction(self, 'load' .. HoseSystemUtil:firstToUpper(typeString), { type, xmlFile, key, entry })
 
             table.insert(references, entry)
+        else
+            -- Todo: log invalid node
         end
 
         i = i + 1
