@@ -86,6 +86,13 @@ function HoseSystemUtil:mathRound(number, idp)
 end
 
 ---
+-- @param str
+--
+function HoseSystemUtil:firstToUpper(str)
+    return (str:gsub("^%l", string.upper))
+end
+
+---
 -- @param j1
 -- @param j2
 -- @param pos

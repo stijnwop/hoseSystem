@@ -6,9 +6,57 @@
 --
 -- Copyright (c) Wopster, 2017
 
-HoseSystemConnector = {}
+HoseSystemConnector = {
+    baseDirectory = g_currentModDirectory
+}
+
+HoseSystemConnector.typesToInt = {}
 
 HoseSystemConnector.PLAYER_DISTANCE = 1.3
+
+local srcDirectory = HoseSystemConnector.baseDirectory .. 'specializations/vehicles/strategies'
+
+local files = {
+    ('%s/%s'):format(srcDirectory, 'HoseSystemDockStrategy.lua')
+}
+
+for _, path in pairs(files) do
+    source(path)
+end
+
+---
+-- @param name
+--
+function HoseSystemConnector.formatTypeKey(name)
+    return ('type_%s'):format(name:lower())
+end
+
+---
+-- @param name
+--
+function HoseSystemConnector.registerType(name)
+    local key = HoseSystemConnector.formatTypeKey(name)
+
+    if HoseSystemConnector.typesToInt[key] == nil then
+        HoseSystemConnector.typesToInt[key] = #HoseSystemConnector.typesToInt + 1
+    end
+end
+
+---
+-- @param name
+--
+function HoseSystemConnector.getInitialType(name)
+    local key = HoseSystemConnector.formatTypeKey(name)
+
+    if HoseSystemConnector.typesToInt[key] ~= nil then
+        return HoseSystemConnector.typesToInt[key]
+    end
+
+    return nil
+end
+
+HoseSystemConnector.registerType('hoseCoupling')
+HoseSystemConnector.registerType(HoseSystemDockStrategy.type)
 
 ---
 -- @param specializations
@@ -39,6 +87,10 @@ end
 -- @param savegame
 --
 function HoseSystemConnector:load(savegame)
+    self.connectStrategies = {}
+
+    table.insert(self.connectStrategies, HoseSystemDockStrategy:new(self))
+
     self.hoseSystemReferences = {}
     self.dockingSystemReferences = {}
 
@@ -88,6 +140,23 @@ function HoseSystemConnector:postLoad(savegame)
 end
 
 ---
+-- @param parent
+-- @param name
+-- @param args
+--
+function HoseSystemConnector.callStrategyFunction(parent, name, args)
+    if parent.connectStrategies ~= nil and #parent.connectStrategies > 0 then
+        for _, strategy in pairs(parent.connectStrategies) do
+            if strategy[name] ~= nil then
+                return strategy[name](strategy, unpack(args))
+            end
+        end
+    end
+
+    return nil
+end
+
+---
 -- @param self
 -- @param xmlFile
 -- @param base
@@ -108,6 +177,28 @@ function HoseSystemConnector.loadHoseReferences(self, xmlFile, base, references)
             break
         end
 
+        -- Call strategies to load do this dirty for now.
+
+        local typeString = getXMLString(xmlFile, key .. '#type')
+        local typeDefault = HoseSystemConnector.getInitialType('hoseCoupling')
+        local type = typeDefault
+
+        if typeString ~= nil then
+            type = HoseSystemConnector.getInitialType(typeString)
+
+            if type == nil then
+                HoseSystemUtil:log(HoseSystemUtil.ERROR, ('Invalid connector type %s!'):format(typeString))
+                type = typeDefault
+            end
+        end
+
+        if typeString == nil then
+            typeString = 'hoseCoupling'
+        end
+
+        local entry = HoseSystemConnector.callStrategyFunction(self, 'load' .. HoseSystemUtil:firstToUpper(typeString), { type, xmlFile, base })
+
+        -- Todo: move below to hose coupling strategy
         local createNode = Utils.getNoNil(getXMLBool(xmlFile, key .. '#createNode'), false)
         local node = not createNode and Utils.indexToObject(self.components, getXMLString(xmlFile, key .. '#index')) or createTransformGroup(('hoseSystemReference_node_%d'):format(i + 1))
 
