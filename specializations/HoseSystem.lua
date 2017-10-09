@@ -304,6 +304,8 @@ function HoseSystem:delete()
                 class:delete()
             end
         end
+
+        self.polymorphismClasses = {}
     end
 end
 
