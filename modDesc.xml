@@ -5,6 +5,7 @@
     <title>
         <en>Hose system</en>
         <de>Schlauch system</de>
+        <pl>System węży</pl>
     </title>
     <description>
         <en>
@@ -17,6 +18,11 @@ For more information check the <b><a href="https://www.dropbox.com/s/vx5ujpnsom6
 
 Eine Anleitung in Englisch gibt es <b><a href="https://www.dropbox.com/s/vx5ujpnsom6090y/HoseSystem.pdf?dl=0">hier</a>.</b>]]>
         </de>
+        <pl>
+            <![CDATA[Za pomocą węża do gnojówki możesz przepompowywać ciecz z jednego zbiornika do innego. Opcjonalnie możesz wydłużyć wąż, aby zwiększyć jego zasięg.
+
+Więcej informacji w języku angielskim znajdziesz <b><a href="https://www.dropbox.com/s/vx5ujpnsom6090y/HoseSystem.pdf?dl=0">TUTAJ</a>.</b>]]>
+        </pl>
     </description>
     <iconFilename>store.dds</iconFilename>
     <multiplayer supported="true"/>
@@ -59,131 +65,164 @@ Eine Anleitung in Englisch gibt es <b><a href="https://www.dropbox.com/s/vx5ujpn
                 Mit einem Gülleschlauch können Sie Flüssigkeiten umpumpen. Wahlweise können Sie auch die Schläuche mit
                 Verlängerungen erweitern.
             </de>
+            <pl>
+                Za pomocą węża do gnojówki możesz przepompowywać ciecz z jednego zbiornika do innego.
+                Opcjonalnie możesz wydłużyć wąż, aby zwiększyć jego zasięg.
+            </pl>
         </text>
         <text name="configuration_ext_liquidManureHose">
             <en>Extendable</en>
             <de>Verlängerbar</de>
+            <pl>Wydłużony</pl>
         </text>
         <text name="configuration_nor_liquidManureHose">
             <en>Normal</en>
             <de>Normal</de>
+            <pl>Normalny</pl>
         </text>
         <text name="typeDesc_liquidManureHose">
             <en>Liquid manure hose</en>
             <de>den Gülleschlauch</de>
+            <pl>wąż do gnojówki</pl>
         </text>
         <text name="input_mouseInteract">
             <en>Press mouse button %s to</en>
             <de>Drücke Maustaste %s um</de>
+            <pl>Wciśnij %s przycisk myszki, aby</pl>
         </text>
         <text name="action_grabHose">
             <en>grab %s</en>
             <de>%s zu greifen</de>
+            <pl>chwycić %</pl>
         </text>
         <text name="action_dropHose">
             <en>drop %s</en>
             <de>%s hinzulegen</de>
+            <pl>upuścić %s</pl>
         </text>
         <text name="action_attachHose">
             <en>attach %s</en>
             <de>%s zu koppeln</de>
+            <pl>podłączyć %</pl>
         </text>
         <text name="action_detachHose">
             <en>detach %s</en>
             <de>%s zu entfernen</de>
+            <pl>odłączyć %s</pl>
         </text>
         <text name="info_hoseRangeRestriction">
             <en>The hose range restriction won't allow you to go any further!</en>
             <de>Die maximale Schlauchlänge ist erreicht. Sie können sich nicht weiter entfernen!</de>
+            <pl>Rozciągnąłeś maksymalnie wąż, dalej już nie sięgnie!</pl>
         </text>
         <text name="info_hoseRangeRestrictionChainToLong">
             <en>You are not a super human!</en>
             <de>Du bist kein Superheld!</de>
+            <pl>Nie jesteś super człowiekiem!</pl>
         </text>
         <text name="info_hoseParkingPlaceToShort">
             <en>The %sm parking place is to small for the %sm hose!</en>
             <de>Der %sm Lagerplatz ist zu klein für den %sm Schlauch!</de>
+            <pl>%sm miejsce transportowe, jest za małe dla %sm węża!</pl>
         </text>
         <!-- Input below -->
         <text name="input_attachHose">
             <en>Attach hose system</en>
             <de>Schlauch ankoppeln</de>
+            <pl>Podłączanie węża</pl>
         </text>
         <text name="input_detachHose">
             <en>Detach hose system</en>
             <de>Schlauch trennen</de>
+            <pl>Odłączanie węża</pl>
         </text>
 
         <!-- Hose system pump motor -->
         <text name="pumpMotor_changeDirection">
             <en>Change pump direction to %s</en>
             <de>Pumprichtung in %s wechseln</de>
+            <pl>Zmień kierunek pompy na %s</pl>
         </text>
         <text name="pumpMotor_directionOut">
             <en>Out</en>
             <de>entleeren</de>
+            <pl>wypompowywanie</pl>
         </text>
         <text name="pumpMotor_directionIn">
             <en>In</en>
             <de>befüllen</de>
+            <pl>pompowanie</pl>
         </text>
 
         <text name="pumpMotor_activatePump">
             <en>Activate pump</en>
             <de>Pumpe einschalten</de>
+            <pl>Włącz pompę</pl>
         </text>
         <text name="pumpMotor_deactivatePump">
             <en>Deactivate pump</en>
             <de>Pumpe ausschalten</de>
+            <pl>Wyłącz pompę</pl>
         </text>
 
         <text name="pumpMotor_warningTurnOffFirst">
             <en>Turn pump off first!</en>
             <de>Pumpe zuerst ausschalten!</de>
+            <pl>Najpierw wyłącz pompę!</pl>
         </text>
         <text name="pumpMotor_warningUnitEmpty">
             <en>The source pump unit is empty!</en>
             <de>Der Behälter ist leer!</de>
+            <pl>Źródło pompy jest puste!</pl>
         </text>
         <text name="pumpMotor_warningObjectEmpty">
             <en>The pump source is empty!</en>
             <de>Der Behälter ist leer!</de>
+            <pl>Źródło pompy jest puste!</pl>
         </text>
         <text name="pumpMotor_warningInvalidFilltype">
             <en>FillType is not supported!</en>
             <de>Dieser FillType wird nicht unterstützt!</de>
+            <pl>Ten typ ładunku nie jest obsługiwany!</pl>
         </text>
 
         <!-- Hose system connector references -->
         <text name="input_toggleManureFlow">
             <en>Toggle manure flow</en>
             <de>Güllefluss umschalten</de>
+            <pl>Przełączanie przepływu cieczy</pl>
         </text>
         <text name="input_toggleLock">
             <en>Toggle lock</en>
             <de>Schloss umschalten</de>
+            <pl>Przełączanie blokady</pl>
         </text>
 
         <text name="action_toggleLockStateLock">
             <en>Lock %s</en>
             <de>%s zu verriegeln</de>
+            <pl>zablokować %s</pl>
         </text>
         <text name="action_toggleLockStateUnlock">
             <en>Unlock %s</en>
             <de>%s zu entriegeln</de>
+            <pl>odblokować %s</pl>
         </text>
 
         <text name="action_toggleManureFlow">
             <en>%s manure flow</en>
             <de>den Güllefluss %s</de>
+            <pl>%s przepływ cieczy</pl>
         </text>
         <text name="action_toggleManureFlowStateOpen">
             <en>Open</en>
             <de>zu öffen</de>
+            <pl>otworzyć</pl>
         </text>
         <text name="action_toggleManureFlowStateClose">
             <en>Close</en>
             <de>zu schließen</de>
+            <pl>zamknąć</pl>
         </text>
     </l10n>
 </modDesc>
