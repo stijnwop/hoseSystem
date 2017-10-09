@@ -143,23 +143,6 @@ function HoseSystemConnector:postLoad(savegame)
 end
 
 ---
--- @param parent
--- @param name
--- @param args
---
-function HoseSystemConnector.callStrategyFunction(parent, name, args)
-    if parent.connectStrategies ~= nil and #parent.connectStrategies > 0 then
-        for _, strategy in pairs(parent.connectStrategies) do
-            if strategy[name] ~= nil then
-                return strategy[name](strategy, unpack(args))
-            end
-        end
-    end
-
-    return nil
-end
-
----
 -- @param self
 -- @param xmlFile
 -- @param base
@@ -227,7 +210,7 @@ function HoseSystemConnector.loadHoseReferences(self, xmlFile, base, references)
                 inRangeDistance = Utils.getNoNil(getXMLFloat(xmlFile, key .. 'inRangeDistance'), HoseSystemConnector.DEFAULT_INRANGE_DISTANCE),
             }
 
-            entry = HoseSystemConnector.callStrategyFunction(self, 'load' .. HoseSystemUtil:firstToUpper(typeString), { type, xmlFile, key, entry })
+            entry = HoseSystemUtil.callStrategyFunction(self.connectStrategies, 'load' .. HoseSystemUtil:firstToUpper(typeString), { type, xmlFile, key, entry })
 
             table.insert(references, entry)
         else

@@ -348,6 +348,23 @@ function HoseSystemUtil:getLastElement(table)
 end
 
 ---
+-- @param parent
+-- @param name
+-- @param args
+--
+function HoseSystemUtil.callStrategyFunction(strategies, name, args)
+    if strategies ~= nil and #strategies > 0 then
+        for _, strategy in pairs(strategies) do
+            if strategy[name] ~= nil then
+                return strategy[name](strategy, unpack(args))
+            end
+        end
+    end
+
+    return nil
+end
+
+---
 -- @param t
 -- @param name
 -- @param indent
