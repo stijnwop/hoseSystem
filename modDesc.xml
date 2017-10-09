@@ -93,7 +93,7 @@ Więcej informacji w języku angielskim znajdziesz <b><a href="https://www.dropb
         <text name="action_grabHose">
             <en>grab %s</en>
             <de>%s zu greifen</de>
-            <pl>chwycić %</pl>
+            <pl>chwycić %s</pl>
         </text>
         <text name="action_dropHose">
             <en>drop %s</en>
