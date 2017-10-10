@@ -1,7 +1,5 @@
 HoseSystemDockArmStrategy = {}
 
-HoseSystemDockArmStrategy.TYPE = 'dock'
-
 local HoseSystemDockArmStrategy_mt = Class(HoseSystemDockArmStrategy)
 
 ---
@@ -18,8 +16,12 @@ function HoseSystemDockArmStrategy:new(object, mt)
     return dockArmStrategy
 end
 
+---
+-- @param xmlFile
+-- @param key
+-- @param entry
+--
 function HoseSystemDockArmStrategy:load(xmlFile, key, entry)
-    print("Loading a fillArm")
 
     return entry
 end

@@ -10,44 +10,9 @@ HoseSystemFillArm = {
     baseDirectory = g_currentModDirectory
 }
 
-HoseSystemFillArm.typesToInt = {}
-
 HoseSystemFillArm.XML_KEY = 'vehicle.hoseSystemFillArm'
 
 source(HoseSystemFillArm.baseDirectory .. 'specializations/vehicles/HoseSystemFillArmFactory.lua')
-
----
--- @param name
---
-function HoseSystemFillArm.formatTypeKey(name)
-    return ('type_%s'):format(name:lower())
-end
-
----
--- @param name
---
-function HoseSystemFillArm.registerType(name)
-    local key = HoseSystemFillArm.formatTypeKey(name)
-
-    if HoseSystemFillArm.typesToInt[key] == nil then
-        HoseSystemFillArm.typesToInt[key] = #HoseSystemFillArm.typesToInt + 1
-    end
-end
-
----
--- @param name
---
-function HoseSystemFillArm.getInitialType(name)
-    local key = HoseSystemFillArm.formatTypeKey(name)
-
-    if HoseSystemFillArm.typesToInt[key] ~= nil then
-        return HoseSystemFillArm.typesToInt[key]
-    end
-
-    return nil
-end
-
-HoseSystemFillArm.registerType(HoseSystemDockArmStrategy.TYPE)
 
 ---
 -- @param specializations
@@ -72,18 +37,18 @@ function HoseSystemFillArm:load(savegame)
     local typeString = getXMLString(self.xmlFile, HoseSystemFillArm.XML_KEY .. '#type')
 
     if typeString == nil then
-        -- Todo: log!
+        HoseSystemUtil:log(HoseSystemUtil.ERROR, ('fillArm type not found!'))
         return
     end
 
-    local type = HoseSystemFillArm.getInitialType(typeString)
+    local factory = HoseSystemFillArmFactory.getInstance()
+    local type = factory.getInitialType(typeString)
 
     if type == nil then
         HoseSystemUtil:log(HoseSystemUtil.ERROR, ('Invalid fillArm type %s!'):format(typeString))
         return
     end
 
-    local factory = HoseSystemFillArmFactory.getInstance()
     table.insert(self.fillArmStrategies, factory:getFillArmStrategy(type, self))
 
     local node = HoseSystemXMLUtil.getOrCreateNode(self.components, self.xmlFile, HoseSystemFillArm.XML_KEY)

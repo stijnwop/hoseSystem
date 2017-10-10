@@ -10,6 +10,11 @@ HoseSystemFillArmFactory = {
     baseDirectory = g_currentModDirectory
 }
 
+HoseSystemDockArmStrategy.typesToInt = {}
+
+-- Enums
+HoseSystemDockArmStrategy.TYPE_DOCK = 'dock'
+
 local srcDirectory = HoseSystemFillArmFactory.baseDirectory .. 'specializations/vehicles/strategies'
 
 local files = {
@@ -23,6 +28,37 @@ end
 local HoseSystemFillArmFactory_mt = Class(HoseSystemFillArmFactory)
 
 ---
+-- @param name
+--
+function HoseSystemFillArmFactory.formatTypeKey(name)
+    return ('fillarmtype_%s'):format(name:lower())
+end
+
+---
+-- @param name
+--
+function HoseSystemFillArmFactory.registerType(name)
+    local key = HoseSystemFillArmFactory.formatTypeKey(name)
+
+    if HoseSystemFillArmFactory.typesToInt[key] == nil then
+        HoseSystemFillArmFactory.typesToInt[key] = #HoseSystemFillArmFactory.typesToInt + 1
+    end
+end
+
+---
+-- @param name
+--
+function HoseSystemFillArmFactory.getInitialType(name)
+    local key = HoseSystemFillArmFactory.formatTypeKey(name)
+
+    if HoseSystemFillArmFactory.typesToInt[key] ~= nil then
+        return HoseSystemFillArmFactory.typesToInt[key]
+    end
+
+    return nil
+end
+
+---
 --
 function HoseSystemFillArmFactory.getInstance()
     if g_currentMission.hoseSystemFillArmFactory == nil then
@@ -31,6 +67,8 @@ function HoseSystemFillArmFactory.getInstance()
 
     return g_currentMission.hoseSystemFillArmFactory
 end
+
+HoseSystemFillArmFactory.registerType(HoseSystemFillArmFactory.TYPE_DOCK)
 
 ---
 --
@@ -49,7 +87,7 @@ end
 function HoseSystemFillArmFactory:getFillArmStrategy(type, object)
     local strategy
 
-    if type == HoseSystemFillArm.getInitialType(HoseSystemDockArmStrategy.TYPE) then
+    if type == HoseSystemFillArmFactory.getInitialType(HoseSystemDockArmStrategy.TYPE_DOCK) then
         strategy = HoseSystemDockArmStrategy:new(object)
     end
 
