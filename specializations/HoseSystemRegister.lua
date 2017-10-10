@@ -18,6 +18,7 @@ local eventDirectory = HoseSystemRegistrationHelper.baseDirectory .. 'specializa
 
 local files = {
     ('%s/%s'):format(srcDirectory, 'HoseSystemUtil'),
+    ('%s/utils/%s'):format(srcDirectory, 'HoseSystemXMLUtil'),
     ('%s/%s'):format(eventDirectory, 'HoseSystemReferenceIsUsedEvent'),
     ('%s/%s'):format(eventDirectory, 'HoseSystemReferenceLockEvent'),
     ('%s/%s'):format(eventDirectory, 'HoseSystemReferenceManureFlowEvent'),
@@ -33,6 +34,10 @@ end
 
 if SpecializationUtil.specializations['hoseSystemPumpMotor'] == nil then
     SpecializationUtil.registerSpecialization('hoseSystemPumpMotor', 'HoseSystemPumpMotor', HoseSystemRegistrationHelper.baseDirectory .. 'specializations/vehicles/HoseSystemPumpMotor.lua')
+end
+
+if SpecializationUtil.specializations['hoseSystemFillArm'] == nil then
+    SpecializationUtil.registerSpecialization('hoseSystemFillArm', 'HoseSystemFillArm', HoseSystemRegistrationHelper.baseDirectory .. 'specializations/vehicles/HoseSystemFillArm.lua')
 end
 
 ---
@@ -258,6 +263,14 @@ function HoseSystemRegistrationHelper:register(vehicle, specializations, name)
 
         if HoseSystem.debugRendering then
             HoseSystemUtil:log(HoseSystemUtil.DEBUG, 'PumpMotor specialization added to: ' .. name)
+        end
+    end
+
+    if vehicle.hasHoseSystemFillArm then
+        table.insert(specializations, SpecializationUtil.getSpecialization('hoseSystemFillArm'))
+
+        if HoseSystem.debugRendering then
+            HoseSystemUtil:log(HoseSystemUtil.DEBUG, 'FillArm specialization added to: ' .. name)
         end
     end
 end
