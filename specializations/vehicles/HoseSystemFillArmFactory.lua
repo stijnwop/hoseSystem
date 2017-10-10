@@ -10,6 +10,7 @@ HoseSystemFillArmFactory = {
     baseDirectory = g_currentModDirectory
 }
 
+HoseSystemFillArmFactory.numTypes = 0
 HoseSystemFillArmFactory.typesToInt = {}
 
 -- Enums
@@ -41,7 +42,8 @@ function HoseSystemFillArmFactory.registerType(name)
     local key = HoseSystemFillArmFactory.formatTypeKey(name)
 
     if HoseSystemFillArmFactory.typesToInt[key] == nil then
-        HoseSystemFillArmFactory.typesToInt[key] = #HoseSystemFillArmFactory.typesToInt + 1
+        HoseSystemFillArmFactory.numTypes = HoseSystemFillArmFactory.numTypes + 1
+        HoseSystemFillArmFactory.typesToInt[key] = HoseSystemFillArmFactory.numTypes
     end
 end
 
