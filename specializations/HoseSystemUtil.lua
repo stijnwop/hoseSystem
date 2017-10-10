@@ -348,7 +348,7 @@ function HoseSystemUtil:getLastElement(table)
 end
 
 ---
--- @param parent
+-- @param strategies
 -- @param name
 -- @param args
 --
@@ -362,6 +362,20 @@ function HoseSystemUtil.callStrategyFunction(strategies, name, args)
     end
 
     return nil
+end
+
+---
+-- @param strategy
+-- @param strategies
+--
+function HoseSystemUtil.getHasStrategy(strategy, strategies)
+    for _, s in pairs(strategies) do
+        if s:isa(strategy) then
+            return true
+        end
+    end
+
+    return false
 end
 
 ---
