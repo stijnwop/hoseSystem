@@ -8,6 +8,7 @@
 
 HoseSystemPumpMotor = {
     sendNumBits = 1,
+    fillModesNum = 0,
     fillModes = {}
 }
 
@@ -32,9 +33,9 @@ end
 --
 function HoseSystemPumpMotor.registerFillMode(name)
     local key = HoseSystemPumpMotor.formatFillModeKey(name)
-
     if HoseSystemPumpMotor.fillModes[key] == nil then
-        HoseSystemPumpMotor.fillModes[key] = #HoseSystemPumpMotor.fillModes + 1
+        HoseSystemPumpMotor.fillModesNum = HoseSystemPumpMotor.fillModesNum + 1
+        HoseSystemPumpMotor.fillModes[key] = HoseSystemPumpMotor.fillModesNum
     end
 end
 
@@ -76,7 +77,7 @@ end
 --
 function HoseSystemPumpMotor:preLoad(savegame)
     self.getFillMode = HoseSystemPumpMotor.getFillMode
-    self.setFillMode = SpecializationUtil.callSpecializationsFunction('setFillMode')
+    self.setFillMode = HoseSystemPumpMotor.setFillMode
     self.getFillDirection = HoseSystemPumpMotor.getFillDirection
     self.setFillDirection = SpecializationUtil.callSpecializationsFunction('setFillDirection')
     self.allowPumpStarted = HoseSystemPumpMotor.allowPumpStarted
