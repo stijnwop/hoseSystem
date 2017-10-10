@@ -25,6 +25,12 @@ function HoseSystemDockStrategy:new(object, mt)
 
     setmetatable(dockStrategy, mt == nil and HoseSystemDockStrategy_mt or mt)
 
+    if g_currentMission.dockingSystemReferences == nil then
+        g_currentMission.dockingSystemReferences = {}
+    end
+
+    table.insert(g_currentMission.dockingSystemReferences, object)
+
     return dockStrategy
 end
 
@@ -51,6 +57,8 @@ function HoseSystemDockStrategy:loadDock(type, xmlFile, key, entry)
         entry.deformationNodeOrgRot = { getRotation(entry.deformationNode) }
     end
 
+    addTrigger(entry.node, 'triggerCallback', self)
+
     return entry
 end
 
@@ -58,4 +66,29 @@ end
 -- @param dt
 --
 function HoseSystemDockStrategy:update(dt)
+end
+
+---
+-- @param dt
+--
+function HoseSystemDockStrategy:triggerCallback(triggerId, otherActorId, onEnter, onLeave, onStay, otherShapeId)
+    if not self.object.isServer then
+        return
+    end
+
+    if onEnter or onLeave then
+        if otherActorId ~= 0 then
+            local object = g_currentMission.nodeToVehicle[otherActorId]
+
+            if object ~= nil and object ~= self.object then
+                if object.hasHoseSystemFillArm and HoseSystemUtil.getHasStrategy(HoseSystemDockArmStrategy, object.fillArmStrategies) then
+                    if onEnter then
+                        object:setFillObject(self.object, false)
+                    elseif onLeave then
+                        object:setFillObject(nil, true)
+                    end
+                end
+            end
+        end
+    end
 end

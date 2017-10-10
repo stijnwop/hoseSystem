@@ -13,6 +13,10 @@ function HoseSystemDockArmStrategy:new(object, mt)
 
     setmetatable(dockArmStrategy, mt == nil and HoseSystemDockArmStrategy_mt or mt)
 
+    if object.hasHoseSystemPumpMotor then
+        object.pumpMotorFillArmMode = HoseSystemPumpMotor.getInitialFillMode(HoseSystemFillArmFactory.TYPE_DOCK)
+    end
+
     return dockArmStrategy
 end
 
@@ -22,6 +26,10 @@ end
 -- @param entry
 --
 function HoseSystemDockArmStrategy:load(xmlFile, key, entry)
-
+    -- ?
     return entry
+end
+
+function HoseSystemDockArmStrategy:update(dt)
+    -- search based on node
 end
