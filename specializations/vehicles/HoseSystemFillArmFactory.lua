@@ -10,10 +10,10 @@ HoseSystemFillArmFactory = {
     baseDirectory = g_currentModDirectory
 }
 
-HoseSystemDockArmStrategy.typesToInt = {}
+HoseSystemFillArmFactory.typesToInt = {}
 
 -- Enums
-HoseSystemDockArmStrategy.TYPE_DOCK = 'dock'
+HoseSystemFillArmFactory.TYPE_DOCK = 'dock'
 
 local srcDirectory = HoseSystemFillArmFactory.baseDirectory .. 'specializations/vehicles/strategies'
 
@@ -87,7 +87,7 @@ end
 function HoseSystemFillArmFactory:getFillArmStrategy(type, object)
     local strategy
 
-    if type == HoseSystemFillArmFactory.getInitialType(HoseSystemDockArmStrategy.TYPE_DOCK) then
+    if type == HoseSystemFillArmFactory.getInitialType(HoseSystemFillArmFactory.TYPE_DOCK) then
         strategy = HoseSystemDockArmStrategy:new(object)
     end
 
