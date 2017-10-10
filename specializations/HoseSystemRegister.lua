@@ -50,6 +50,7 @@ function HoseSystemRegistrationHelper:loadMap(name)
     if not g_currentMission.hoseSystemRegistrationHelperIsLoaded then
         -- Register the fill mode for the hose system
         HoseSystemPumpMotor.registerFillMode('hoseSystem')
+        HoseSystemPumpMotor.registerFillMode(HoseSystemFillArmFactory.TYPE_DOCK)
 
         -- Register the material for the hose system
         MaterialUtil.registerMaterialType('hoseSystem')

@@ -10,6 +10,7 @@ HoseSystemConnector = {
     baseDirectory = g_currentModDirectory
 }
 
+HoseSystemConnector.numTypes = 0
 HoseSystemConnector.typesToInt = {}
 
 HoseSystemConnector.PLAYER_DISTANCE = 1.3
@@ -40,7 +41,8 @@ function HoseSystemConnector.registerType(name)
     local key = HoseSystemConnector.formatTypeKey(name)
 
     if HoseSystemConnector.typesToInt[key] == nil then
-        HoseSystemConnector.typesToInt[key] = #HoseSystemConnector.typesToInt + 1
+        HoseSystemConnector.numTypes = HoseSystemConnector.numTypes + 1
+        HoseSystemConnector.typesToInt[key] = HoseSystemConnector.numTypes
     end
 end
 
@@ -232,14 +234,6 @@ function HoseSystemConnector:updateCurrentMissionInfo(object)
 
         table.insert(g_currentMission.hoseSystemReferences, object)
     end
-
-    if #object.dockingSystemReferences > 0 then
-        if g_currentMission.dockingSystemReferences == nil then
-            g_currentMission.dockingSystemReferences = {}
-        end
-
-        table.insert(g_currentMission.dockingSystemReferences, object)
-    end
 end
 
 ---
@@ -356,9 +350,9 @@ function HoseSystemConnector:updateTick(dt)
         self:getValidFillObject()
 
         if self.isServer then
-            local isSucking = false
-
             if self:getFillMode() == self.pumpMotorFillMode then
+                local isSucking = false
+
                 local reference = self.hoseSystemReferences[self.currentReferenceIndex]
 
                 -- Todo: Moved feature to version 1.1 determine pump efficiency based on hose chain lenght
@@ -411,11 +405,11 @@ function HoseSystemConnector:updateTick(dt)
                         self:pumpOut(dt)
                     end
                 end
-            end
 
-            if self.isSucking ~= isSucking then
-                self.isSucking = isSucking
-                g_server:broadcastEvent(IsSuckingEvent:new(self, self.isSucking))
+                if self.isSucking ~= isSucking then
+                    self.isSucking = isSucking
+                    g_server:broadcastEvent(IsSuckingEvent:new(self, self.isSucking))
+                end
             end
 
             if self.fillObjectFound then
@@ -605,13 +599,15 @@ function HoseSystemConnector:getValidFillObject()
             end
         end
 
-        if self.lastFillObjectFound ~= self.fillObjectFound or self.lastFillFromFillVolume ~= self.fillFromFillVolume or self.lastFillUnitIndex ~= self.fillUnitIndex or self.lastFillObjectHasPlane ~= self.fillObjectHasPlane then
-            g_server:broadcastEvent(SendUpdateOnFillEvent:new(self, self.fillObjectFound, self.fillFromFillVolume, self.fillUnitIndex, self.fillObjectHasPlane))
+        if self:getFillMode() == self.pumpMotorFillMode then
+            if self.lastFillObjectFound ~= self.fillObjectFound or self.lastFillFromFillVolume ~= self.fillFromFillVolume or self.lastFillUnitIndex ~= self.fillUnitIndex or self.lastFillObjectHasPlane ~= self.fillObjectHasPlane then
+                g_server:broadcastEvent(SendUpdateOnFillEvent:new(self, self.fillObjectFound, self.fillFromFillVolume, self.fillUnitIndex, self.fillObjectHasPlane))
 
-            self.lastFillUnitIndex = self.fillUnitIndex
-            self.lastFillObjectFound = self.fillObjectFound
-            self.lastFillFromFillVolume = self.fillFromFillVolume
-            self.lastFillObjectHasPlane = self.fillObjectHasPlane
+                self.lastFillUnitIndex = self.fillUnitIndex
+                self.lastFillObjectFound = self.fillObjectFound
+                self.lastFillFromFillVolume = self.fillFromFillVolume
+                self.lastFillObjectHasPlane = self.fillObjectHasPlane
+            end
         end
     end
 end

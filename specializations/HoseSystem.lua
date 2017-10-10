@@ -7,8 +7,8 @@
 -- Copyright (c) Wopster, 2017
 
 HoseSystem = {
-    debugRendering = false,
-    logLevel = 2,
+    debugRendering = true,
+    logLevel = 3,
     baseDirectory = g_currentModDirectory
 }
 
