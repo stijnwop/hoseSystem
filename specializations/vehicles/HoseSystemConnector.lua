@@ -10,57 +10,12 @@ HoseSystemConnector = {
     baseDirectory = g_currentModDirectory
 }
 
-HoseSystemConnector.numTypes = 0
-HoseSystemConnector.typesToInt = {}
-
 HoseSystemConnector.PLAYER_DISTANCE = 1.3
 HoseSystemConnector.DEFAULT_INRANGE_DISTANCE = 1.3
 
+source(HoseSystemFillArm.baseDirectory .. 'specializations/vehicles/HoseSystemConnectorFactory.lua')
+
 local srcDirectory = HoseSystemConnector.baseDirectory .. 'specializations/vehicles/strategies'
-
-local files = {
-    ('%s/%s'):format(srcDirectory, 'HoseSystemHoseCouplingStrategy.lua'),
-    ('%s/%s'):format(srcDirectory, 'HoseSystemDockStrategy.lua')
-}
-
-for _, path in pairs(files) do
-    source(path)
-end
-
----
--- @param name
---
-function HoseSystemConnector.formatTypeKey(name)
-    return ('type_%s'):format(name:lower())
-end
-
----
--- @param name
---
-function HoseSystemConnector.registerType(name)
-    local key = HoseSystemConnector.formatTypeKey(name)
-
-    if HoseSystemConnector.typesToInt[key] == nil then
-        HoseSystemConnector.numTypes = HoseSystemConnector.numTypes + 1
-        HoseSystemConnector.typesToInt[key] = HoseSystemConnector.numTypes
-    end
-end
-
----
--- @param name
---
-function HoseSystemConnector.getInitialType(name)
-    local key = HoseSystemConnector.formatTypeKey(name)
-
-    if HoseSystemConnector.typesToInt[key] ~= nil then
-        return HoseSystemConnector.typesToInt[key]
-    end
-
-    return nil
-end
-
-HoseSystemConnector.registerType(HoseSystemHoseCouplingStrategy.TYPE)
-HoseSystemConnector.registerType(HoseSystemDockStrategy.TYPE)
 
 ---
 -- @param specializations
@@ -78,7 +33,6 @@ function HoseSystemConnector:preLoad(savegame)
     self.setIsUsed = HoseSystemConnector.setIsUsed
     self.getConnectedReference = HoseSystemConnector.getConnectedReference
     self.getValidFillObject = HoseSystemConnector.getValidFillObject
-    self.getAllowedFillUnitIndex = HoseSystemConnector.getAllowedFillUnitIndex
     self.getLastGrabpointRecursively = HoseSystemConnector.getLastGrabpointRecursively
     self.getIsPlayerInReferenceRange = HoseSystemConnector.getIsPlayerInReferenceRange
     self.updateLiquidHoseSystem = HoseSystemConnector.updateLiquidHoseSystem
@@ -92,41 +46,18 @@ end
 --
 function HoseSystemConnector:load(savegame)
     self.connectStrategies = {}
-
-    table.insert(self.connectStrategies, HoseSystemDockStrategy:new(self))
-    table.insert(self.connectStrategies, HoseSystemHoseCouplingStrategy:new(self))
-
     self.hoseSystemReferences = {}
     self.dockingSystemReferences = {}
 
     HoseSystemConnector.loadHoseReferences(self, self.xmlFile, 'vehicle.hoseSystemReferences.', self.hoseSystemReferences)
     -- HoseSystemConnector.loadDockingReferences(self, self.xmlFile, 'vehicle.dockingSystemReferences.', self.dockingSystemReferences)
 
-    self.fillObject = nil
-    self.fillObjectFound = false
-    self.fillObjectHasPlane = false
-    self.fillFromFillVolume = false
-    self.fillUnitIndex = 0
-    self.isSucking = false
-
-    if self.isServer then
-        self.lastFillObjectFound = false
-        self.lastFillObjectHasPlane = false
-        self.lastFillFromFillVolume = false
-        self.lastFillUnitIndex = 0
-    end
-
-    if self.hasHoseSystemPumpMotor then
-        self.pumpMotorFillMode = HoseSystemPumpMotor.getInitialFillMode('hoseSystem')
-    end
-
-    self.hasHoseSystem = true
-
     if self.unloadTrigger ~= nil then
         self.unloadTrigger:delete()
         self.unloadTrigger = nil
     end
 
+    -- Todo: refactor this
     HoseSystemConnector:updateCurrentMissionInfo(self)
 end
 
@@ -165,58 +96,38 @@ function HoseSystemConnector.loadHoseReferences(self, xmlFile, base, references)
             break
         end
 
-        -- Call strategies to load do this dirty for now.
-
-        local typeString = getXMLString(xmlFile, key .. '#type')
-        local typeDefault = HoseSystemConnector.getInitialType('hoseCoupling')
-        local type = typeDefault
+        local typeString = Utils.getNoNil(getXMLString(xmlFile, key .. '#type'), HoseSystemConnectorFactory.TYPE_HOSE_COUPLING)
 
         if typeString ~= nil then
-            type = HoseSystemConnector.getInitialType(typeString)
+            local factory = HoseSystemConnectorFactory.getInstance()
+            local type = factory.getInitialType(typeString)
 
             if type == nil then
                 HoseSystemUtil:log(HoseSystemUtil.ERROR, ('Invalid connector type %s!'):format(typeString))
-                type = typeDefault
-            end
-        end
-
-        if typeString == nil then
-            typeString = 'hoseCoupling'
-        end
-
-        local createNode = Utils.getNoNil(getXMLBool(xmlFile, key .. '#createNode'), false)
-        local node = not createNode and Utils.indexToObject(self.components, getXMLString(xmlFile, key .. '#index')) or createTransformGroup(('hoseSystemReference_node_%d'):format(i + 1))
-
-        if createNode then
-            local linkNode = Utils.indexToObject(self.components, Utils.getNoNil(getXMLString(xmlFile, key .. '#linkNode'), '0>'))
-
-            local translation = { Utils.getVectorFromString(getXMLString(self.xmlFile, key .. '#position')) }
-            if translation[1] ~= nil and translation[2] ~= nil and translation[3] ~= nil then
-                setTranslation(node, unpack(translation))
+                -- fallback on hose coupling
+                typeString = HoseSystemConnectorFactory.TYPE_HOSE_COUPLING
+                type = factory.getInitialType(typeString)
             end
 
-            local rotation = { Utils.getVectorFromString(getXMLString(self.xmlFile, key .. '#rotation')) }
-            if rotation[1] ~= nil and rotation[2] ~= nil and rotation[3] ~= nil then
-                setRotation(node, Utils.degToRad(rotation[1]), Utils.degToRad(rotation[2]), Utils.degToRad(rotation[3]))
+            local node = HoseSystemXMLUtil.getOrCreateNode(self.components, xmlFile, key)
+
+            if node ~= nil then
+                self.connectStrategies = HoseSystemUtil.insertStrategy(factory:getFillArmStrategy(type, self), self.connectStrategies)
+
+                -- defaults
+                local entry = {
+                    id = i + 1,
+                    type = type,
+                    node = node,
+                    inRangeDistance = Utils.getNoNil(getXMLFloat(xmlFile, key .. 'inRangeDistance'), HoseSystemConnector.DEFAULT_INRANGE_DISTANCE),
+                }
+
+                entry = HoseSystemUtil.callStrategyFunction(self.connectStrategies, 'load' .. HoseSystemUtil:firstToUpper(typeString), { type, xmlFile, key, entry })
+
+                table.insert(references, entry)
+            else
+                -- Todo: log invalid node
             end
-
-            link(linkNode, node)
-        end
-
-        if node ~= nil then
-            -- defaults
-            local entry = {
-                id = i + 1,
-                type = type,
-                node = node,
-                inRangeDistance = Utils.getNoNil(getXMLFloat(xmlFile, key .. 'inRangeDistance'), HoseSystemConnector.DEFAULT_INRANGE_DISTANCE),
-            }
-
-            entry = HoseSystemUtil.callStrategyFunction(self.connectStrategies, 'load' .. HoseSystemUtil:firstToUpper(typeString), { type, xmlFile, key, entry })
-
-            table.insert(references, entry)
-        else
-            -- Todo: log invalid node
         end
 
         i = i + 1
@@ -486,34 +397,6 @@ function HoseSystemConnector:getIsPlayerInReferenceRange()
 end
 
 ---
--- @param object
---
-function HoseSystemConnector:getAllowedFillUnitIndex(object)
-    if self.fillUnits == nil then
-        return 0
-    end
-
-    for index, fillUnit in pairs(self.fillUnits) do
-        if fillUnit.currentFillType ~= FillUtil.FILLTYPE_UNKNOWN then
-            if object:allowFillType(fillUnit.currentFillType) then
-                return index
-            end
-        else
-            local fillTypes = self:getUnitFillTypes(index)
-
-            for fillType, bool in pairs(fillTypes) do
-                -- check if object accepts any of our fillTypes
-                if object:allowFillType(fillType) then
-                    return index
-                end
-            end
-        end
-    end
-
-    return 0
-end
-
----
 --
 function HoseSystemConnector:getValidFillObject()
     self.currentReferenceIndex = nil
@@ -521,92 +404,44 @@ function HoseSystemConnector:getValidFillObject()
 
     self.currentReferenceIndex, self.currentGrabPointIndex = self:getConnectedReference()
 
-    if self.isServer then
-        if self:getFillMode() == self.pumpMotorFillMode then
-            -- clean tables/bools
-            self.fillObject = nil
-            self.fillObjectFound = false
-            self.fillObjectIsObject = false -- to check if we not pump to a vehicle
-            self.fillObjectHasPlane = false
-            self.fillFromFillVolume = false
-            self.fillUnitIndex = 0
-        end
+    if not self.isServer then
+        return
+    end
 
-        if self.currentGrabPointIndex ~= nil and self.currentReferenceIndex ~= nil then
-            local reference = self.hoseSystemReferences[self.currentReferenceIndex]
+    self:removeFillObject(self.fillObject, self.pumpMotorFillMode)
 
-            if reference ~= nil then
-                local lastGrabPoint, _ = self:getLastGrabpointRecursively(reference.hoseSystem.grabPoints[HoseSystemConnector:getFillableVehicle(self.currentGrabPointIndex, #reference.hoseSystem.grabPoints)])
+    if self.currentGrabPointIndex ~= nil and self.currentReferenceIndex ~= nil then
+        local reference = self.hoseSystemReferences[self.currentReferenceIndex]
 
-                if lastGrabPoint ~= nil then
-                    -- check if the last grabPoint is connected
-                    if HoseSystem:getIsConnected(lastGrabPoint.state) and not lastGrabPoint.connectable then
-                        local lastVehicle = HoseSystemReferences:getReferenceVehicle(lastGrabPoint.connectorVehicle)
-                        local lastReference = lastVehicle.hoseSystemReferences[lastGrabPoint.connectorRefId]
+        if reference ~= nil then
+            local lastGrabPoint, _ = self:getLastGrabpointRecursively(reference.hoseSystem.grabPoints[HoseSystemConnector:getFillableVehicle(self.currentGrabPointIndex, #reference.hoseSystem.grabPoints)])
 
-                        if lastReference ~= nil and lastVehicle ~= nil and lastVehicle.grabPoints == nil then -- checks if it's not a hose!
-                            if lastReference.isUsed and lastReference.flowOpened and lastReference.isLocked then
-                                if lastReference.isObject or SpecializationUtil.hasSpecialization(Fillable, lastVehicle.specializations) then
-                                    -- check fill units to allow
-                                    local allowedFillUnitIndex = self:getAllowedFillUnitIndex(lastVehicle)
+            if lastGrabPoint ~= nil then
+                -- check if the last grabPoint is connected
+                if HoseSystem:getIsConnected(lastGrabPoint.state) and not lastGrabPoint.connectable then
+                    local lastVehicle = HoseSystemReferences:getReferenceVehicle(lastGrabPoint.connectorVehicle)
+                    local lastReference = lastVehicle.hoseSystemReferences[lastGrabPoint.connectorRefId]
 
-                                    if allowedFillUnitIndex ~= 0 then
-                                        if self:getFillMode() ~= self.pumpMotorFillMode then
-                                            self:setFillMode(self.pumpMotorFillMode)
-                                        end
-
-                                        -- we can pump
-                                        self.fillObjectFound = true
-                                        self.fillObjectIsObject = lastReference.isObject
-                                        self.fillObject = lastVehicle
-                                        self.fillUnitIndex = allowedFillUnitIndex
-                                    end
-                                end
+                    if lastReference ~= nil and lastVehicle ~= nil and lastVehicle.grabPoints == nil then -- checks if it's not a hose!
+                        if lastReference.isUsed and lastReference.flowOpened and lastReference.isLocked then
+                            if lastReference.isObject or SpecializationUtil.hasSpecialization(Fillable, lastVehicle.specializations) then
+                                -- check fill units to allow
+                                self:addFillObject(lastVehicle, self.pumpMotorFillMode)
                             end
                         end
-                    else
-                        if HoseSystem:getIsDetached(lastGrabPoint.state) then -- don't lookup when the player picks up the hose from the pit
-                            -- check what the lastGrabPoint has on it's raycast
-                            local hoseSystem = reference.hoseSystem
+                    end
+                elseif HoseSystem:getIsDetached(lastGrabPoint.state) then -- don't lookup when the player picks up the hose from the pit
+                    -- check what the lastGrabPoint has on it's raycast
+                    local hoseSystem = reference.hoseSystem
 
-                            if hoseSystem ~= nil then
-                                if hoseSystem.lastRaycastDistance ~= 0 then
-                                    if hoseSystem.lastRaycastObject ~= nil then -- or how i called it
-                                        local allowedFillUnitIndex = self:getAllowedFillUnitIndex(hoseSystem.lastRaycastObject)
-
-                                        if allowedFillUnitIndex ~= 0 then
-                                            -- we have something else to pump with
-                                            if self:getFillMode() ~= self.pumpMotorFillMode then
-                                                self:setFillMode(self.pumpMotorFillMode)
-                                            end
-
-                                            -- we can pump
-                                            self.fillObjectFound = true
-                                            self.fillObject = hoseSystem.lastRaycastObject
-                                            self.fillUnitIndex = allowedFillUnitIndex
-
-                                            if self.fillObject.checkPlaneY ~= nil then
-                                                self.fillObjectHasPlane = true
-                                                self.fillObjectIsObject = true
-                                            end
-                                        end
-                                    end
-                                end
+                    if hoseSystem ~= nil then
+                        if hoseSystem.lastRaycastDistance ~= 0 then
+                            if hoseSystem.lastRaycastObject ~= nil then -- or how i called it
+                                self:addFillObject(hoseSystem.lastRaycastObject, self.pumpMotorFillMode)
                             end
                         end
                     end
                 end
-            end
-        end
-
-        if self:getFillMode() == self.pumpMotorFillMode then
-            if self.lastFillObjectFound ~= self.fillObjectFound or self.lastFillFromFillVolume ~= self.fillFromFillVolume or self.lastFillUnitIndex ~= self.fillUnitIndex or self.lastFillObjectHasPlane ~= self.fillObjectHasPlane then
-                g_server:broadcastEvent(SendUpdateOnFillEvent:new(self, self.fillObjectFound, self.fillFromFillVolume, self.fillUnitIndex, self.fillObjectHasPlane))
-
-                self.lastFillUnitIndex = self.fillUnitIndex
-                self.lastFillObjectFound = self.fillObjectFound
-                self.lastFillFromFillVolume = self.fillFromFillVolume
-                self.lastFillObjectHasPlane = self.fillObjectHasPlane
             end
         end
     end
