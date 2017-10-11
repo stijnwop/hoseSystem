@@ -10,7 +10,8 @@
 HoseSystemDockStrategy = {}
 
 HoseSystemDockStrategy.TYPE = 'dock'
-HoseSystemDockStrategy.DEFORMATION_ROTATION_LIMIT = math.deg(40) -- we have 40° limit on the deformation
+HoseSystemDockStrategy.DEFORMATION_ROTATION_LIMIT = math.rad(40) -- we have 40° limit on the deformation
+HoseSystemDockStrategy.DOCK_INRANGE_DISTANCE = 0.5
 
 local HoseSystemDockStrategy_mt = Class(HoseSystemDockStrategy)
 
@@ -31,6 +32,8 @@ function HoseSystemDockStrategy:new(object, mt)
 
     table.insert(g_currentMission.dockingSystemReferences, object)
 
+    dockStrategy.dockingArm = nil
+
     return dockStrategy
 end
 
@@ -45,11 +48,7 @@ end
 -- @param key
 -- @param entry
 --
-function HoseSystemDockStrategy:loadDock(type, xmlFile, key, entry)
-    if type ~= HoseSystemConnector.getInitialType(HoseSystemDockStrategy.TYPE) then
-        return entry
-    end
-
+function HoseSystemDockStrategy:loadDock(xmlFile, key, entry)
     entry.deformationNode = Utils.indexToObject(self.object.components, getXMLString(xmlFile, key .. '#deformatioNode'))
 
     if entry.deformationNode ~= nil then
@@ -59,6 +58,8 @@ function HoseSystemDockStrategy:loadDock(type, xmlFile, key, entry)
 
     addTrigger(entry.node, 'triggerCallback', self)
 
+    table.insert(self.object.dockingSystemReferences, entry)
+
     return entry
 end
 
@@ -66,16 +67,40 @@ end
 -- @param dt
 --
 function HoseSystemDockStrategy:update(dt)
+    local inrange, referenceId = self:getDockArmInrange()
+
+    if inrange then
+    end
+end
+
+function HoseSystemDockStrategy:getDockArmInrange()
+    if self.dockingArm ~= nil then
+        local armTrans = { getWorldTranslation(self.dockingArm.node) }
+        local distanceSequence = HoseSystemDockStrategy.DOCK_INRANGE_DISTANCE
+
+        for referenceId, reference in pairs(self.object.dockingSystemReferences) do
+            if reference.deformationNode ~= nil then
+                local trans = { getWorldTranslation(reference.deformationNode) }
+                local distance = Utils.vector3Length(trans[1] - armTrans[1], trans[2] - armTrans[2], trans[3] - armTrans[3])
+
+                distanceSequence = Utils.getNoNil(reference.inRangeDistance, distanceSequence)
+
+                if distance < distanceSequence then
+                    distanceSequence = distance
+
+                    return true, referenceId
+                end
+            end
+        end
+    end
+
+    return false, nil
 end
 
 ---
 -- @param dt
 --
 function HoseSystemDockStrategy:triggerCallback(triggerId, otherActorId, onEnter, onLeave, onStay, otherShapeId)
-    if not self.object.isServer then
-        return
-    end
-
     if onEnter or onLeave then
         if otherActorId ~= 0 then
             local object = g_currentMission.nodeToVehicle[otherActorId]
@@ -83,9 +108,11 @@ function HoseSystemDockStrategy:triggerCallback(triggerId, otherActorId, onEnter
             if object ~= nil and object ~= self.object then
                 if object.hasHoseSystemFillArm and HoseSystemUtil.getHasStrategy(HoseSystemDockArmStrategy, object.fillArmStrategies) then
                     if onEnter then
-                        object:setFillObject(self.object, false)
+                        self.dockingArm = object.fillArm
+                        object:addFillObject(self.object, object.pumpMotorFillArmMode)
                     elseif onLeave then
-                        object:setFillObject(nil, true)
+                        self.dockingArm = object.fillArm
+                        object:removeFillObject(self.object, object.pumpMotorFillArmMode)
                     end
                 end
             end
