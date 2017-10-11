@@ -20,7 +20,8 @@ HoseSystemConnectorFactory.TYPE_HOSE_COUPLING = 'hoseCoupling'
 local srcDirectory = HoseSystemConnectorFactory.baseDirectory .. 'specializations/vehicles/strategies'
 
 local files = {
-    ('%s/%s'):format(srcDirectory, 'HoseSystemDockArmStrategy.lua')
+    ('%s/%s'):format(srcDirectory, 'HoseSystemHoseCouplingStrategy.lua'),
+    ('%s/%s'):format(srcDirectory, 'HoseSystemDockStrategy.lua')
 }
 
 for _, path in pairs(files) do
