@@ -384,7 +384,7 @@ end
 --
 function HoseSystemUtil.insertStrategy(strategy, strategies)
     if not HoseSystemUtil.getHasStrategy(strategy, strategies) then
-        table.insert(strategy, strategies)
+        table.insert(strategies, strategy)
     end
 
     return strategies
