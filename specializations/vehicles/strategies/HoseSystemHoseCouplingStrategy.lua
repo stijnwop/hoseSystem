@@ -117,9 +117,10 @@ end
 -- @param key
 -- @param entry
 --
-function HoseSystemHoseCouplingStrategy:loadHoseCoupling(type, xmlFile, key, entry)
-    if type ~= HoseSystemConnector.getInitialType(HoseSystemHoseCouplingStrategy.TYPE) then
-        return entry
+function HoseSystemHoseCouplingStrategy:loadHoseCoupling(xmlFile, key, entry)
+    if #self.object.hoseSystemReferences == 2 ^ HoseSystemUtil.eventHelper.REFERENCES_NUM_SEND_BITS then
+        HoseSystemUtil:log(HoseSystemUtil.ERROR, ('Max number of references is %s!'):format(2 ^ HoseSystemUtil.eventHelper.REFERENCES_NUM_SEND_BITS))
+        return
     end
 
     entry.isUsed = false
@@ -151,6 +152,8 @@ function HoseSystemHoseCouplingStrategy:loadHoseCoupling(type, xmlFile, key, ent
 
         entry.maxParkLengthNode = maxNode
     end
+
+    table.insert(self.object.hoseSystemReferences, entry)
 
     return entry
 end
