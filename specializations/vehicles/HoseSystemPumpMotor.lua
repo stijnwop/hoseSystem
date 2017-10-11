@@ -91,6 +91,9 @@ function HoseSystemPumpMotor:preLoad(savegame)
     self.getConsumedPtoTorque = Utils.overwrittenFunction(self.getConsumedPtoTorque, HoseSystemPumpMotor.getConsumedPtoTorque)
     -- self.setIsTurnedOn = Utils.overwrittenFunction(self.setIsTurnedOn, HoseSystemPumpMotor.setIsTurnedOn)
     self.setWarningMessage = HoseSystemPumpMotor.setWarningMessage
+    self.getAllowedFillUnitIndex = HoseSystemPumpMotor.getAllowedFillUnitIndex
+    self.addFillObject = HoseSystemPumpMotor.addFillObject
+    self.removeFillObject = HoseSystemPumpMotor.removeFillObject
 end
 
 ---
@@ -147,6 +150,21 @@ function HoseSystemPumpMotor:load(savegame)
         dischargeInfoIndex = Utils.getNoNil(getXMLInt(self.xmlFile, "vehicle.pumpMotor#dischargeInfoIndex"), 1),
         ptoRpm = self.powerConsumer.ptoRpm
     }
+
+    -- Todo: lookup what we actually need on the current fillObject. (can we fill to multiple targets!?)
+    self.fillObject = nil
+    self.fillObjectFound = false
+    self.fillObjectHasPlane = false
+    self.fillFromFillVolume = false
+    self.fillUnitIndex = 0
+    self.isSucking = false
+
+    if self.isServer then
+        self.lastFillObjectFound = false
+        self.lastFillObjectHasPlane = false
+        self.lastFillFromFillVolume = false
+        self.lastFillUnitIndex = 0
+    end
 end
 
 ---
@@ -617,6 +635,98 @@ end
 --
 function HoseSystemPumpMotor:showWarningMessage(message)
     g_currentMission:showBlinkingWarning(message)
+end
+
+---
+-- @param object
+-- @param fillMode
+--
+function HoseSystemPumpMotor:addFillObject(object, fillMode)
+    if not HoseSystemPumpMotor.allowFillMode(fillMode) then
+        return
+    end
+
+    local allowedFillUnitIndex = self:getAllowedFillUnitIndex(object)
+
+    -- Todo: lookup table insertings on multiple fill objects
+    if allowedFillUnitIndex ~= 0 then
+        if self:getFillMode() ~= fillMode then
+            self:setFillMode(fillMode)
+        end
+
+        self.fillObject = object
+        self.fillObjectFound = true
+        self.fillFromFillVolume = false -- not implemented
+        self.fillObjectIsObject = object:isa(FillTrigger) -- or Object.. but we are actually pumping from a map trigger
+
+        if object.checkPlaneY ~= nil then
+            self.fillObjectHasPlane = true
+        end
+
+        self.fillUnitIndex = allowedFillUnitIndex
+    end
+
+    self:updateFillObject()
+end
+
+---
+-- @param object
+-- @param fillMode
+--
+function HoseSystemPumpMotor:removeFillObject(object, fillMode)
+    if self:getFillMode() == fillMode then
+        -- Todo: lookup table insertings on multiple fill objects
+
+        self.fillObject = nil
+        self.fillObjectFound = false
+        self.fillFromFillVolume = false -- not implemented
+        self.fillObjectIsObject = false
+        self.fillObjectHasPlane = false
+        self.fillUnitIndex = 0
+
+        self:updateFillObject()
+    end
+end
+
+---
+--
+function HoseSystemPumpMotor:updateFillObject()
+    if self.lastFillObjectFound ~= self.fillObjectFound or self.lastFillFromFillVolume ~= self.fillFromFillVolume or self.lastFillUnitIndex ~= self.fillUnitIndex or self.lastFillObjectHasPlane ~= self.fillObjectHasPlane then
+        g_server:broadcastEvent(SendUpdateOnFillEvent:new(self, self.fillObjectFound, self.fillFromFillVolume, self.fillUnitIndex, self.fillObjectHasPlane))
+
+        self.lastFillUnitIndex = self.fillUnitIndex
+        self.lastFillObjectFound = self.fillObjectFound
+        self.lastFillFromFillVolume = self.fillFromFillVolume
+        self.lastFillObjectHasPlane = self.fillObjectHasPlane
+    end
+end
+
+---
+-- @param object
+--
+function HoseSystemPumpMotor:getAllowedFillUnitIndex(object)
+    if self.fillUnits == nil then
+        return 0
+    end
+
+    for index, fillUnit in pairs(self.fillUnits) do
+        if fillUnit.currentFillType ~= FillUtil.FILLTYPE_UNKNOWN then
+            if object:allowFillType(fillUnit.currentFillType) then
+                return index
+            end
+        else
+            local fillTypes = self:getUnitFillTypes(index)
+
+            for fillType, bool in pairs(fillTypes) do
+                -- check if object accepts any of our fillTypes
+                if object:allowFillType(fillType) then
+                    return index
+                end
+            end
+        end
+    end
+
+    return 0
 end
 
 --
