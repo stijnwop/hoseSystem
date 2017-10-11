@@ -322,6 +322,22 @@ end
 -- @param t
 -- @param element
 --
+function HoseSystemUtil:getElementFromList(t, element)
+    if t ~= nil and #t > 0 then
+        for _, e in ipairs(t) do
+            if e == element then
+                return e
+            end
+        end
+    end
+
+    return nil
+end
+
+---
+-- @param t
+-- @param element
+--
 function HoseSystemUtil:removeElementFromList(t, element)
     if t ~= nil and #t > 0 then
         for i, e in ipairs(t) do
