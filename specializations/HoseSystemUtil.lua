@@ -379,6 +379,18 @@ function HoseSystemUtil.getHasStrategy(strategy, strategies)
 end
 
 ---
+-- @param strategy
+-- @param strategies
+--
+function HoseSystemUtil.insertStrategy(strategy, strategies)
+    if not HoseSystemUtil.getHasStrategy(strategy, strategies) then
+        table.insert(strategy, strategies)
+    end
+
+    return strategies
+end
+
+---
 -- @param t
 -- @param name
 -- @param indent
