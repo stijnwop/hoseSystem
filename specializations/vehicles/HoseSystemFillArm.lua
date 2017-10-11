@@ -49,11 +49,11 @@ function HoseSystemFillArm:load(savegame)
         return
     end
 
-    table.insert(self.fillArmStrategies, factory:getFillArmStrategy(type, self))
-
     local node = HoseSystemXMLUtil.getOrCreateNode(self.components, self.xmlFile, HoseSystemFillArm.XML_KEY)
 
     if node ~= nil then
+        self.fillArmStrategies = HoseSystemUtil.insertStrategy(factory:getFillArmStrategy(type, self), self.fillArmStrategies)
+
         self.fillArm = {
             type = type,
             node = node
