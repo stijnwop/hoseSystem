@@ -13,7 +13,7 @@ HoseSystemConnector = {
 HoseSystemConnector.PLAYER_DISTANCE = 1.3
 HoseSystemConnector.DEFAULT_INRANGE_DISTANCE = 1.3
 
-source(HoseSystemFillArm.baseDirectory .. 'specializations/vehicles/HoseSystemConnectorFactory.lua')
+source(HoseSystemConnector.baseDirectory .. 'specializations/vehicles/HoseSystemConnectorFactory.lua')
 
 local srcDirectory = HoseSystemConnector.baseDirectory .. 'specializations/vehicles/strategies'
 
@@ -49,7 +49,7 @@ function HoseSystemConnector:load(savegame)
     self.hoseSystemReferences = {}
     self.dockingSystemReferences = {}
 
-    HoseSystemConnector.loadHoseReferences(self, self.xmlFile, 'vehicle.hoseSystemReferences.', self.hoseSystemReferences)
+    HoseSystemConnector.loadHoseReferences(self, self.xmlFile, 'vehicle.hoseSystemReferences.')
     -- HoseSystemConnector.loadDockingReferences(self, self.xmlFile, 'vehicle.dockingSystemReferences.', self.dockingSystemReferences)
 
     if self.unloadTrigger ~= nil then
@@ -81,18 +81,13 @@ end
 -- @param base
 -- @param references
 --
-function HoseSystemConnector.loadHoseReferences(self, xmlFile, base, references)
+function HoseSystemConnector.loadHoseReferences(self, xmlFile, base)
     local i = 0
 
     while true do
         local key = string.format(base .. 'hoseSystemReference(%d)', i)
 
         if not hasXMLProperty(xmlFile, key) then
-            break
-        end
-
-        if #references == 2 ^ HoseSystemUtil.eventHelper.REFERENCES_NUM_SEND_BITS then
-            HoseSystemUtil:log(HoseSystemUtil.ERROR, ('Max number of references is %s!'):format(2 ^ HoseSystemUtil.eventHelper.REFERENCES_NUM_SEND_BITS))
             break
         end
 
@@ -122,9 +117,7 @@ function HoseSystemConnector.loadHoseReferences(self, xmlFile, base, references)
                     inRangeDistance = Utils.getNoNil(getXMLFloat(xmlFile, key .. 'inRangeDistance'), HoseSystemConnector.DEFAULT_INRANGE_DISTANCE),
                 }
 
-                entry = HoseSystemUtil.callStrategyFunction(self.connectStrategies, 'load' .. HoseSystemUtil:firstToUpper(typeString), { type, xmlFile, key, entry })
-
-                table.insert(references, entry)
+                HoseSystemUtil.callStrategyFunction(self.connectStrategies, 'load' .. HoseSystemUtil:firstToUpper(typeString), { xmlFile, key, entry })
             else
                 -- Todo: log invalid node
             end

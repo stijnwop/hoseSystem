@@ -94,6 +94,7 @@ function HoseSystemPumpMotor:preLoad(savegame)
     self.getAllowedFillUnitIndex = HoseSystemPumpMotor.getAllowedFillUnitIndex
     self.addFillObject = HoseSystemPumpMotor.addFillObject
     self.removeFillObject = HoseSystemPumpMotor.removeFillObject
+    self.updateFillObject = HoseSystemPumpMotor.updateFillObject
 end
 
 ---
@@ -163,7 +164,7 @@ function HoseSystemPumpMotor:load(savegame)
         self.lastFillObjectFound = false
         self.lastFillObjectHasPlane = false
         self.lastFillFromFillVolume = false
-        self.lastFillUnitIndex = 0
+        self.lastFillUnitIndex = 0 -- stream?
     end
 end
 
@@ -642,6 +643,10 @@ end
 -- @param fillMode
 --
 function HoseSystemPumpMotor:addFillObject(object, fillMode)
+    if not self.isServer then
+        return
+    end
+
     if not HoseSystemPumpMotor.allowFillMode(fillMode) then
         return
     end
@@ -674,6 +679,10 @@ end
 -- @param fillMode
 --
 function HoseSystemPumpMotor:removeFillObject(object, fillMode)
+    if not self.isServer then
+        return
+    end
+
     if self:getFillMode() == fillMode then
         -- Todo: lookup table insertings on multiple fill objects
 
