@@ -11,6 +11,7 @@ HoseSystemDockStrategy = {}
 
 HoseSystemDockStrategy.TYPE = 'dock'
 HoseSystemDockStrategy.DEFORMATION_ROTATION_LIMIT = math.rad(40) -- we have 40° limit on the deformation
+HoseSystemDockStrategy.DEFORMATION_ROTATION_OFFSET = 0.001
 HoseSystemDockStrategy.DOCK_INRANGE_DISTANCE = 0.5
 
 local HoseSystemDockStrategy_mt = Class(HoseSystemDockStrategy)
@@ -70,6 +71,21 @@ function HoseSystemDockStrategy:update(dt)
     local inrange, referenceId = self:getDockArmInrange()
 
     if inrange then
+        local reference = self.object.dockingSystemReferences[referenceId]
+
+        local vx, vy, vz = getWorldTranslation(self.dockingArm.node)
+        local x, y, z = worldToLocal(reference.deformationNode, vx, vy, vz)
+
+        local rx, _, rz = getRotation(reference.deformationNode)
+
+        rx = Utils.clamp(rx + z * 1 - HoseSystemDockStrategy.DEFORMATION_ROTATION_OFFSET, -HoseSystemDockStrategy.DEFORMATION_ROTATION_LIMIT, HoseSystemDockStrategy.DEFORMATION_ROTATION_LIMIT)
+        rz = Utils.clamp(rz - x * 1 - HoseSystemDockStrategy.DEFORMATION_ROTATION_OFFSET, -HoseSystemDockStrategy.DEFORMATION_ROTATION_LIMIT, HoseSystemDockStrategy.DEFORMATION_ROTATION_LIMIT)
+
+        setRotation(reference.deformationNode, rx, 0, rz)
+
+        -- push down docking rubber when getting force from docking arm.. !?
+        -- take y in account
+        -- push offset ?
     end
 end
 
@@ -81,7 +97,7 @@ function HoseSystemDockStrategy:getDockArmInrange()
         for referenceId, reference in pairs(self.object.dockingSystemReferences) do
             if reference.deformationNode ~= nil then
                 local trans = { getWorldTranslation(reference.deformationNode) }
-                local distance = Utils.vector3Length(trans[1] - armTrans[1], trans[2] - armTrans[2], trans[3] - armTrans[3])
+                local distance = Utils.vector3Length(armTrans[1] - trans[1], armTrans[2] - trans[2], armTrans[3] - trans[3])
 
                 distanceSequence = Utils.getNoNil(reference.inRangeDistance, distanceSequence)
 
