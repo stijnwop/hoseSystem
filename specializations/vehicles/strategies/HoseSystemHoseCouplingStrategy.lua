@@ -23,6 +23,12 @@ function HoseSystemHoseCouplingStrategy:new(object, mt)
 
     setmetatable(hoseCouplingStrategy, mt == nil and HoseSystemHoseCouplingStrategy_mt or mt)
 
+    object.hasHoseSystem = true
+
+    if object.hasHoseSystemPumpMotor then
+        object.pumpMotorFillMode = HoseSystemPumpMotor.getInitialFillMode(HoseSystemConnectorFactory.TYPE_HOSE_COUPLING)
+    end
+
     return hoseCouplingStrategy
 end
 
