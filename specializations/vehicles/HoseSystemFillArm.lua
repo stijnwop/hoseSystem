@@ -98,6 +98,7 @@ end
 -- @param dt
 --
 function HoseSystemFillArm:update(dt)
+    HoseSystemUtil.callStrategyFunction(self.fillArmStrategies, 'update', { dt })
 end
 
 ---
