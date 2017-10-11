@@ -12,6 +12,7 @@ HoseSystemRegistrationHelper = {
 }
 
 HoseSystemRegistrationHelper.HOSE_SYSTEM_SPEC_KEY = 'hoseSystemVehicle'
+HoseSystemRegistrationHelper.HOSE_SYSTEM_MATERIAL_TYPE = 'hoseSystem'
 
 local srcDirectory = HoseSystemRegistrationHelper.baseDirectory .. 'specializations'
 local eventDirectory = HoseSystemRegistrationHelper.baseDirectory .. 'specializations/events'
@@ -49,11 +50,11 @@ function HoseSystemRegistrationHelper:loadMap(name)
 
     if not g_currentMission.hoseSystemRegistrationHelperIsLoaded then
         -- Register the fill mode for the hose system
-        HoseSystemPumpMotor.registerFillMode('hoseSystem')
+        HoseSystemPumpMotor.registerFillMode(HoseSystemConnectorFactory.TYPE_HOSE_COUPLING)
         HoseSystemPumpMotor.registerFillMode(HoseSystemFillArmFactory.TYPE_DOCK)
 
         -- Register the material for the hose system
-        MaterialUtil.registerMaterialType('hoseSystem')
+        MaterialUtil.registerMaterialType(HoseSystemRegistrationHelper.HOSE_SYSTEM_MATERIAL_TYPE)
         loadI3DFile(HoseSystemRegistrationHelper.baseDirectory .. 'particleSystems/materialHolder.i3d')
 
         g_currentMission.hoseSystemLog = HoseSystemUtil.log
