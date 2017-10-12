@@ -114,7 +114,7 @@ function HoseSystemConnector.loadHoseReferences(self, xmlFile, base)
                     id = i + 1,
                     type = type,
                     node = node,
-                    inRangeDistance = Utils.getNoNil(getXMLFloat(xmlFile, key .. 'inRangeDistance'), HoseSystemConnector.DEFAULT_INRANGE_DISTANCE),
+                    inRangeDistance = Utils.getNoNil(getXMLFloat(xmlFile, key .. '#inRangeDistance'), HoseSystemConnector.DEFAULT_INRANGE_DISTANCE),
                 }
 
                 HoseSystemUtil.callStrategyFunction(self.connectStrategies, 'load' .. HoseSystemUtil:firstToUpper(typeString), { xmlFile, key, entry })
@@ -161,6 +161,8 @@ end
 ---
 --
 function HoseSystemConnector:delete()
+    HoseSystemUtil.callStrategyFunction(self.connectStrategies, 'delete')
+
     HoseSystemUtil:removeElementFromList(g_currentMission.hoseSystemReferences, self)
     HoseSystemUtil:removeElementFromList(g_currentMission.dockingSystemReferences, self)
 end
