@@ -12,7 +12,7 @@ HoseSystemDockStrategy = {}
 HoseSystemDockStrategy.TYPE = 'dock'
 HoseSystemDockStrategy.DEFORMATION_ROTATION_LIMIT = math.rad(40) -- we have 40° limit on the deformation
 HoseSystemDockStrategy.DEFORMATION_ROTATION_OFFSET = 0.001
-HoseSystemDockStrategy.DOCK_INRANGE_DISTANCE = 0.5
+HoseSystemDockStrategy.DOCK_INRANGE_DISTANCE = 0.25
 
 local HoseSystemDockStrategy_mt = Class(HoseSystemDockStrategy)
 
@@ -35,12 +35,19 @@ function HoseSystemDockStrategy:new(object, mt)
 
     dockStrategy.dockingArm = nil
 
+    if object.isClient then
+        dockStrategy.lastMovedReferenceId = nil
+    end
+
     return dockStrategy
 end
 
 ---
 --
 function HoseSystemDockStrategy:delete()
+    for _, reference in pairs(self.object.dockingSystemReferences) do
+        removeTrigger(reference.node)
+    end
 end
 
 ---
@@ -53,8 +60,10 @@ function HoseSystemDockStrategy:loadDock(xmlFile, key, entry)
     entry.deformationNode = Utils.indexToObject(self.object.components, getXMLString(xmlFile, key .. '#deformatioNode'))
 
     if entry.deformationNode ~= nil then
-        entry.deformationNodeOrgTrans = { getRotation(entry.deformationNode) }
+        entry.deformationNodeOrgTrans = { getTranslation(entry.deformationNode) }
         entry.deformationNodeOrgRot = { getRotation(entry.deformationNode) }
+        entry.deformationNodeLastRot = entry.deformationNodeOrgRot
+        entry.deformatioYOffset = Utils.getNoNil(getXMLFloat(xmlFile, key .. '#deformatioYOffset'), 0)
     end
 
     addTrigger(entry.node, 'triggerCallback', self)
@@ -70,22 +79,56 @@ end
 function HoseSystemDockStrategy:update(dt)
     local inrange, referenceId = self:getDockArmInrange()
 
-    if inrange then
-        local reference = self.object.dockingSystemReferences[referenceId]
+    if self.object.isClient then
 
-        local vx, vy, vz = getWorldTranslation(self.dockingArm.node)
-        local x, y, z = worldToLocal(reference.deformationNode, vx, vy, vz)
+        if inrange then
+            local reference = self.object.dockingSystemReferences[referenceId]
+            local vx, vy, vz = getWorldTranslation(self.dockingArm.node)
+            local x, y, z = worldToLocal(reference.deformationNode, vx, vy, vz)
+            local rx, _, rz = getRotation(reference.deformationNode)
 
-        local rx, _, rz = getRotation(reference.deformationNode)
+            if math.abs(reference.deformationNodeLastRot[1] - rx) > 0.000001 then
+                print('moved')
 
-        rx = Utils.clamp(rx + z * 1 - HoseSystemDockStrategy.DEFORMATION_ROTATION_OFFSET, -HoseSystemDockStrategy.DEFORMATION_ROTATION_LIMIT, HoseSystemDockStrategy.DEFORMATION_ROTATION_LIMIT)
-        rz = Utils.clamp(rz - x * 1 - HoseSystemDockStrategy.DEFORMATION_ROTATION_OFFSET, -HoseSystemDockStrategy.DEFORMATION_ROTATION_LIMIT, HoseSystemDockStrategy.DEFORMATION_ROTATION_LIMIT)
 
-        setRotation(reference.deformationNode, rx, 0, rz)
+            else
+                rx = Utils.clamp(rx + z * 1 - HoseSystemDockStrategy.DEFORMATION_ROTATION_OFFSET, -HoseSystemDockStrategy.DEFORMATION_ROTATION_LIMIT, HoseSystemDockStrategy.DEFORMATION_ROTATION_LIMIT)
+                rz = Utils.clamp(rz - x * 1 - HoseSystemDockStrategy.DEFORMATION_ROTATION_OFFSET, -HoseSystemDockStrategy.DEFORMATION_ROTATION_LIMIT, HoseSystemDockStrategy.DEFORMATION_ROTATION_LIMIT)
 
-        -- push down docking rubber when getting force from docking arm.. !?
-        -- take y in account
-        -- push offset ?
+                reference.deformationNodeLastRot = { rx, 0, rz }
+                self.lastMovedReferenceId = referenceId
+                -- push down docking rubber when getting force from docking arm.. !?
+                -- take y in account
+                -- push offset ?
+            end
+
+            setRotation(reference.deformationNode, reference.deformationNodeLastRot[1], reference.deformationNodeLastRot[2], reference.deformationNodeLastRot[3])
+        else
+            local reference = self.object.dockingSystemReferences[self.lastMovedReferenceId]
+
+            if reference ~= nil then
+                if reference.deformationNodeLastRot[1] ~= reference.deformationNodeOrgRot[1] or reference.deformationNodeLastRot[3] ~= reference.deformationNodeOrgRot[3] then
+                    local speed = (HoseSystemDockStrategy.DEFORMATION_ROTATION_OFFSET * 1000) - (dt * HoseSystemDockStrategy.DEFORMATION_ROTATION_OFFSET) * 2 * math.pi
+--                    local speed = 0
+
+--                    if reference.deformationNodeLastRot[1] < reference.deformationNodeOrgRot[1] then
+--                        speed = (HoseSystemDockStrategy.DEFORMATION_ROTATION_OFFSET * 1000) - (dt * HoseSystemDockStrategy.DEFORMATION_ROTATION_OFFSET) * 2 * math.pi
+--                    end
+
+                    print(speed)
+
+                    reference.deformationNodeLastRot[1] = math.min(reference.deformationNodeLastRot[1] * speed, reference.deformationNodeOrgRot[1])
+                    reference.deformationNodeLastRot[3] = math.min(reference.deformationNodeLastRot[3] * speed, reference.deformationNodeOrgRot[3])
+
+                    if math.abs(reference.deformationNodeLastRot[1]) < 0.001 and math.abs(reference.deformationNodeLastRot[3]) < 0.001 then
+                        reference.deformationNodeLastRot[1] = reference.deformationNodeOrgRot[1]
+                        reference.deformationNodeLastRot[3] = reference.deformationNodeOrgRot[3]
+                    end
+
+                    setRotation(reference.deformationNode, reference.deformationNodeLastRot[1], reference.deformationNodeLastRot[2], reference.deformationNodeLastRot[3])
+                end
+            end
+        end
     end
 end
 
@@ -97,11 +140,11 @@ function HoseSystemDockStrategy:getDockArmInrange()
         for referenceId, reference in pairs(self.object.dockingSystemReferences) do
             if reference.deformationNode ~= nil then
                 local trans = { getWorldTranslation(reference.deformationNode) }
-                local distance = Utils.vector3Length(armTrans[1] - trans[1], armTrans[2] - trans[2], armTrans[3] - trans[3])
+                local distance = Utils.vector2Length(armTrans[1] - trans[1], armTrans[3] - trans[3])
 
                 distanceSequence = Utils.getNoNil(reference.inRangeDistance, distanceSequence)
 
-                if distance < distanceSequence then
+                if distance < distanceSequence and armTrans[2] < trans[2] + reference.deformatioYOffset then
                     distanceSequence = distance
 
                     return true, referenceId
