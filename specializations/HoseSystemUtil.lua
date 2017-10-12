@@ -369,6 +369,10 @@ end
 -- @param args
 --
 function HoseSystemUtil.callStrategyFunction(strategies, name, args)
+    if args == nil then
+        args = {}
+    end
+
     if strategies ~= nil and #strategies > 0 then
         for _, strategy in pairs(strategies) do
             if strategy[name] ~= nil then
