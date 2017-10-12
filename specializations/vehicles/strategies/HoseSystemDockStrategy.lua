@@ -87,20 +87,14 @@ function HoseSystemDockStrategy:update(dt)
             local x, y, z = worldToLocal(reference.deformationNode, vx, vy, vz)
             local rx, _, rz = getRotation(reference.deformationNode)
 
-            if math.abs(reference.deformationNodeLastRot[1] - rx) > 0.000001 then
-                print('moved')
+            rx = Utils.clamp(rx + z * 1 - HoseSystemDockStrategy.DEFORMATION_ROTATION_OFFSET, -HoseSystemDockStrategy.DEFORMATION_ROTATION_LIMIT, HoseSystemDockStrategy.DEFORMATION_ROTATION_LIMIT)
+            rz = Utils.clamp(rz - x * 1 - HoseSystemDockStrategy.DEFORMATION_ROTATION_OFFSET, -HoseSystemDockStrategy.DEFORMATION_ROTATION_LIMIT, HoseSystemDockStrategy.DEFORMATION_ROTATION_LIMIT)
 
-
-            else
-                rx = Utils.clamp(rx + z * 1 - HoseSystemDockStrategy.DEFORMATION_ROTATION_OFFSET, -HoseSystemDockStrategy.DEFORMATION_ROTATION_LIMIT, HoseSystemDockStrategy.DEFORMATION_ROTATION_LIMIT)
-                rz = Utils.clamp(rz - x * 1 - HoseSystemDockStrategy.DEFORMATION_ROTATION_OFFSET, -HoseSystemDockStrategy.DEFORMATION_ROTATION_LIMIT, HoseSystemDockStrategy.DEFORMATION_ROTATION_LIMIT)
-
-                reference.deformationNodeLastRot = { rx, 0, rz }
-                self.lastMovedReferenceId = referenceId
-                -- push down docking rubber when getting force from docking arm.. !?
-                -- take y in account
-                -- push offset ?
-            end
+            reference.deformationNodeLastRot = { rx, 0, rz }
+            self.lastMovedReferenceId = referenceId
+            -- push down docking rubber when getting force from docking arm.. !?
+            -- take y in account
+            -- push offset ?
 
             setRotation(reference.deformationNode, reference.deformationNodeLastRot[1], reference.deformationNodeLastRot[2], reference.deformationNodeLastRot[3])
         else
@@ -108,21 +102,24 @@ function HoseSystemDockStrategy:update(dt)
 
             if reference ~= nil then
                 if reference.deformationNodeLastRot[1] ~= reference.deformationNodeOrgRot[1] or reference.deformationNodeLastRot[3] ~= reference.deformationNodeOrgRot[3] then
-                    local speed = (HoseSystemDockStrategy.DEFORMATION_ROTATION_OFFSET * 1000) - (dt * HoseSystemDockStrategy.DEFORMATION_ROTATION_OFFSET) * 2 * math.pi
---                    local speed = 0
-
---                    if reference.deformationNodeLastRot[1] < reference.deformationNodeOrgRot[1] then
---                        speed = (HoseSystemDockStrategy.DEFORMATION_ROTATION_OFFSET * 1000) - (dt * HoseSystemDockStrategy.DEFORMATION_ROTATION_OFFSET) * 2 * math.pi
---                    end
-
-                    print(speed)
-
-                    reference.deformationNodeLastRot[1] = math.min(reference.deformationNodeLastRot[1] * speed, reference.deformationNodeOrgRot[1])
-                    reference.deformationNodeLastRot[3] = math.min(reference.deformationNodeLastRot[3] * speed, reference.deformationNodeOrgRot[3])
-
-                    if math.abs(reference.deformationNodeLastRot[1]) < 0.001 and math.abs(reference.deformationNodeLastRot[3]) < 0.001 then
+                    if math.abs(reference.deformationNodeLastRot[1]) < HoseSystemDockStrategy.DEFORMATION_ROTATION_OFFSET and math.abs(reference.deformationNodeLastRot[3]) < HoseSystemDockStrategy.DEFORMATION_ROTATION_OFFSET then
                         reference.deformationNodeLastRot[1] = reference.deformationNodeOrgRot[1]
                         reference.deformationNodeLastRot[3] = reference.deformationNodeOrgRot[3]
+                        self.lastMovedReferenceId = nil
+                    else
+                        local speed = (HoseSystemDockStrategy.DEFORMATION_ROTATION_OFFSET * 1000) - (dt * HoseSystemDockStrategy.DEFORMATION_ROTATION_OFFSET) * 2 * math.pi
+
+                        if reference.deformationNodeLastRot[1] < reference.deformationNodeOrgRot[1] then
+                            reference.deformationNodeLastRot[1] = math.min(reference.deformationNodeLastRot[1] * speed, reference.deformationNodeOrgRot[1])
+                        else
+                            reference.deformationNodeLastRot[1] = math.max(reference.deformationNodeLastRot[1] * speed, reference.deformationNodeOrgRot[1])
+                        end
+
+                        if reference.deformationNodeLastRot[3] < reference.deformationNodeOrgRot[3] then
+                            reference.deformationNodeLastRot[3] = math.min(reference.deformationNodeLastRot[3] * speed, reference.deformationNodeOrgRot[3])
+                        else
+                            reference.deformationNodeLastRot[3] = math.max(reference.deformationNodeLastRot[3] * speed, reference.deformationNodeOrgRot[3])
+                        end
                     end
 
                     setRotation(reference.deformationNode, reference.deformationNodeLastRot[1], reference.deformationNodeLastRot[2], reference.deformationNodeLastRot[3])
