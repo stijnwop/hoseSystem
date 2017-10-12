@@ -6,7 +6,6 @@
 --
 -- Copyright (c) Wopster, 2017
 
-
 HoseSystemDockStrategy = {}
 
 HoseSystemDockStrategy.TYPE = 'dock'
@@ -33,7 +32,7 @@ function HoseSystemDockStrategy:new(object, mt)
 
     table.insert(g_currentMission.dockingSystemReferences, object)
 
-    dockStrategy.dockingArm = nil
+    dockStrategy.dockingArmObject = nil
 
     if object.isClient then
         dockStrategy.lastMovedReferenceId = nil
@@ -80,58 +79,77 @@ function HoseSystemDockStrategy:update(dt)
     local inrange, referenceId = self:getDockArmInrange()
 
     if self.object.isClient then
+        self:deformDockFunnel(inrange, referenceId, dt)
+    end
 
-        if inrange then
-            local reference = self.object.dockingSystemReferences[referenceId]
-            local vx, vy, vz = getWorldTranslation(self.dockingArm.node)
-            local x, y, z = worldToLocal(reference.deformationNode, vx, vy, vz)
-            local rx, _, rz = getRotation(reference.deformationNode)
+    if not self.object.isServer then
+        return
+    end
 
-            rx = Utils.clamp(rx + z * 1 - HoseSystemDockStrategy.DEFORMATION_ROTATION_OFFSET, -HoseSystemDockStrategy.DEFORMATION_ROTATION_LIMIT, HoseSystemDockStrategy.DEFORMATION_ROTATION_LIMIT)
-            rz = Utils.clamp(rz - x * 1 - HoseSystemDockStrategy.DEFORMATION_ROTATION_OFFSET, -HoseSystemDockStrategy.DEFORMATION_ROTATION_LIMIT, HoseSystemDockStrategy.DEFORMATION_ROTATION_LIMIT)
+    if inrange then
+        self.dockingArmObject:addFillObject(self.object, self.dockingArmObject.pumpMotorFillArmMode)
+    elseif self.dockingArmObject ~= nil then
+        self.dockingArmObject:removeFillObject(self.object, self.dockingArmObject.pumpMotorFillArmMode)
+    end
+end
 
-            reference.deformationNodeLastRot = { rx, 0, rz }
-            self.lastMovedReferenceId = referenceId
-            -- push down docking rubber when getting force from docking arm.. !?
-            -- take y in account
-            -- push offset ?
+---
+-- @param isActive
+-- @param referenceId
+--
+function HoseSystemDockStrategy:deformDockFunnel(isActive, referenceId, dt)
+    if isActive then
+        local reference = self.object.dockingSystemReferences[referenceId]
+        local vx, vy, vz = getWorldTranslation(self.dockingArmObject.fillArm.node)
+        local x, y, z = worldToLocal(reference.deformationNode, vx, vy, vz)
+        local rx, _, rz = getRotation(reference.deformationNode)
 
-            setRotation(reference.deformationNode, reference.deformationNodeLastRot[1], reference.deformationNodeLastRot[2], reference.deformationNodeLastRot[3])
-        else
-            local reference = self.object.dockingSystemReferences[self.lastMovedReferenceId]
+        rx = Utils.clamp(rx + z * 1 - HoseSystemDockStrategy.DEFORMATION_ROTATION_OFFSET, -HoseSystemDockStrategy.DEFORMATION_ROTATION_LIMIT, HoseSystemDockStrategy.DEFORMATION_ROTATION_LIMIT)
+        rz = Utils.clamp(rz - x * 1 - HoseSystemDockStrategy.DEFORMATION_ROTATION_OFFSET, -HoseSystemDockStrategy.DEFORMATION_ROTATION_LIMIT, HoseSystemDockStrategy.DEFORMATION_ROTATION_LIMIT)
 
-            if reference ~= nil then
-                if reference.deformationNodeLastRot[1] ~= reference.deformationNodeOrgRot[1] or reference.deformationNodeLastRot[3] ~= reference.deformationNodeOrgRot[3] then
-                    if math.abs(reference.deformationNodeLastRot[1]) < HoseSystemDockStrategy.DEFORMATION_ROTATION_OFFSET and math.abs(reference.deformationNodeLastRot[3]) < HoseSystemDockStrategy.DEFORMATION_ROTATION_OFFSET then
-                        reference.deformationNodeLastRot[1] = reference.deformationNodeOrgRot[1]
-                        reference.deformationNodeLastRot[3] = reference.deformationNodeOrgRot[3]
-                        self.lastMovedReferenceId = nil
+        reference.deformationNodeLastRot = { rx, 0, rz }
+        self.lastMovedReferenceId = referenceId
+        -- push down docking rubber when getting force from docking arm.. !?
+        -- take y in account
+        -- push offset ?
+
+        setRotation(reference.deformationNode, reference.deformationNodeLastRot[1], reference.deformationNodeLastRot[2], reference.deformationNodeLastRot[3])
+    else
+        local reference = self.object.dockingSystemReferences[self.lastMovedReferenceId]
+
+        if reference ~= nil then
+            if reference.deformationNodeLastRot[1] ~= reference.deformationNodeOrgRot[1] or reference.deformationNodeLastRot[3] ~= reference.deformationNodeOrgRot[3] then
+                if math.abs(reference.deformationNodeLastRot[1]) < HoseSystemDockStrategy.DEFORMATION_ROTATION_OFFSET and math.abs(reference.deformationNodeLastRot[3]) < HoseSystemDockStrategy.DEFORMATION_ROTATION_OFFSET then
+                    reference.deformationNodeLastRot[1] = reference.deformationNodeOrgRot[1]
+                    reference.deformationNodeLastRot[3] = reference.deformationNodeOrgRot[3]
+                    self.lastMovedReferenceId = nil
+                else
+                    local speed = (HoseSystemDockStrategy.DEFORMATION_ROTATION_OFFSET * 1000) - (dt * HoseSystemDockStrategy.DEFORMATION_ROTATION_OFFSET) * 2 * math.pi
+
+                    if reference.deformationNodeLastRot[1] < reference.deformationNodeOrgRot[1] then
+                        reference.deformationNodeLastRot[1] = math.min(reference.deformationNodeLastRot[1] * speed, reference.deformationNodeOrgRot[1])
                     else
-                        local speed = (HoseSystemDockStrategy.DEFORMATION_ROTATION_OFFSET * 1000) - (dt * HoseSystemDockStrategy.DEFORMATION_ROTATION_OFFSET) * 2 * math.pi
-
-                        if reference.deformationNodeLastRot[1] < reference.deformationNodeOrgRot[1] then
-                            reference.deformationNodeLastRot[1] = math.min(reference.deformationNodeLastRot[1] * speed, reference.deformationNodeOrgRot[1])
-                        else
-                            reference.deformationNodeLastRot[1] = math.max(reference.deformationNodeLastRot[1] * speed, reference.deformationNodeOrgRot[1])
-                        end
-
-                        if reference.deformationNodeLastRot[3] < reference.deformationNodeOrgRot[3] then
-                            reference.deformationNodeLastRot[3] = math.min(reference.deformationNodeLastRot[3] * speed, reference.deformationNodeOrgRot[3])
-                        else
-                            reference.deformationNodeLastRot[3] = math.max(reference.deformationNodeLastRot[3] * speed, reference.deformationNodeOrgRot[3])
-                        end
+                        reference.deformationNodeLastRot[1] = math.max(reference.deformationNodeLastRot[1] * speed, reference.deformationNodeOrgRot[1])
                     end
 
-                    setRotation(reference.deformationNode, reference.deformationNodeLastRot[1], reference.deformationNodeLastRot[2], reference.deformationNodeLastRot[3])
+                    if reference.deformationNodeLastRot[3] < reference.deformationNodeOrgRot[3] then
+                        reference.deformationNodeLastRot[3] = math.min(reference.deformationNodeLastRot[3] * speed, reference.deformationNodeOrgRot[3])
+                    else
+                        reference.deformationNodeLastRot[3] = math.max(reference.deformationNodeLastRot[3] * speed, reference.deformationNodeOrgRot[3])
+                    end
                 end
+
+                setRotation(reference.deformationNode, reference.deformationNodeLastRot[1], reference.deformationNodeLastRot[2], reference.deformationNodeLastRot[3])
             end
         end
     end
 end
 
+---
+--
 function HoseSystemDockStrategy:getDockArmInrange()
-    if self.dockingArm ~= nil then
-        local armTrans = { getWorldTranslation(self.dockingArm.node) }
+    if self.dockingArmObject ~= nil then
+        local armTrans = { getWorldTranslation(self.dockingArmObject.fillArm.node) }
         local distanceSequence = HoseSystemDockStrategy.DOCK_INRANGE_DISTANCE
 
         for referenceId, reference in pairs(self.object.dockingSystemReferences) do
@@ -154,7 +172,12 @@ function HoseSystemDockStrategy:getDockArmInrange()
 end
 
 ---
--- @param dt
+-- @param triggerId
+-- @param otherActorId
+-- @param onEnter
+-- @param onLeave
+-- @param onStay
+-- @param otherShapeId
 --
 function HoseSystemDockStrategy:triggerCallback(triggerId, otherActorId, onEnter, onLeave, onStay, otherShapeId)
     if onEnter or onLeave then
@@ -164,11 +187,9 @@ function HoseSystemDockStrategy:triggerCallback(triggerId, otherActorId, onEnter
             if object ~= nil and object ~= self.object then
                 if object.hasHoseSystemFillArm and HoseSystemUtil.getHasStrategy(HoseSystemDockArmStrategy, object.fillArmStrategies) then
                     if onEnter then
-                        self.dockingArm = object.fillArm
-                        object:addFillObject(self.object, object.pumpMotorFillArmMode)
+                        self.dockingArmObject = object
                     elseif onLeave then
-                        self.dockingArm = object.fillArm
-                        object:removeFillObject(self.object, object.pumpMotorFillArmMode)
+                        self.dockingArmObject = object
                     end
                 end
             end
