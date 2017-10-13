@@ -319,12 +319,12 @@ function HoseSystemUtil:getAttachedGrabPoint(grabPoints, id)
 end
 
 ---
--- @param t
+-- @param list
 -- @param element
 --
-function HoseSystemUtil:getElementFromList(t, element)
-    if t ~= nil and #t > 0 then
-        for _, e in ipairs(t) do
+function HoseSystemUtil:getElementFromList(list, element)
+    if list ~= nil and #list > 0 then
+        for _, e in ipairs(list) do
             if e == element then
                 return e
             end
@@ -335,14 +335,30 @@ function HoseSystemUtil:getElementFromList(t, element)
 end
 
 ---
--- @param t
+-- @param list
 -- @param element
 --
-function HoseSystemUtil:removeElementFromList(t, element)
-    if t ~= nil and #t > 0 then
-        for i, e in ipairs(t) do
+function HoseSystemUtil.getHasListElement(list, element)
+    if list ~= nil and #list > 0 then
+        for _, e in pairs(list) do
             if e == element then
-                table.remove(t, i)
+                return true
+            end
+        end
+    end
+
+    return false
+end
+
+---
+-- @param list
+-- @param element
+--
+function HoseSystemUtil:removeElementFromList(list, element)
+    if list ~= nil and #list > 0 then
+        for i, e in ipairs(list) do
+            if e == element then
+                table.remove(list, i)
                 break
             end
         end
