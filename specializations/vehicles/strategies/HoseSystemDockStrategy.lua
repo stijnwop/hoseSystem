@@ -34,7 +34,9 @@ function HoseSystemDockStrategy:new(object, mt)
         g_currentMission.dockingSystemReferences = {}
     end
 
-    table.insert(g_currentMission.dockingSystemReferences, object)
+    if not HoseSystemUtil.getHasListElement(g_currentMission.dockingSystemReferences, object) then
+        table.insert(g_currentMission.dockingSystemReferences, object)
+    end
 
     dockStrategy.dockingArmObjects = {}
     dockStrategy.dockingArmObjectsDelayedDelete = {}
@@ -74,7 +76,7 @@ function HoseSystemDockStrategy:loadDock(xmlFile, key, entry)
 
     addTrigger(entry.node, 'triggerCallback', self)
 
-    self.object.dockingSystemReferences[#self.object.dockingSystemReferences + 1] = entry
+    table.insert(self.object.dockingSystemReferences, entry)
 
     return entry
 end
@@ -94,7 +96,7 @@ function HoseSystemDockStrategy:update(dt)
             self:deformDockFunnel(dt, inrange, dockingArmObject, referenceId)
         end
 
-        if self.object.isServer and referenceId ~= nil and not self.object.dockingSystemReferences[referenceId].parkable then
+        if self.object.isServer and (referenceId ~= nil and not self.object.dockingSystemReferences[referenceId].parkable) or not inrange then
             if inrange and dockingArmObject ~= self.object then
                 self.object:setIsUsed(referenceId, inrange, nil)
                 dockingArmObject:addFillObject(self.object, dockingArmObject.pumpMotorFillArmMode)
@@ -226,7 +228,7 @@ function HoseSystemDockStrategy:triggerCallback(triggerId, otherActorId, onEnter
                 if object.hasHoseSystemFillArm and HoseSystemUtil.getHasStrategy(HoseSystemDockArmStrategy, object.fillArmStrategies) then
                     if onEnter then
                         if not HoseSystemUtil.getHasListElement(self.dockingArmObjects, object) then
-                            self.dockingArmObjects[#self.dockingArmObjects + 1] = object
+                            table.insert(self.dockingArmObjects, object)
                         end
                     elseif onLeave then
                         self.dockingArmObjectsDelayedDelete[object] = g_currentMission.time + HoseSystemDockStrategy.DEFORMATION_RESET_TIME
