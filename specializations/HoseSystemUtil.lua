@@ -390,7 +390,9 @@ function HoseSystemUtil.callStrategyFunction(strategies, name, args)
     end
 
     if strategies ~= nil and #strategies > 0 then
-        for _, strategy in pairs(strategies) do
+        for i = 1, #strategies do
+            local strategy = strategies[i]
+
             if strategy[name] ~= nil then
                 return strategy[name](strategy, unpack(args))
             end
@@ -406,7 +408,7 @@ end
 --
 function HoseSystemUtil.getHasStrategy(strategy, strategies)
     for _, s in pairs(strategies) do
-        if s:isa(strategy) then
+        if s:class():isa(strategy:class()) or s == strategy then
             return true
         end
     end
