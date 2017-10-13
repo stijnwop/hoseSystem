@@ -138,9 +138,9 @@ function HoseSystemDockStrategy:deformDockFunnel(dt, isActive, dockingArmObject,
             self.lastMovedReferenceIds[referenceId] = true
         end
     else
-        for id, isMoved in pairs(self.lastMovedReferenceIds) do
-            if isMoved then
-                local reference = self.object.dockingSystemReferences[id]
+        for referenceId, wasMoved in pairs(self.lastMovedReferenceIds) do
+            if wasMoved then
+                local reference = self.object.dockingSystemReferences[referenceId]
 
                 if reference ~= nil then
                     if reference.deformationNodeLastTrans[2] ~= reference.deformationNodeOrgTrans[2] then
@@ -152,8 +152,8 @@ function HoseSystemDockStrategy:deformDockFunnel(dt, isActive, dockingArmObject,
                             reference.deformationNodeLastRot[1] = reference.deformationNodeOrgRot[1]
                             reference.deformationNodeLastRot[3] = reference.deformationNodeOrgRot[3]
 
-                            if self.lastMovedReferenceIds[id] then
-                                self.lastMovedReferenceIds[id] = false
+                            if self.lastMovedReferenceIds[referenceId] then
+                                self.lastMovedReferenceIds[referenceId] = false
                             end
                         else
                             local speedFactor = (HoseSystemDockStrategy.DEFORMATION_ROTATION_OFFSET * 1000) - (dt * HoseSystemDockStrategy.DEFORMATION_ROTATION_OFFSET) * (2 * math.pi)
