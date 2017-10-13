@@ -253,26 +253,39 @@ end
 --
 function HoseSystemRegistrationHelper:register(vehicle, specializations, name)
     if vehicle.hasHoseSystemConnectors then
-        table.insert(specializations, SpecializationUtil.getSpecialization('hoseSystemConnector'))
+        local specialization = SpecializationUtil.getSpecialization('hoseSystemConnector')
 
-        if HoseSystem.debugRendering then
-            HoseSystemUtil:log(HoseSystemUtil.DEBUG, 'Connector specialization added to: ' .. name)
+        if not SpecializationUtil.hasSpecialization(specialization, specializations) then
+            table.insert(specializations, specialization)
+
+            if HoseSystem.debugRendering then
+                HoseSystemUtil:log(HoseSystemUtil.DEBUG, 'Connector specialization added to: ' .. name)
+            end
         end
     end
 
     if vehicle.hasHoseSystemPumpMotor then
-        table.insert(specializations, SpecializationUtil.getSpecialization('hoseSystemPumpMotor'))
+        local specialization = SpecializationUtil.getSpecialization('hoseSystemPumpMotor')
 
-        if HoseSystem.debugRendering then
-            HoseSystemUtil:log(HoseSystemUtil.DEBUG, 'PumpMotor specialization added to: ' .. name)
+        if not SpecializationUtil.hasSpecialization(specialization, specializations) then
+            table.insert(specializations, specialization)
+
+            if HoseSystem.debugRendering then
+                HoseSystemUtil:log(HoseSystemUtil.DEBUG, 'PumpMotor specialization added to: ' .. name)
+            end
         end
     end
 
     if vehicle.hasHoseSystemFillArm then
-        table.insert(specializations, SpecializationUtil.getSpecialization('hoseSystemFillArm'))
 
-        if HoseSystem.debugRendering then
-            HoseSystemUtil:log(HoseSystemUtil.DEBUG, 'FillArm specialization added to: ' .. name)
+        local specialization = SpecializationUtil.getSpecialization('hoseSystemFillArm')
+
+        if not SpecializationUtil.hasSpecialization(specialization, specializations) then
+            table.insert(specializations, specialization)
+
+            if HoseSystem.debugRendering then
+                HoseSystemUtil:log(HoseSystemUtil.DEBUG, 'FillArm specialization added to: ' .. name)
+            end
         end
     end
 end
