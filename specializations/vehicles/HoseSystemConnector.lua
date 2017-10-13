@@ -114,6 +114,7 @@ function HoseSystemConnector.loadHoseReferences(self, xmlFile, base)
                     id = i + 1,
                     type = type,
                     node = node,
+                    isUsed = false,
                     inRangeDistance = Utils.getNoNil(getXMLFloat(xmlFile, key .. '#inRangeDistance'), HoseSystemConnector.DEFAULT_INRANGE_DISTANCE),
                 }
 
@@ -567,6 +568,8 @@ function HoseSystemConnector:setIsUsed(index, state, hoseSystem, noEventSend)
             HoseSystemReferenceIsUsedEvent.sendEvent(self, index, state, hoseSystem, noEventSend)
 
             reference.isUsed = state
+
+            -- Todo call strategy
             reference.hoseSystem = hoseSystem
 
             if not reference.parkable then

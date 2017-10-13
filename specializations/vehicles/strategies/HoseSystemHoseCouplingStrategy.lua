@@ -123,7 +123,6 @@ function HoseSystemHoseCouplingStrategy:loadHoseCoupling(xmlFile, key, entry)
         return
     end
 
-    entry.isUsed = false
     entry.flowOpened = false
     entry.isLocked = false
     entry.hoseSystem = nil
