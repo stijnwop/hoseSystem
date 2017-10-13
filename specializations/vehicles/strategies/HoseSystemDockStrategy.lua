@@ -12,6 +12,7 @@ HoseSystemDockStrategy.TYPE = 'dock'
 HoseSystemDockStrategy.DEFORMATION_ROTATION_LIMIT = math.rad(40) -- we have 40° limit on the deformation
 HoseSystemDockStrategy.DEFORMATION_ROTATION_OFFSET = 0.001
 HoseSystemDockStrategy.DEFORMATION_TRANSLATION_MULTIPLIER = 0.01
+HoseSystemDockStrategy.DEFORMATION_RESET_TIME = 1500 -- ms
 HoseSystemDockStrategy.DOCK_INRANGE_DISTANCE = 0.25
 HoseSystemDockStrategy.DOCK_INRANGE_Y_OFFSET = 0.5
 HoseSystemDockStrategy.DOCK_DEFORM_Y_MAX = 0.1 -- maximun amount that the fillArm is allowed to push on the funnel
@@ -36,6 +37,7 @@ function HoseSystemDockStrategy:new(object, mt)
     table.insert(g_currentMission.dockingSystemReferences, object)
 
     dockStrategy.dockingArmObjects = {}
+    dockStrategy.dockingArmObjectsDelayedDelete = {}
 
     if object.isClient then
         dockStrategy.lastMovedReferenceIds = {}
@@ -53,7 +55,6 @@ function HoseSystemDockStrategy:delete()
 end
 
 ---
--- @param type
 -- @param xmlFile
 -- @param key
 -- @param entry
@@ -72,7 +73,7 @@ function HoseSystemDockStrategy:loadDock(xmlFile, key, entry)
 
     addTrigger(entry.node, 'triggerCallback', self)
 
-    table.insert(self.object.dockingSystemReferences, entry)
+    self.object.dockingSystemReferences[#self.object.dockingSystemReferences + 1] = entry
 
     return entry
 end
@@ -81,14 +82,14 @@ end
 -- @param dt
 --
 function HoseSystemDockStrategy:update(dt)
-    if #self.dockingArmObjects == 0 then
+    if next(self.dockingArmObjects) == nil then
         return
     end
 
     for _, dockingArmObject in pairs(self.dockingArmObjects) do
         local inrange, referenceId = self:getDockArmInrange(dockingArmObject)
 
-        if inrange and self.object.isClient then
+        if self.object.isClient then
             self:deformDockFunnel(dt, inrange, dockingArmObject, referenceId)
         end
 
@@ -99,19 +100,19 @@ function HoseSystemDockStrategy:update(dt)
                 dockingArmObject:removeFillObject(self.object, dockingArmObject.pumpMotorFillArmMode)
             end
         end
-    end
 
-    -- Restore deformed funnels
-    if self.object.isClient then
-        self:deformDockFunnel(dt, false)
+        if not inrange and self.dockingArmObjectsDelayedDelete[dockingArmObject] ~= nil and self.dockingArmObjectsDelayedDelete[dockingArmObject] < g_currentMission.time then
+            self.dockingArmObjectsDelayedDelete[dockingArmObject] = nil
+            HoseSystemUtil:removeElementFromList(self.dockingArmObjects, dockingArmObject)
+        end
     end
 end
 
 ---
+-- @param dt
 -- @param isActive
 -- @param dockingArmObject
 -- @param referenceId
--- @param dt
 --
 function HoseSystemDockStrategy:deformDockFunnel(dt, isActive, dockingArmObject, referenceId)
     if isActive then
@@ -121,8 +122,6 @@ function HoseSystemDockStrategy:deformDockFunnel(dt, isActive, dockingArmObject,
         local rx, _, rz = getRotation(reference.deformationNode)
         local pushImpact = reference.deformatioYOffset / 2 -- start halfway the offset with pushing
         local speedFactor = (y - pushImpact) * HoseSystemDockStrategy.DEFORMATION_TRANSLATION_MULTIPLIER * dt
-
-        self.lastMovedReferenceIds[referenceId] = true
 
         reference.deformationNodeLastTrans[2] = Utils.clamp(reference.deformationNodeLastTrans[2] + speedFactor, reference.deformationNodeOrgTrans[2] - reference.deformatioYMaxPush, reference.deformationNodeOrgTrans[2])
         reference.deformationNodeLastTrans = { reference.deformationNodeOrgTrans[1], reference.deformationNodeLastTrans[2], reference.deformationNodeOrgTrans[3] }
@@ -134,10 +133,14 @@ function HoseSystemDockStrategy:deformDockFunnel(dt, isActive, dockingArmObject,
         reference.deformationNodeLastRot = { rx, reference.deformationNodeOrgRot[2], rz }
 
         setRotation(reference.deformationNode, unpack(reference.deformationNodeLastRot))
+
+        if not self.lastMovedReferenceIds[referenceId] then
+            self.lastMovedReferenceIds[referenceId] = true
+        end
     else
-        for referenceId, wasMoved in pairs(self.lastMovedReferenceIds) do
-            if wasMoved then
-                local reference = self.object.dockingSystemReferences[referenceId]
+        for id, isMoved in pairs(self.lastMovedReferenceIds) do
+            if isMoved then
+                local reference = self.object.dockingSystemReferences[id]
 
                 if reference ~= nil then
                     if reference.deformationNodeLastTrans[2] ~= reference.deformationNodeOrgTrans[2] then
@@ -148,7 +151,10 @@ function HoseSystemDockStrategy:deformDockFunnel(dt, isActive, dockingArmObject,
                         if math.abs(reference.deformationNodeLastRot[1]) < HoseSystemDockStrategy.DEFORMATION_ROTATION_OFFSET and math.abs(reference.deformationNodeLastRot[3]) < HoseSystemDockStrategy.DEFORMATION_ROTATION_OFFSET then
                             reference.deformationNodeLastRot[1] = reference.deformationNodeOrgRot[1]
                             reference.deformationNodeLastRot[3] = reference.deformationNodeOrgRot[3]
-                            self.lastMovedReferenceIds[referenceId] = false
+
+                            if self.lastMovedReferenceIds[id] then
+                                self.lastMovedReferenceIds[id] = false
+                            end
                         else
                             local speedFactor = (HoseSystemDockStrategy.DEFORMATION_ROTATION_OFFSET * 1000) - (dt * HoseSystemDockStrategy.DEFORMATION_ROTATION_OFFSET) * (2 * math.pi)
 
@@ -209,7 +215,7 @@ end
 -- @param otherShapeId
 --
 function HoseSystemDockStrategy:triggerCallback(triggerId, otherActorId, onEnter, onLeave, onStay, otherShapeId)
-    if onEnter or onLeave then
+    if (onEnter or onLeave) then
         if otherActorId ~= 0 then
             local object = g_currentMission.nodeToVehicle[otherActorId]
 
@@ -217,10 +223,10 @@ function HoseSystemDockStrategy:triggerCallback(triggerId, otherActorId, onEnter
                 if object.hasHoseSystemFillArm and HoseSystemUtil.getHasStrategy(HoseSystemDockArmStrategy, object.fillArmStrategies) then
                     if onEnter then
                         if not HoseSystemUtil.getHasListElement(self.dockingArmObjects, object) then
-                            table.insert(self.dockingArmObjects, object)
+                            self.dockingArmObjects[#self.dockingArmObjects + 1] = object
                         end
                     elseif onLeave then
-                        HoseSystemUtil:removeElementFromList(self.dockingArmObjects, object)
+                        self.dockingArmObjectsDelayedDelete[object] = g_currentMission.time + HoseSystemDockStrategy.DEFORMATION_RESET_TIME
                     end
                 end
             end
