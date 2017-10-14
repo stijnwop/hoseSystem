@@ -105,6 +105,7 @@ end
 -- @param dt
 --
 function HoseSystemFillArm:updateTick(dt)
+    HoseSystemUtil.callStrategyFunction(self.fillArmStrategies, 'updateTick', { dt })
 end
 
 ---
