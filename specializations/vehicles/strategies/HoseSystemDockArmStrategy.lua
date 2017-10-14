@@ -31,6 +31,9 @@ function HoseSystemDockArmStrategy:load(xmlFile, key, entry)
 end
 
 function HoseSystemDockArmStrategy:update(dt)
+end
+
+function HoseSystemDockArmStrategy:updateTick(dt)
     if self.object.hasHoseSystemPumpMotor then
         if self.object.isServer and self.object:getFillMode() == self.object.pumpMotorFillArmMode then
             local isSucking = self.object.fillObjectFound
