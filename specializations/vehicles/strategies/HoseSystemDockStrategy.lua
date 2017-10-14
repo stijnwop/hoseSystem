@@ -12,7 +12,7 @@ HoseSystemDockStrategy.TYPE = 'dock'
 HoseSystemDockStrategy.DEFORMATION_ROTATION_LIMIT = math.rad(40) -- we have 40° limit on the deformation
 HoseSystemDockStrategy.DEFORMATION_ROTATION_OFFSET = 0.001
 HoseSystemDockStrategy.DEFORMATION_TRANSLATION_MULTIPLIER = 0.01
-HoseSystemDockStrategy.DEFORMATION_RESET_TIME = 4000 -- ms
+HoseSystemDockStrategy.DEFORMATION_RESET_TIME = 2500 -- ms
 HoseSystemDockStrategy.DOCK_INRANGE_DISTANCE = 0.25
 HoseSystemDockStrategy.DOCK_INRANGE_Y_OFFSET = 0.5
 HoseSystemDockStrategy.DOCK_DEFORM_Y_MAX = 0.1 -- maximun amount that the fillArm is allowed to push on the funnel
@@ -64,6 +64,7 @@ end
 function HoseSystemDockStrategy:loadDock(xmlFile, key, entry)
     entry.parkable = Utils.getNoNil(getXMLBool(xmlFile, key .. '#parkable'), false)
     entry.deformationNode = Utils.indexToObject(self.object.components, getXMLString(xmlFile, key .. '#deformatioNode'))
+    entry.dockingArmObject = nil
 
     if entry.deformationNode ~= nil then
         entry.deformationNodeOrgTrans = { getTranslation(entry.deformationNode) }
@@ -98,10 +99,9 @@ function HoseSystemDockStrategy:update(dt)
 
         if self.object.isServer and (referenceId ~= nil and not self.object.dockingSystemReferences[referenceId].parkable) or not inrange then
             if inrange and dockingArmObject ~= self.object then
-                self.object:setIsUsed(referenceId, inrange, nil)
                 dockingArmObject:addFillObject(self.object, dockingArmObject.pumpMotorFillArmMode)
+                self:setIsUsed(referenceId, inrange, dockingArmObject)
             elseif not inrange and dockingArmObject ~= nil then
-                self.object:setIsUsed(referenceId, inrange, nil)
                 dockingArmObject:removeFillObject(self.object, dockingArmObject.pumpMotorFillArmMode)
             end
         end
@@ -193,7 +193,7 @@ function HoseSystemDockStrategy:getDockArmInrange(dockingArmObject)
         local distanceSequence = HoseSystemDockStrategy.DOCK_INRANGE_DISTANCE
 
         for referenceId, reference in pairs(self.object.dockingSystemReferences) do
-            if not reference.isUsed and reference.deformationNode ~= nil then
+            if (not reference.isUsed or reference.dockingArmObject ~= nil and reference.dockingArmObject == dockingArmObject) and reference.deformationNode ~= nil then
                 local trans = { getWorldTranslation(reference.deformationNode) }
                 local distance = Utils.vector2Length(armTrans[1] - trans[1], armTrans[3] - trans[3])
 
@@ -203,6 +203,10 @@ function HoseSystemDockStrategy:getDockArmInrange(dockingArmObject)
                     distanceSequence = distance
 
                     return true, referenceId
+                else
+                    if reference.isUsed and self.object.isServer then
+                        self:setIsUsed(referenceId, false)
+                    end
                 end
             end
         end
@@ -235,6 +239,25 @@ function HoseSystemDockStrategy:triggerCallback(triggerId, otherActorId, onEnter
                     end
                 end
             end
+        end
+    end
+end
+
+---
+-- @param id
+-- @param state
+-- @param dockingArmObject
+-- @param noEventSend
+--
+function HoseSystemDockStrategy:setIsUsed(id, state, dockingArmObject, noEventSend)
+    if self.object.dockingSystemReferences ~= nil then
+        local reference = self.object.dockingSystemReferences[id]
+
+        if reference ~= nil and reference.isUsed ~= state then
+            HoseSystemReferenceIsUsedEvent.sendEvent(self, id, state, dockingArmObject, noEventSend)
+
+            reference.isUsed = state
+            reference.dockingArmObject = dockingArmObject
         end
     end
 end
