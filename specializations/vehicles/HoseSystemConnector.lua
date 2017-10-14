@@ -31,11 +31,7 @@ function HoseSystemConnector:preLoad(savegame)
     self.toggleLock = HoseSystemConnector.toggleLock
     self.toggleManureFlow = HoseSystemConnector.toggleManureFlow
     self.setIsUsed = HoseSystemConnector.setIsUsed
-    self.getConnectedReference = HoseSystemConnector.getConnectedReference
-    self.getValidFillObject = HoseSystemConnector.getValidFillObject
-    self.getLastGrabpointRecursively = HoseSystemConnector.getLastGrabpointRecursively
     self.getIsPlayerInReferenceRange = HoseSystemConnector.getIsPlayerInReferenceRange
-    self.updateLiquidHoseSystem = HoseSystemConnector.updateLiquidHoseSystem
 
     -- overwrittenFunctions
     self.getIsOverloadingAllowed = Utils.overwrittenFunction(self.getIsOverloadingAllowed, HoseSystemConnector.getIsOverloadingAllowed)
