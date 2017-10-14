@@ -57,6 +57,48 @@ function HoseSystemDockStrategy:delete()
 end
 
 ---
+-- @param streamId
+-- @param connection
+--
+function HoseSystemHoseCouplingStrategy:readStream(streamId, connection)
+    if connection:getIsServer() then
+        for id = 1, streamReadUInt8(streamId) do
+            -- load the object later on first frame
+            self:setIsUsed(id, streamReadBool(streamId), nil, true)
+
+            if streamReadBool(streamId) then
+                if self.dockObjectsToload == nil then
+                    self.dockObjectsToload = {}
+                end
+
+                table.insert(self.dockObjectsToload, { id = id, objectId = readNetworkNodeObjectId(streamId) })
+            end
+        end
+    end
+end
+
+---
+-- @param streamId
+-- @param connection
+--
+function HoseSystemHoseCouplingStrategy:writeStream(streamId, connection)
+    if not connection:getIsServer() then
+        streamWriteUInt8(streamId, #self.object.dockingSystemReferences)
+
+        for id = 1, #self.object.dockingSystemReferences do
+            local reference = self.object.dockingSystemReferences[id]
+
+            streamWriteBool(streamId, reference.isUsed)
+            streamWriteBool(streamId, reference.dockingArmObject ~= nil)
+
+            if reference.dockingArmObject ~= nil then
+                writeNetworkNodeObjectId(streamId, networkGetObjectId(reference.dockingArmObject))
+            end
+        end
+    end
+end
+
+---
 -- @param xmlFile
 -- @param key
 -- @param entry
@@ -86,6 +128,14 @@ end
 -- @param dt
 --
 function HoseSystemDockStrategy:update(dt)
+    if self.dockObjectsToload ~= nil then
+        for _, n in pairs(self.dockObjectsToload) do
+            self.object.dockingSystemReferences[n.id].dockingArmObject = networkGetObject(n.objectId)
+        end
+
+        self.dockObjectsToload = nil
+    end
+
     if next(self.dockingArmObjects) == nil then
         return
     end
