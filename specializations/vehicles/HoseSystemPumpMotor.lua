@@ -13,13 +13,24 @@ HoseSystemPumpMotor = {
 }
 
 HoseSystemPumpMotor.IN = 0
+HoseSystemPumpMotor.IN_STRING = 'in'
 HoseSystemPumpMotor.OUT = 1
+HoseSystemPumpMotor.OUT_STRING = 'out'
 
 HoseSystemPumpMotor.NONE = 0
 HoseSystemPumpMotor.TURN_OFF = 1
 HoseSystemPumpMotor.UNIT_EMPTY = 2
 HoseSystemPumpMotor.OBJECT_EMPTY = 3
 HoseSystemPumpMotor.INVALID_FILLTYPE = 4
+
+HoseSystemPumpMotor.DEFAULT_LITERS_PER_SECOND = 100
+
+HoseSystemPumpMotor.AUTO_STOP_MULTIPLIER_IN = 0.99
+HoseSystemPumpMotor.AUTO_STOP_MULTIPLIER_OUT = 0.98
+
+HoseSystemPumpMotor.WARNING_TIME = 1500
+HoseSystemPumpMotor.STARTUP_TIME = 1500
+HoseSystemPumpMotor.MAX_EFFICIENCY_TIME = 1500
 
 ---
 -- @param name
@@ -110,25 +121,34 @@ function HoseSystemPumpMotor:load(savegame)
     self.fillMode = 0 -- 0 is nothing
     self.fillDirection = HoseSystemPumpMotor.IN
 
+    local limit = getXMLString(self.xmlFile, "vehicle.pumpMotor#limitedFillDirection")
+    self.limitedFillDirection = nil
+
+    if limit ~= nil then
+        self.limitedFillDirection = limit:lower() == HoseSystemPumpMotor.IN_STRING and HoseSystemPumpMotor.IN or HoseSystemPumpMotor.OUT
+    end
+
+    self.limitFillDirection = self.limitedFillDirection ~= nil
+
     self.pumpEfficiency = {
         currentScale = 0,
         scaleLimit = 0.1, -- when we can change fill direction
         currentStartUpTime = 0,
-        startUpTime = Utils.getNoNil(getXMLFloat(self.xmlFile, "vehicle.pumpMotor#startUpTime"), 1500)
+        startUpTime = Utils.getNoNil(getXMLFloat(self.xmlFile, "vehicle.pumpMotor#startUpTime"), HoseSystemPumpMotor.STARTUP_TIME)
     }
 
-    local maxTime = Utils.getNoNil(getXMLFloat(self.xmlFile, "vehicle.pumpMotor#toReachMaxEfficiencyTime"), 1500)
+    local maxTime = Utils.getNoNil(getXMLFloat(self.xmlFile, "vehicle.pumpMotor#toReachMaxEfficiencyTime"), HoseSystemPumpMotor.MAX_EFFICIENCY_TIME)
     self.pumpFillEfficiency = {
         currentScale = 0,
         currentTime = 0,
         maxTimeStatic = maxTime,
         maxTime = maxTime,
-        litersPerSecond = Utils.getNoNil(getXMLFloat(self.xmlFile, "vehicle.pumpMotor#litersPerSecond"), 100)
+        litersPerSecond = Utils.getNoNil(getXMLFloat(self.xmlFile, "vehicle.pumpMotor#litersPerSecond"), HoseSystemPumpMotor.DEFAULT_LITERS_PER_SECOND)
     }
 
     self.autoStopPercentage = {
-        inDirection = Utils.getNoNil(getXMLFloat(self.xmlFile, "vehicle.pumpMotor#autoStopPercentageIn"), 0.99),
-        outDirection = Utils.getNoNil(getXMLFloat(self.xmlFile, "vehicle.pumpMotor#autoStopPercentageOut"), 0.98)
+        inDirection = Utils.getNoNil(getXMLFloat(self.xmlFile, "vehicle.pumpMotor#autoStopPercentageIn"), HoseSystemPumpMotor.AUTO_STOP_MULTIPLIER_IN),
+        outDirection = Utils.getNoNil(getXMLFloat(self.xmlFile, "vehicle.pumpMotor#autoStopPercentageOut"), HoseSystemPumpMotor.AUTO_STOP_MULTIPLIER_OUT)
     }
 
     if self.isClient then
@@ -136,11 +156,13 @@ function HoseSystemPumpMotor:load(savegame)
         self.samplePump = SoundUtil.loadSample(self.xmlFile, {}, "vehicle.pumpSound", nil, self.baseDirectory, linkNode)
     end
 
-    self.warningMessage = {}
-    self.warningMessage.currentId = HoseSystemPumpMotor.NONE
-    self.warningMessage.currentTime = 0
-    self.warningMessage.howLongToShow = Utils.getNoNil(getXMLFloat(self.xmlFile, "vehicle.pumpMotor#warningTime"), 1500)
-    self.warningMessage.messages = {}
+    self.warningMessage = {
+        currentId = HoseSystemPumpMotor.NONE,
+        currentTime = 0,
+        howLongToShow = Utils.getNoNil(getXMLFloat(self.xmlFile, "vehicle.pumpMotor#warningTime"), HoseSystemPumpMotor.WARNING_TIME),
+        messages = {}
+    }
+
     self.warningMessage.messages[HoseSystemPumpMotor.TURN_OFF] = g_i18n:getText('pumpMotor_warningTurnOffFirst')
     self.warningMessage.messages[HoseSystemPumpMotor.UNIT_EMPTY] = g_i18n:getText('pumpMotor_warningUnitEmpty')
     self.warningMessage.messages[HoseSystemPumpMotor.OBJECT_EMPTY] = g_i18n:getText('pumpMotor_warningObjectEmpty')
@@ -153,6 +175,8 @@ function HoseSystemPumpMotor:load(savegame)
     }
 
     -- Todo: lookup what we actually need on the current fillObject. (can we fill to multiple targets!?)
+    --    self.fillableObjects = {}
+
     self.fillObject = nil
     self.fillObjectFound = false
     self.fillObjectHasPlane = false
@@ -184,6 +208,11 @@ function HoseSystemPumpMotor:readStream(streamId, connection)
     self:setPumpStarted(streamReadBool(streamId), nil, true)
     self:setFillDirection(streamReadUIntN(streamId, HoseSystemPumpMotor.sendNumBits), true)
     self:setFillMode(streamReadUIntN(streamId, HoseSystemPumpMotor.sendNumBits), true)
+
+    self.fillObjectFound = streamReadBool(streamId)
+    self.fillFromFillVolume = streamReadBool(streamId)
+    self.fillUnitIndex = streamReadInt32(streamId)
+    self.fillObjectHasPlane = streamReadBool(streamId)
 end
 
 ---
@@ -194,6 +223,11 @@ function HoseSystemPumpMotor:writeStream(streamId, connection)
     streamWriteBool(streamId, self.pumpIsStarted)
     streamWriteUIntN(streamId, self.fillDirection, HoseSystemPumpMotor.sendNumBits)
     streamWriteUIntN(streamId, self.fillMode, HoseSystemPumpMotor.sendNumBits)
+
+    streamWriteBool(streamId, self.fillObjectFound)
+    streamWriteBool(streamId, self.fillFromFillVolume)
+    streamWriteInt32(streamId, self.fillUnitIndex)
+    streamWriteBool(streamId, self.fillObjectHasPlane)
 end
 
 ---
@@ -250,7 +284,7 @@ end
 function HoseSystemPumpMotor:updateTick(dt)
     if self.attacherMotor.check then
         local vehicle = self:getRootAttacherVehicle()
-        self.attacherMotor.isStarted = vehicle.isMotorStarted ~= nil and vehicle.isMotorStarted
+        self.attacherMotor.isStarted = vehicle.getIsMotorStarted ~= nil and vehicle:getIsMotorStarted()
     end
 
     if self.attacherMotor.isStarted then
