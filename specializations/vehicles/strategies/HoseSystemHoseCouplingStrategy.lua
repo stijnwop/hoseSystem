@@ -172,7 +172,7 @@ function HoseSystemHoseCouplingStrategy:loadHoseCoupling(xmlFile, key, entry)
     end
 
     table.insert(self.object.hoseSystemReferences, entry)
-    print(entry.id)
+
     return entry
 end
 
