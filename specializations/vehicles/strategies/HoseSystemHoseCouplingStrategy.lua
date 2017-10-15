@@ -87,9 +87,6 @@ function HoseSystemHoseCouplingStrategy:readStream(streamId, connection)
             self.object:toggleManureFlow(id, streamReadBool(streamId), false, true)
         end
 
-        self.object.fillObjectFound = streamReadBool(streamId)
-        self.object.fillFromFillVolume = streamReadBool(streamId)
-
         if streamReadBool(streamId) then
             self.object.currentReferenceIndex = streamReadInt8(streamId)
         end
@@ -122,9 +119,6 @@ function HoseSystemHoseCouplingStrategy:writeStream(streamId, connection)
             streamWriteBool(streamId, reference.flowOpened)
         end
 
-        streamWriteBool(streamId, self.object.fillObjectFound)
-        streamWriteBool(streamId, self.object.fillFromFillVolume)
-
         streamWriteBool(streamId, self.object.currentReferenceIndex ~= nil)
         if self.object.currentReferenceIndex ~= nil then
             streamWriteInt8(streamId, self.object.currentReferenceIndex)
@@ -138,7 +132,6 @@ function HoseSystemHoseCouplingStrategy:writeStream(streamId, connection)
 end
 
 ---
--- @param type
 -- @param xmlFile
 -- @param key
 -- @param entry
@@ -189,7 +182,7 @@ end
 function HoseSystemHoseCouplingStrategy:update(dt)
     if self.hoseSystemsToload ~= nil then
         for _, n in pairs(self.hoseSystemsToload) do
-            self.hoseSystemReferences[n.id].hoseSystem = networkGetObject(n.hoseSystemId)
+            self.object.hoseSystemReferences[n.id].hoseSystem = networkGetObject(n.hoseSystemId)
         end
 
         self.hoseSystemsToload = nil
@@ -361,7 +354,7 @@ function HoseSystemHoseCouplingStrategy:getValidFillObject()
     self.object.currentReferenceIndex = nil
     self.object.currentGrabPointIndex = nil
 
-    self.object.currentReferenceIndex, self.object.currentGrabPointIndex = self:getConnectedReference()
+    self.object.currentReferenceIndex, self.object.currentGrabPointIndex = self:getPriorityReference()
 
     if not self.object.isServer then
         return
@@ -412,15 +405,13 @@ end
 --
 function HoseSystemHoseCouplingStrategy:getLastGrabpointRecursively(grabPoint, hoseSystem)
     if grabPoint ~= nil then
-        if grabPoint.connectorVehicle ~= nil then
-            if grabPoint.connectorVehicle.grabPoints ~= nil then
-                for i, connectorGrabPoint in pairs(grabPoint.connectorVehicle.grabPoints) do
-                    if connectorGrabPoint ~= nil then
-                        local reference = HoseSystemReferences:getReference(grabPoint.connectorVehicle, grabPoint.connectorRefId, grabPoint)
+        if grabPoint.connectorVehicle ~= nil and grabPoint.connectorVehicle.grabPoints ~= nil then
+            for i, connectorGrabPoint in pairs(grabPoint.connectorVehicle.grabPoints) do
+                if connectorGrabPoint ~= nil then
+                    local reference = HoseSystemReferences:getReference(grabPoint.connectorVehicle, grabPoint.connectorRefId, grabPoint)
 
-                        if connectorGrabPoint ~= reference then
-                            self:getLastGrabpointRecursively(connectorGrabPoint, reference.hoseSystem)
-                        end
+                    if connectorGrabPoint ~= reference then
+                        self:getLastGrabpointRecursively(connectorGrabPoint, reference.hoseSystem)
                     end
                 end
             end
@@ -434,20 +425,20 @@ end
 
 ---
 --
-function HoseSystemHoseCouplingStrategy:getConnectedReference()
+function HoseSystemHoseCouplingStrategy:getPriorityReference()
     -- Todo: Moved to version 1.1
     -- but what if we have more? Can whe pump with multiple hoses? Does that lower the pumpEfficiency or increase the throughput? Priority reference? There is a cleaner way to-do this.
 
-    if self.object.hoseSystemReferences ~= nil then
-        for referenceIndex, reference in pairs(self.object.hoseSystemReferences) do
-            if reference.isUsed and reference.flowOpened and reference.isLocked then
-                if reference.hoseSystem ~= nil and reference.hoseSystem.grabPoints ~= nil then
-                    for grabPointIndex, grabPoint in pairs(reference.hoseSystem.grabPoints) do
-                        if HoseSystem:getIsConnected(grabPoint.state) then
-                            if grabPoint.connectorVehicle == self.object then
-                                return referenceIndex, grabPointIndex
-                            end
-                        end
+    if self.object.hoseSystemReferences == nil then
+        return nil, nil
+    end
+
+    for referenceId, reference in pairs(self.object.hoseSystemReferences) do
+        if reference.isUsed and reference.flowOpened and reference.isLocked then
+            if reference.hoseSystem ~= nil and reference.hoseSystem.grabPoints ~= nil then
+                for index, grabPoint in pairs(reference.hoseSystem.grabPoints) do
+                    if HoseSystem:getIsConnected(grabPoint.state) and grabPoint.connectorRefId == referenceId then
+                        return referenceId, index
                     end
                 end
             end
