@@ -9,6 +9,7 @@
 HoseSystemHoseCouplingStrategy = {}
 
 HoseSystemHoseCouplingStrategy.TYPE = 'hoseCoupling'
+HoseSystemHoseCouplingStrategy.EMPTY_LITER_PER_SECOND = 25
 
 local HoseSystemHoseCouplingStrategy_mt = Class(HoseSystemHoseCouplingStrategy)
 
@@ -37,6 +38,9 @@ function HoseSystemHoseCouplingStrategy:new(object, mt)
         object.pumpMotorFillMode = HoseSystemPumpMotor.getInitialFillMode(HoseSystemConnectorFactory.TYPE_HOSE_COUPLING)
     end
 
+    object.fillLevelChangedDirtyFlag = object:getNextDirtyFlag()
+    self.fillLevelChanged = false
+
     return hoseCouplingStrategy
 end
 
@@ -61,6 +65,32 @@ end
 ---
 --
 function HoseSystemHoseCouplingStrategy:delete()
+end
+
+---
+-- @param streamId
+-- @param timestamp
+-- @param connection
+--
+function HoseSystemHoseCouplingStrategy:readUpdateStream(streamId, timestamp, connection)
+    if connection:getIsServer() then
+        if streamReadBool(streamId) then
+            self.fillLevelChanged = streamReadBool(streamId)
+        end
+    end
+end
+
+---
+-- @param streamId
+-- @param connection
+-- @param dirtyMask
+--
+function HoseSystemHoseCouplingStrategy:writeUpdateStream(streamId, connection, dirtyMask)
+    if not connection:getIsServer() then
+        if streamWriteBool(streamId, bitAND(dirtyMask, self.object.fillLevelChangedDirtyFlag) ~= 0) then
+            streamWriteBool(streamId, self.fillLevelChanged)
+        end
+    end
 end
 
 ---
@@ -171,6 +201,8 @@ function HoseSystemHoseCouplingStrategy:loadHoseCoupling(xmlFile, key, entry)
         entry.maxParkLengthNode = maxNode
     end
 
+    entry.fillUnitIndex = Utils.getNoNil(getXMLInt(xmlFile, key .. '#fillUnitIndex'), 1)
+
     table.insert(self.object.hoseSystemReferences, entry)
 
     return entry
@@ -240,9 +272,13 @@ end
 -- @param dt
 --
 function HoseSystemHoseCouplingStrategy:updateTick(dt)
-    if self.object.hasHoseSystemPumpMotor then
-        self:getValidFillObject()
+    if self.object.isClient then
+        self:updateHoseSystem(self.fillLevelChanged, true)
+    end
 
+    self:getValidFillObject(dt)
+
+    if self.object.hasHoseSystemPumpMotor then
         if self.object.isServer then
             if self.object:getFillMode() == self.object.pumpMotorFillMode then
                 local isSucking = false
@@ -318,11 +354,11 @@ function HoseSystemHoseCouplingStrategy:updateTick(dt)
         if self.object.isClient then
             if self.object.fillObjectHasPlane then
                 if self.object.fillObjectFound or self.object.fillFromFillVolume then
-                    self:updateLiquidHoseSystem(true)
+                    self:updateHoseSystem(true)
                 end
             else
                 if not self.object.fillObjectFound and self.object.pumpIsStarted then
-                    self:updateLiquidHoseSystem(false)
+                    self:updateHoseSystem(false)
                 end
             end
         end
@@ -331,18 +367,24 @@ end
 
 ---
 -- @param allow
+-- @param force
 --
-function HoseSystemHoseCouplingStrategy:updateLiquidHoseSystem(allow)
-    if self.object.currentGrabPointIndex ~= nil and self.object.currentReferenceIndex ~= nil then
-        local reference = self.object.hoseSystemReferences[self.object.currentReferenceIndex]
+function HoseSystemHoseCouplingStrategy:updateHoseSystem(allow, force)
+    if force == nil then
+        force = false
+    end
+
+    if self.object.lastGrabPointIndex ~= nil and self.object.lastReferenceIndex ~= nil then
+        local reference = self.object.hoseSystemReferences[self.object.lastReferenceIndex]
 
         if reference ~= nil then
-            local lastGrabPoint, lastHose = self:getLastGrabpointRecursively(reference.hoseSystem.grabPoints[HoseSystemConnector:getFillableVehicle(self.object.currentGrabPointIndex, #reference.hoseSystem.grabPoints)], reference.hoseSystem)
+            local lastGrabPoint, lastHoseSystem = self:getLastGrabpointRecursively(reference.hoseSystem.grabPoints[HoseSystemConnector:getFillableVehicle(self.object.lastGrabPointIndex, #reference.hoseSystem.grabPoints)], reference.hoseSystem)
 
-            if lastGrabPoint ~= nil and lastHose ~= nil then
-                local fillType = self.object:getUnitLastValidFillType(self.object.fillUnitIndex)
+            if lastGrabPoint ~= nil and lastHoseSystem ~= nil then
+                local unitIndex = force and reference.fillUnitIndex or self.object.fillUnitIndex
+                local fillType = self.object:getUnitLastValidFillType(unitIndex)
 
-                lastHose:toggleEmptyingEffect(allow and self.object.pumpIsStarted and self.object.fillDirection == HoseSystemPumpMotor.OUT, lastGrabPoint.id > 1 and 1 or -1, lastGrabPoint.id, fillType)
+                lastHoseSystem:toggleEmptyingEffect((allow and self.object.pumpIsStarted and self.object.fillDirection == HoseSystemPumpMotor.OUT) or (allow and force), lastGrabPoint.id > 1 and 1 or -1, lastGrabPoint.id, fillType)
             end
         end
     end
@@ -350,9 +392,9 @@ end
 
 ---
 --
-function HoseSystemHoseCouplingStrategy:getValidFillObject()
-    self.object.currentReferenceIndex = nil
-    self.object.currentGrabPointIndex = nil
+function HoseSystemHoseCouplingStrategy:getValidFillObject(dt)
+    self.object.lastReferenceIndex = self.object.currentReferenceIndex
+    self.object.lastGrabPointIndex = self.object.currentGrabPointIndex
 
     self.object.currentReferenceIndex, self.object.currentGrabPointIndex = self:getPriorityReference()
 
@@ -360,17 +402,21 @@ function HoseSystemHoseCouplingStrategy:getValidFillObject()
         return
     end
 
-    self.object:removeFillObject(self.object.fillObject, self.object.pumpMotorFillMode)
+    self.fillLevelChanged = false
+
+    if self.object.hasHoseSystemPumpMotor then
+        self.object:removeFillObject(self.object.fillObject, self.object.pumpMotorFillMode)
+    end
 
     if self.object.currentGrabPointIndex ~= nil and self.object.currentReferenceIndex ~= nil then
         local reference = self.object.hoseSystemReferences[self.object.currentReferenceIndex]
 
         if reference ~= nil then
-            local lastGrabPoint, _ = self:getLastGrabpointRecursively(reference.hoseSystem.grabPoints[HoseSystemConnector:getFillableVehicle(self.object.currentGrabPointIndex, #reference.hoseSystem.grabPoints)])
+            local lastGrabPoint, lastHoseSystem = self:getLastGrabpointRecursively(reference.hoseSystem.grabPoints[HoseSystemConnector:getFillableVehicle(self.object.currentGrabPointIndex, #reference.hoseSystem.grabPoints)], reference.hoseSystem)
 
             if lastGrabPoint ~= nil then
                 -- check if the last grabPoint is connected
-                if HoseSystem:getIsConnected(lastGrabPoint.state) and not lastGrabPoint.connectable then
+                if HoseSystem:getIsConnected(lastGrabPoint.state) and self.object.hasHoseSystemPumpMotor and not lastGrabPoint.connectable then
                     local lastVehicle = HoseSystemReferences:getReferenceVehicle(lastGrabPoint.connectorVehicle)
                     local lastReference = lastVehicle.hoseSystemReferences[lastGrabPoint.connectorRefId]
 
@@ -383,19 +429,35 @@ function HoseSystemHoseCouplingStrategy:getValidFillObject()
                         end
                     end
                 elseif HoseSystem:getIsDetached(lastGrabPoint.state) then -- don't lookup when the player picks up the hose from the pit
-                    -- check what the lastGrabPoint has on it's raycast
                     local hoseSystem = reference.hoseSystem
 
+                    -- check what the lastGrabPoint has on it's raycast
                     if hoseSystem ~= nil then
-                        if hoseSystem.lastRaycastDistance ~= 0 then
-                            if hoseSystem.lastRaycastObject ~= nil then -- or how i called it
+                        if hoseSystem.lastRaycastDistance ~= 0 and hoseSystem.lastRaycastObject ~= nil then
+                            if self.object.hasHoseSystemPumpMotor then
                                 self.object:addFillObject(hoseSystem.lastRaycastObject, self.object.pumpMotorFillMode)
+                            end
+                        else
+                            local fillType = self.object:getUnitLastValidFillType(reference.fillUnitIndex)
+                            local fillLevel = self.object:getFillLevel(fillType)
+
+                            if fillLevel > 0 then
+                                local deltaFillLevel = math.min(HoseSystemHoseCouplingStrategy.EMPTY_LITER_PER_SECOND * dt / 1000, fillLevel)
+
+                                self.fillLevelChanged = true
+
+                                self.object:setFillLevel(fillLevel - deltaFillLevel, fillType)
                             end
                         end
                     end
                 end
             end
         end
+    end
+
+    if self.fillLevelChanged ~= self.lastFillLevelChanged then
+        self.object:raiseDirtyFlags(self.object.fillLevelChangedDirtyFlag)
+        self.lastFillLevelChanged = self.fillLevelChanged
     end
 end
 

@@ -15,8 +15,6 @@ HoseSystemConnector.DEFAULT_INRANGE_DISTANCE = 1.3
 
 source(HoseSystemConnector.baseDirectory .. 'specializations/vehicles/HoseSystemConnectorFactory.lua')
 
-local srcDirectory = HoseSystemConnector.baseDirectory .. 'specializations/vehicles/strategies'
-
 ---
 -- @param specializations
 --
@@ -46,7 +44,6 @@ function HoseSystemConnector:load(savegame)
     self.dockingSystemReferences = {}
 
     HoseSystemConnector.loadHoseReferences(self, self.xmlFile, 'vehicle.hoseSystemReferences.')
-    -- HoseSystemConnector.loadDockingReferences(self, self.xmlFile, 'vehicle.dockingSystemReferences.', self.dockingSystemReferences)
 
     if self.unloadTrigger ~= nil then
         self.unloadTrigger:delete()
@@ -111,7 +108,7 @@ function HoseSystemConnector.loadHoseReferences(self, xmlFile, base)
                     inRangeDistance = Utils.getNoNil(getXMLFloat(xmlFile, key .. '#inRangeDistance'), HoseSystemConnector.DEFAULT_INRANGE_DISTANCE),
                 }
 
-                HoseSystemUtil.callStrategyFunction({strategy}, 'load' .. HoseSystemUtil:firstToUpper(typeString), { xmlFile, key, entry })
+                HoseSystemUtil.callStrategyFunction({ strategy }, 'load' .. HoseSystemUtil:firstToUpper(typeString), { xmlFile, key, entry })
 
                 self.connectStrategies = HoseSystemUtil.insertStrategy(strategy, self.connectStrategies)
             else
@@ -144,6 +141,32 @@ function HoseSystemConnector:delete()
 
     HoseSystemUtil:removeElementFromList(g_currentMission.hoseSystemReferences, self)
     HoseSystemUtil:removeElementFromList(g_currentMission.dockingSystemReferences, self)
+end
+
+---
+-- @param streamId
+-- @param timestamp
+-- @param connection
+--
+function HoseSystemConnector:readUpdateStream(streamId, timestamp, connection)
+    for _, class in pairs(self.connectStrategies) do
+        if class.readUpdateStream ~= nil then
+            class:readUpdateStream(streamId, timestamp, connection)
+        end
+    end
+end
+
+---
+-- @param streamId
+-- @param connection
+-- @param dirtyMask
+--
+function HoseSystemConnector:writeUpdateStream(streamId, connection, dirtyMask)
+    for _, class in pairs(self.connectStrategies) do
+        if class.writeUpdateStream ~= nil then
+            class:writeUpdateStream(streamId, connection, dirtyMask)
+        end
+    end
 end
 
 ---
