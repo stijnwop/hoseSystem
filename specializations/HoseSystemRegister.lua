@@ -275,6 +275,18 @@ function HoseSystemRegistrationHelper:register(vehicle, specializations, name)
             end
         end
     end
+
+    if vehicle.hasHoseSystemFillArm then
+        local specialization = SpecializationUtil.getSpecialization('hoseSystemFillArm')
+
+        if not SpecializationUtil.hasSpecialization(specialization, specializations) then
+            table.insert(specializations, specialization)
+
+            if HoseSystem.debugRendering then
+                HoseSystemUtil:log(HoseSystemUtil.DEBUG, 'FillArm specialization added to: ' .. name)
+            end
+        end
+    end
 end
 
 ---
