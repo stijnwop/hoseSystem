@@ -1,29 +1,49 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
 <i3D name="suctionHose_ingame" version="1.6" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://i3d.giants.ch/schema/i3d-1.6.xsd">
+  <Asset>
+    <Export program="GIANTS Editor 64bit" version="7.1.0"/>
+  </Asset>
 
   <Files>
-    <File fileId="1" filename="../hose_diffuse.dds" relativePath="true"/>
-    <File fileId="2" filename="../hose_normal.dds" relativePath="true"/>
+    <File fileId="2" filename="../hose_diffuse.dds" relativePath="true"/>
+    <File fileId="3" filename="../hose_normal.dds" relativePath="true"/>
     <File fileId="4" filename="../hose_specular.dds" relativePath="true"/>
-    <File fileId="3" filename="../../shared/rough_cube.dds" relativePath="true"/>
-    <File fileId="6" filename="../../shared/default_normal.dds" relativePath="true"/>
-    <File fileId="5" filename="../../shaders/vehicleShader.xml" relativePath="true"/>
+    <File fileId="6" filename="../../shaders/vehicleShader.xml" relativePath="true"/>
+    <File fileId="9" filename="../../shared/default_normal.dds" relativePath="true"/>
+    <File fileId="5" filename="../../shared/rough_cube.dds" relativePath="true"/>
   </Files>
 
+
   <Materials>
-    <Material name="lambert1" materialId="1" diffuseColor="0.5 0.5 0.5 1" specularColor="0 0 0" ambientColor="1 1 1">
-    </Material>
-    <Material name="hose_mat" materialId="2" cosPower="20" specularColor="1 1 1" ambientColor="1 1 1" customShaderId="5" customShaderVariation="colorMask">
-      <CustomParameter name="RDT" value="0.0 1.0 40.0 40.0"/>
-      <CustomParameter name="colorScale" value="0.004 0.061 0.117 1.0"/>
-      <Texture fileId="1"/>
-      <Normalmap fileId="2"/>
-      <Reflectionmap fileId="3" type="cube" wrap="false" refractiveIndex="1" bumpScale="0.1"/>
+    <Material name="hose_mat" materialId="8" ambientColor="1 1 1" cosPower="20" specularColor="1 1 1" customShaderId="6" customShaderVariation="colorMask">
+      <Texture fileId="2"/>
+      <Normalmap fileId="3"/>
       <Glossmap fileId="4"/>
+      <Reflectionmap fileId="5" wrap="false" lodDistanceScaling="0.5" viewDistanceScaling="0.5" type="cube" scaling="1" refractiveIndex="1" bumpScale="0.1" shapesObjectMask="4294967295" lightsObjectMask="4294967295"/>
+      <CustomParameter name="RDT" value="0 1 40 40"/>
+      <CustomParameter name="RDTDirection" value="1 1 0 0"/>
+      <CustomParameter name="offsetUV" value="0 0 0 0"/>
+      <CustomParameter name="uvCenterSize" value="0.5 0.5 1 1"/>
+      <CustomParameter name="colorScale" value="0.004 0.061 0.117 1"/>
+      <CustomParameter name="morphPosition" value="-0.45 -0.915 0.5 0.1"/>
+      <CustomParameter name="scrollPosition" value="0 0 0 0"/>
+      <CustomParameter name="lengthAndRadius" value="2 0.5 0 0"/>
+      <CustomParameter name="widthAndDiam" value="40 40 0 0"/>
+      <CustomParameter name="connectorPos" value="0 80 40 40"/>
+      <CustomParameter name="numberOfStaticsAndDiam" value="4 40 0 0"/>
+      <CustomParameter name="connectorPosAndScale" value="0 80 1 0"/>
+      <CustomParameter name="beltPos" value="0 0 0 0"/>
+      <CustomParameter name="cv0" value="2 2 -5 0"/>
+      <CustomParameter name="cv1" value="0 0 0 0"/>
+      <CustomParameter name="cv2" value="0 0 10 0"/>
+      <CustomParameter name="cv3" value="-2 2 15 0"/>
+      <CustomParameter name="lengthInvLength" value="10 0.1 0 0"/>
     </Material>
-    <Material name="effect_mat" materialId="3" diffuseColor="0.5 0.5 0.5 1" cosPower="20" specularColor="0 0 0" ambientColor="1 1 1">
-      <Normalmap fileId="6"/>
+    <Material name="effect_mat" materialId="9" diffuseColor="0.498039 0.498039 0.498039 1" ambientColor="1 1 1">
+      <Normalmap fileId="9"/>
+    </Material>
+    <Material name="lambert1" materialId="6" diffuseColor="0.498039 0.498039 0.498039 1" ambientColor="1 1 1">
     </Material>
   </Materials>
 
@@ -31,45 +51,49 @@
   <Shapes externalShapesFile="liquidManureHose3m.i3d.shapes">
   </Shapes>
 
+
+  <Dynamics>
+  </Dynamics>
+
   <Scene>
-    <Shape name="pCylinder1" shapeId="1" dynamic="true" compound="true" collisionMask="8194" castsShadows="true" receiveShadows="true" nonRenderable="true" materialIds="1" clipDistance="300" nodeId="1">
-      <TransformGroup name="hose3m" translation="2.08167e-17 0 1.5" collision="false" clipDistance="300" nodeId="2">
-        <TransformGroup name="joint1" translation="-2.08167e-17 0 -1.5" nodeId="3">
-          <TransformGroup name="joint2" translation="0 0 0.6" nodeId="4">
-            <TransformGroup name="joint3" translation="0 0 0.6" nodeId="5">
-              <TransformGroup name="joint4" translation="0 0 0.6" nodeId="6">
-                <TransformGroup name="joint5" translation="0 0 0.6" nodeId="7">
-                  <TransformGroup name="joint6" translation="0 0 0.6" nodeId="8">
-                    <TransformGroup name="rayCastNode" translation="0 2.6077e-08 0" rotation="0 180 0" nodeId="9"/>
+    <Shape shapeId="1" name="pCylinder1" dynamic="true" compound="true" collisionMask="8194" clipDistance="300" nodeId="18" materialIds="6" castsShadows="true" receiveShadows="true" nonRenderable="true">
+      <TransformGroup name="hose3m" translation="2.08167e-17 0 1.5" clipDistance="300" nodeId="19">
+        <TransformGroup name="joint1" translation="-2.08167e-17 0 -1.5" nodeId="20">
+          <TransformGroup name="joint2" translation="0 0 0.6" nodeId="21">
+            <TransformGroup name="joint3" translation="0 0 0.6" nodeId="22">
+              <TransformGroup name="joint4" translation="0 0 0.6" nodeId="23">
+                <TransformGroup name="joint5" translation="0 0 0.6" nodeId="24">
+                  <TransformGroup name="joint6" translation="0 0 0.6" nodeId="25">
+                    <TransformGroup name="rayCastNode" translation="0 2.6077e-08 0" rotation="0 180 0" clipDistance="300" nodeId="26"/>
                   </TransformGroup>
                 </TransformGroup>
               </TransformGroup>
             </TransformGroup>
           </TransformGroup>
-          <Shape name="mesh" translation="1.38778e-17 0 1.5" shapeId="2" castsShadows="true" receiveShadows="true" materialIds="2" skinBindNodeIds="3 4 5 6 7 8" clipDistance="300" nodeId="10">
-            <Shape name="normal" translation="6.93889e-18 0 0" shapeId="3" castsShadows="true" receiveShadows="true" materialIds="2" skinBindNodeIds="3 4 5 6 7" clipDistance="300" nodeId="11"/>
-            <Shape name="extendable" translation="0 0.0001 1.81237e-07" visibility="false" shapeId="4" castsShadows="true" receiveShadows="true" materialIds="2" skinBindNodeIds="12 13 14 15" clipDistance="300" nodeId="12">
-              <TransformGroup name="polySurface20" translation="9.19104e-05 0.101358 -1.4429" collision="false" clipDistance="300" nodeId="13"/>
-              <TransformGroup name="polySurface23" translation="-0.000144601 -0.103104 -1.44354" collision="false" clipDistance="300" nodeId="14">
-                <TransformGroup name="polySurface22" translation="5.24521e-05 -0.000228736 0.0178028" collision="false" clipDistance="300" nodeId="15"/>
+          <Shape shapeId="2" name="mesh" translation="1.38778e-17 0 1.5" clipDistance="300" nodeId="27" materialIds="8" castsShadows="true" receiveShadows="true" skinBindNodeIds="20 21 22 23 24 25">
+            <Shape shapeId="3" name="normal" translation="6.93889e-18 0 0" clipDistance="300" nodeId="28" materialIds="8" castsShadows="true" receiveShadows="true" skinBindNodeIds="20 21 22 23 24"/>
+            <Shape shapeId="4" name="extendable" translation="0 0.0001 1.81237e-07" visibility="false" clipDistance="300" nodeId="29" materialIds="8" castsShadows="true" receiveShadows="true" skinBindNodeIds="29 30 31 32">
+              <TransformGroup name="polySurface20" translation="9.19104e-05 0.101358 -1.4429" clipDistance="300" nodeId="30"/>
+              <TransformGroup name="polySurface23" translation="-0.000144601 -0.103104 -1.44354" clipDistance="300" nodeId="31">
+                <TransformGroup name="polySurface22" translation="5.24521e-05 -0.000228736 0.0178028" clipDistance="300" nodeId="32"/>
               </TransformGroup>
             </Shape>
           </Shape>
-          <TransformGroup name="rayCastNode" nodeId="16"/>
-          <TransformGroup name="effects" rotation="0 -90 0" nodeId="17">
-            <Shape name="effectNode" translation="8.32002e-31 1.38778e-17 4.44089e-16" shapeId="5" castsShadows="true" receiveShadows="true" materialIds="3" clipDistance="300" nodeId="18"/>
+          <TransformGroup name="rayCastNode" clipDistance="300" nodeId="33"/>
+          <TransformGroup name="effects" rotation="0 -90 0" clipDistance="300" nodeId="34">
+            <Shape shapeId="5" name="effectNode" translation="8.32002e-31 1.38778e-17 4.44089e-16" clipDistance="300" nodeId="35" materialIds="9" castsShadows="true" receiveShadows="true"/>
           </TransformGroup>
         </TransformGroup>
       </TransformGroup>
-      <TransformGroup name="grabPoint" nodeId="19"/>
-      <TransformGroup name="componentJoint1" translation="0 0 1.5" nodeId="20"/>
+      <TransformGroup name="grabPoint" clipDistance="300" nodeId="36"/>
+      <TransformGroup name="componentJoint1" translation="0 0 1.5" clipDistance="300" nodeId="37"/>
     </Shape>
-    <Shape name="pCylinder2" translation="0 2.6077e-08 1.5" shapeId="6" dynamic="true" compound="true" collisionMask="8194" castsShadows="true" receiveShadows="true" nonRenderable="true" materialIds="1" clipDistance="300" nodeId="21">
-      <TransformGroup name="attachNode" nodeId="22"/>
-      <TransformGroup name="componentJoint3" translation="0 0 1.5" nodeId="23"/>
+    <Shape shapeId="6" name="pCylinder2" translation="0 2.6077e-08 1.5" dynamic="true" compound="true" collisionMask="8194" clipDistance="300" nodeId="38" materialIds="6" castsShadows="true" receiveShadows="true" nonRenderable="true">
+      <TransformGroup name="attachNode" clipDistance="300" nodeId="39"/>
+      <TransformGroup name="componentJoint3" translation="0 0 1.5" clipDistance="300" nodeId="40"/>
     </Shape>
-    <Shape name="pCylinder3" translation="0 0 3" shapeId="7" dynamic="true" compound="true" collisionMask="8194" castsShadows="true" receiveShadows="true" nonRenderable="true" materialIds="1" clipDistance="300" nodeId="24">
-      <TransformGroup name="grabPoint" translation="0 2.6077e-08 0" nodeId="25"/>
+    <Shape shapeId="7" name="pCylinder3" translation="0 0 3" dynamic="true" compound="true" collisionMask="8194" clipDistance="300" nodeId="41" materialIds="6" castsShadows="true" receiveShadows="true" nonRenderable="true">
+      <TransformGroup name="grabPoint" translation="0 2.6077e-08 0" clipDistance="300" nodeId="42"/>
     </Shape>
   </Scene>
 
