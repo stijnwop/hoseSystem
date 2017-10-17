@@ -12,12 +12,14 @@ HoseSystemRegistrationHelper = {
 }
 
 HoseSystemRegistrationHelper.HOSE_SYSTEM_SPEC_KEY = 'hoseSystemVehicle'
+HoseSystemRegistrationHelper.HOSE_SYSTEM_MATERIAL_TYPE = 'hoseSystem'
 
 local srcDirectory = HoseSystemRegistrationHelper.baseDirectory .. 'specializations'
 local eventDirectory = HoseSystemRegistrationHelper.baseDirectory .. 'specializations/events'
 
 local files = {
     ('%s/%s'):format(srcDirectory, 'HoseSystemUtil'),
+    ('%s/utils/%s'):format(srcDirectory, 'HoseSystemXMLUtil'),
     ('%s/%s'):format(eventDirectory, 'HoseSystemReferenceIsUsedEvent'),
     ('%s/%s'):format(eventDirectory, 'HoseSystemReferenceLockEvent'),
     ('%s/%s'):format(eventDirectory, 'HoseSystemReferenceManureFlowEvent'),
@@ -35,6 +37,10 @@ if SpecializationUtil.specializations['hoseSystemPumpMotor'] == nil then
     SpecializationUtil.registerSpecialization('hoseSystemPumpMotor', 'HoseSystemPumpMotor', HoseSystemRegistrationHelper.baseDirectory .. 'specializations/vehicles/HoseSystemPumpMotor.lua')
 end
 
+if SpecializationUtil.specializations['hoseSystemFillArm'] == nil then
+    SpecializationUtil.registerSpecialization('hoseSystemFillArm', 'HoseSystemFillArm', HoseSystemRegistrationHelper.baseDirectory .. 'specializations/vehicles/HoseSystemFillArm.lua')
+end
+
 ---
 -- @param name
 --
@@ -44,10 +50,11 @@ function HoseSystemRegistrationHelper:loadMap(name)
 
     if not g_currentMission.hoseSystemRegistrationHelperIsLoaded then
         -- Register the fill mode for the hose system
-        HoseSystemPumpMotor.registerFillMode('hoseSystem')
+        HoseSystemPumpMotor.registerFillMode(HoseSystemConnectorFactory.TYPE_HOSE_COUPLING)
+        HoseSystemPumpMotor.registerFillMode(HoseSystemFillArmFactory.TYPE_DOCK)
 
         -- Register the material for the hose system
-        MaterialUtil.registerMaterialType('hoseSystem')
+        MaterialUtil.registerMaterialType(HoseSystemRegistrationHelper.HOSE_SYSTEM_MATERIAL_TYPE)
         loadI3DFile(HoseSystemRegistrationHelper.baseDirectory .. 'particleSystems/materialHolder.i3d')
 
         g_currentMission.hoseSystemLog = HoseSystemUtil.log
@@ -265,6 +272,18 @@ function HoseSystemRegistrationHelper:register(vehicle, specializations, name)
 
             if HoseSystem.debugRendering then
                 HoseSystemUtil:log(HoseSystemUtil.DEBUG, 'PumpMotor specialization added to: ' .. name)
+            end
+        end
+    end
+
+    if vehicle.hasHoseSystemFillArm then
+        local specialization = SpecializationUtil.getSpecialization('hoseSystemFillArm')
+
+        if not SpecializationUtil.hasSpecialization(specialization, specializations) then
+            table.insert(specializations, specialization)
+
+            if HoseSystem.debugRendering then
+                HoseSystemUtil:log(HoseSystemUtil.DEBUG, 'FillArm specialization added to: ' .. name)
             end
         end
     end

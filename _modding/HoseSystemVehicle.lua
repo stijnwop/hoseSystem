@@ -21,11 +21,13 @@ end
 function HoseSystemVehicle:preLoadHoseSystem(savegame)
     self.hasHoseSystemConnectors = Utils.getNoNil(getXMLBool(self.xmlFile, 'vehicle.hoseSystem#hasConnectors'), true) -- since i implement this spec i assume you want to add the references
     self.hasHoseSystemPumpMotor = Utils.getNoNil(getXMLBool(self.xmlFile, 'vehicle.hoseSystem#hasPumpMotor'), false)
+    self.hasHoseSystemFillArm = Utils.getNoNil(getXMLBool(self.xmlFile, 'vehicle.hoseSystem#hasFillArm'), false)
 
     if g_currentMission.hoseSystemLog ~= nil then
         g_currentMission.hoseSystemLog(self, 3, {
             hasHoseSystemConnectors = self.hasHoseSystemConnectors,
             hasHoseSystemPumpMotor = self.hasHoseSystemPumpMotor,
+            hasHoseSystemFillArm = self.hasHoseSystemFillArm
         })
     end
 end
