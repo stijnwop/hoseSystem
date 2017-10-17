@@ -188,9 +188,11 @@ function HoseSystemHoseCouplingStrategy:loadHoseCoupling(xmlFile, key, entry)
         local offsetDirection = Utils.getNoNil(getXMLString(xmlFile, key .. '#offsetDirection'), 'right')
         entry.offsetDirection = string.lower(offsetDirection) ~= 'right' and HoseSystemUtil.DIRECTION_LEFT or HoseSystemUtil.DIRECTION_RIGHT
         entry.startTransOffset = Utils.getNoNil(Utils.getVectorNFromString(getXMLString(xmlFile, key .. '#startTransOffset'), 3), { 0, 0, 0 })
-        entry.startRotOffset = Utils.getNoNil(Utils.getVectorNFromString(getXMLString(xmlFile, key .. '#startRotOffset'), 3), { 0, 0, 0 })
+        local startRotOffset = Utils.getNoNil(Utils.getVectorNFromString(getXMLString(xmlFile, key .. '#startRotOffset'), 3), { 0, 0, 0 })
+        entry.startRotOffset = { Utils.degToRad(startRotOffset[1]), Utils.degToRad(startRotOffset[2]), Utils.degToRad(startRotOffset[3]) }
         entry.endTransOffset = Utils.getNoNil(Utils.getVectorNFromString(getXMLString(xmlFile, key .. '#endTransOffset'), 3), { 0, 0, 0 })
-        entry.endRotOffset = Utils.getNoNil(Utils.getVectorNFromString(getXMLString(xmlFile, key .. '#endRotOffset'), 3), { 0, 0, 0 })
+        local endRotOffset = Utils.getNoNil(Utils.getVectorNFromString(getXMLString(xmlFile, key .. '#endRotOffset'), 3), { 0, 0, 0 })
+        entry.endRotOffset = { Utils.degToRad(endRotOffset[1]), Utils.degToRad(endRotOffset[2]), Utils.degToRad(endRotOffset[3]) }
 
         local maxNode = createTransformGroup(('hoseSystemReference_park_maxNode_%d'):format(entry.id))
         local trans = { localToWorld(entry.node, 0, 0, entry.offsetDirection ~= 1 and -entry.parkLength or entry.parkLength) }
