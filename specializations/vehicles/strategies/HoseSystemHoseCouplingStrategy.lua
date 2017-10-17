@@ -377,7 +377,7 @@ function HoseSystemHoseCouplingStrategy:updateHoseSystem(allow, force)
     if self.object.lastGrabPointIndex ~= nil and self.object.lastReferenceIndex ~= nil then
         local reference = self.object.hoseSystemReferences[self.object.lastReferenceIndex]
 
-        if reference ~= nil then
+        if reference ~= nil and reference.hoseSystem ~= nil then
             local lastGrabPoint, lastHoseSystem = self:getLastGrabpointRecursively(reference.hoseSystem.grabPoints[HoseSystemConnector:getFillableVehicle(self.object.lastGrabPointIndex, #reference.hoseSystem.grabPoints)], reference.hoseSystem)
 
             if lastGrabPoint ~= nil and lastHoseSystem ~= nil then
@@ -437,7 +437,7 @@ function HoseSystemHoseCouplingStrategy:getValidFillObject(dt)
                             if self.object.hasHoseSystemPumpMotor then
                                 self.object:addFillObject(hoseSystem.lastRaycastObject, self.object.pumpMotorFillMode)
                             end
-                        else
+                        elseif reference.manureFlowAnimationName ~= nil then
                             local fillType = self.object:getUnitLastValidFillType(reference.fillUnitIndex)
                             local fillLevel = self.object:getFillLevel(fillType)
 
