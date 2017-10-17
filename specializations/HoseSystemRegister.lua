@@ -253,26 +253,18 @@ end
 --
 function HoseSystemRegistrationHelper:register(vehicle, specializations, name)
     if vehicle.hasHoseSystemConnectors then
-        local specialization = SpecializationUtil.getSpecialization('hoseSystemConnector')
+        table.insert(specializations, SpecializationUtil.getSpecialization('hoseSystemConnector'))
 
-        if not SpecializationUtil.hasSpecialization(specialization, specializations) then
-            table.insert(specializations, specialization)
-
-            if HoseSystem.debugRendering then
-                HoseSystemUtil:log(HoseSystemUtil.DEBUG, 'Connector specialization added to: ' .. name)
-            end
+        if HoseSystem.debugRendering then
+            HoseSystemUtil:log(HoseSystemUtil.DEBUG, 'Connector specialization added to: ' .. name)
         end
     end
 
     if vehicle.hasHoseSystemPumpMotor then
-        local specialization = SpecializationUtil.getSpecialization('hoseSystemPumpMotor')
+        table.insert(specializations, SpecializationUtil.getSpecialization('hoseSystemPumpMotor'))
 
-        if not SpecializationUtil.hasSpecialization(specialization, specializations) then
-            table.insert(specializations, specialization)
-
-            if HoseSystem.debugRendering then
-                HoseSystemUtil:log(HoseSystemUtil.DEBUG, 'PumpMotor specialization added to: ' .. name)
-            end
+        if HoseSystem.debugRendering then
+            HoseSystemUtil:log(HoseSystemUtil.DEBUG, 'PumpMotor specialization added to: ' .. name)
         end
     end
 
