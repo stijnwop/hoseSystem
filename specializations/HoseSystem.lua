@@ -7,8 +7,8 @@
 -- Copyright (c) Wopster, 2017
 
 HoseSystem = {
-    debugRendering = true,
-    logLevel = 3,
+    debugRendering = false,
+    logLevel = 2,
     baseDirectory = g_currentModDirectory
 }
 
@@ -304,8 +304,6 @@ function HoseSystem:delete()
                 class:delete()
             end
         end
-
-        self.polymorphismClasses = {}
     end
 end
 

@@ -86,13 +86,6 @@ function HoseSystemUtil:mathRound(number, idp)
 end
 
 ---
--- @param str
---
-function HoseSystemUtil:firstToUpper(str)
-    return (str:gsub("^%l", string.upper))
-end
-
----
 -- @param j1
 -- @param j2
 -- @param pos
@@ -319,46 +312,14 @@ function HoseSystemUtil:getAttachedGrabPoint(grabPoints, id)
 end
 
 ---
--- @param list
+-- @param t
 -- @param element
 --
-function HoseSystemUtil:getElementFromList(list, element)
-    if list ~= nil and #list > 0 then
-        for _, e in ipairs(list) do
+function HoseSystemUtil:removeElementFromList(t, element)
+    if t ~= nil and #t > 0 then
+        for i, e in ipairs(t) do
             if e == element then
-                return e
-            end
-        end
-    end
-
-    return nil
-end
-
----
--- @param list
--- @param element
---
-function HoseSystemUtil.getHasListElement(list, element)
-    if list ~= nil and #list > 0 then
-        for _, e in pairs(list) do
-            if e == element then
-                return true
-            end
-        end
-    end
-
-    return false
-end
-
----
--- @param list
--- @param element
---
-function HoseSystemUtil:removeElementFromList(list, element)
-    if list ~= nil and #list > 0 then
-        for i, e in ipairs(list) do
-            if e == element then
-                table.remove(list, i)
+                table.remove(t, i)
                 break
             end
         end
@@ -377,55 +338,6 @@ end
 --
 function HoseSystemUtil:getLastElement(table)
     return table[#table]
-end
-
----
--- @param strategies
--- @param name
--- @param args
---
-function HoseSystemUtil.callStrategyFunction(strategies, name, args)
-    if args == nil then
-        args = {}
-    end
-
-    if strategies ~= nil and #strategies > 0 then
-        for i = 1, #strategies do
-            local strategy = strategies[i]
-
-            if strategy[name] ~= nil then
-                return strategy[name](strategy, unpack(args))
-            end
-        end
-    end
-
-    return nil
-end
-
----
--- @param strategy
--- @param strategies
---
-function HoseSystemUtil.getHasStrategy(strategy, strategies)
-    for _, s in pairs(strategies) do
-        if s:class():isa(strategy:class()) or s == strategy then
-            return true
-        end
-    end
-
-    return false
-end
-
----
--- @param strategy
--- @param strategies
---
-function HoseSystemUtil.insertStrategy(strategy, strategies)
-    if not HoseSystemUtil.getHasStrategy(strategy, strategies) then
-        table.insert(strategies, strategy)
-    end
-
-    return strategies
 end
 
 ---
