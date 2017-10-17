@@ -114,7 +114,7 @@
             <pl>Nie jesteś super człowiekiem!</pl>
         </text>
         <text name="info_hoseParkingPlaceToShort">
-            <en>The %sm parking place is too small for the %sm hose!</en>
+            <en>The %sm parking place is to small for the %sm hose!</en>
             <de>Der %sm Lagerplatz ist zu klein für den %sm Schlauch!</de>
             <pl>%sm miejsce transportowe, jest za małe dla %sm węża!</pl>
         </text>
