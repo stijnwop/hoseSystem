@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8" standalone="no" ?>
+<l10n>
+    <texts>
+        <text name="typeDesc_liquidManureHose" text="wąż do gnojówki"/>
+
+        <text name="function_liquidManureHose"
+              text="Za pomocą węża do gnojówki możesz przepompowywać ciecz z jednego zbiornika do innego. Opcjonalnie możesz wydłużyć wąż, aby zwiększyć jego zasięg."/>
+
+        <text name="configuration_ext_liquidManureHose" text="Wydłużony"/>
+        <text name="configuration_nor_liquidManureHose" text="Normalny"/>
+
+        <text name="action_grabHose" text="chwycić %s"/>
+        <text name="action_dropHose" text="upuścić %s"/>
+        <text name="action_attachHose" text="podłączyć %s"/>
+        <text name="action_detachHose" text="odłączyć %s"/>
+
+        <text name="info_hoseRangeRestriction" text="Rozciągnąłeś maksymalnie wąż, dalej już nie sięgnie!"/>
+        <text name="info_hoseRangeRestrictionChainToLong" text="Nie jesteś super człowiekiem!"/>
+        <text name="info_hoseParkingPlaceToShort" text="%sm miejsce transportowe, jest za małe dla %sm węża!"/>
+
+        <!-- Input -->
+        <text name="input_mouseInteract" text="Wciśnij %s przycisk myszki, aby"/>
+        <text name="input_attachHose" text="Podłączanie węża"/>
+        <text name="input_detachHose" text="Odłączanie węża"/>
+
+        <!-- Hose system pump motor -->
+        <text name="pumpMotor_changeDirection" text="Zmień kierunek pompy na %s"/>
+        <text name="pumpMotor_directionOut" text="wypompowywanie"/>
+        <text name="pumpMotor_directionIn" text="pompowanie"/>
+
+        <text name="pumpMotor_activatePump" text="Włącz pompę"/>
+        <text name="pumpMotor_deactivatePump" text="Wyłącz pompę"/>
+
+        <text name="pumpMotor_warningTurnOffFirst" text="Najpierw wyłącz pompę!"/>
+        <text name="pumpMotor_warningUnitEmpty" text="Źródło pompy jest puste!"/>
+        <text name="pumpMotor_warningObjectEmpty" text="Źródło pompy jest puste!"/>
+        <text name="pumpMotor_warningInvalidFilltype" text="Ten typ ładunku nie jest obsługiwany!"/>
+
+        <!-- Hose system connector references -->
+        <text name="input_toggleManureFlow" text="Przełączanie przepływu cieczy"/>
+        <text name="input_toggleLock" text="Przełączanie blokady"/>
+
+        <text name="action_toggleLockStateLock" text="zablokować %s"/>
+        <text name="action_toggleLockStateUnlock" text="odblokować %s"/>
+
+        <text name="action_toggleManureFlow" text="%s przepływ cieczy"/>
+        <text name="action_toggleManureFlowStateOpen" text="otworzyć"/>
+        <text name="action_toggleManureFlowStateClose" text="zamknąć"/>
+    </texts>
+</l10n>

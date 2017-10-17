@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8" standalone="no" ?>
+<l10n>
+    <texts>
+        <text name="typeDesc_liquidManureHose" text="Liquid manure hose"/>
+
+        <text name="function_liquidManureHose"
+              text="With a liquid manure hose you are able to pump a liquid fill type from source to target. If applicable you could extend the liquid manure hose to reach larger ranges."/>
+
+        <text name="configuration_ext_liquidManureHose" text="Extendable"/>
+        <text name="configuration_nor_liquidManureHose" text="Normal"/>
+
+        <text name="action_grabHose" text="grab %s"/>
+        <text name="action_dropHose" text="drop %s"/>
+        <text name="action_attachHose" text="attach %s"/>
+        <text name="action_detachHose" text="detach %s"/>
+
+        <text name="info_hoseRangeRestriction" text="The hose range restriction won't allow you to go any further!"/>
+        <text name="info_hoseRangeRestrictionChainToLong" text="You are not a super human!"/>
+        <text name="info_hoseParkingPlaceToShort" text="The %sm parking place is too small for the %sm hose!"/>
+
+        <!-- Input -->
+        <text name="input_mouseInteract" text="Press mouse button %s to"/>
+        <text name="input_attachHose" text="Attach hose system"/>
+        <text name="input_detachHose" text="Detach hose system"/>
+
+        <!-- Hose system pump motor -->
+        <text name="pumpMotor_changeDirection" text="Change pump direction to %s"/>
+        <text name="pumpMotor_directionOut" text="emptying"/>
+        <text name="pumpMotor_directionIn" text="filling"/>
+
+        <text name="pumpMotor_activatePump" text="Activate pump"/>
+        <text name="pumpMotor_deactivatePump" text="Deactivate pump"/>
+
+        <text name="pumpMotor_warningTurnOffFirst" text="Turn pump off first!"/>
+        <text name="pumpMotor_warningUnitEmpty" text="The source pump unit is empty!"/>
+        <text name="pumpMotor_warningObjectEmpty" text="The pump source is empty!"/>
+        <text name="pumpMotor_warningInvalidFilltype" text="FillType is not supported!"/>
+
+        <!-- Hose system connector references -->
+        <text name="input_toggleManureFlow" text="Toggle manure flow"/>
+        <text name="input_toggleLock" text="Toggle lock"/>
+
+        <text name="action_toggleLockStateLock" text="Lock %s"/>
+        <text name="action_toggleLockStateUnlock" text="Unlock %s"/>
+
+        <text name="action_toggleManureFlow" text="%s manure flow"/>
+        <text name="action_toggleManureFlowStateOpen" text="Open"/>
+        <text name="action_toggleManureFlowStateClose" text="Close"/>
+    </texts>
+</l10n>

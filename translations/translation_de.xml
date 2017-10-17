@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8" standalone="no" ?>
+<l10n>
+    <texts>
+        <text name="typeDesc_liquidManureHose" text="den Gülleschlauch"/>
+
+        <text name="function_liquidManureHose"
+              text="Mit einem Gülleschlauch können Sie Flüssigkeiten umpumpen. Wahlweise können Sie auch die Schläuche mit Verlängerungen erweitern."/>
+
+        <text name="configuration_ext_liquidManureHose" text="Verlängerbar"/>
+        <text name="configuration_nor_liquidManureHose" text="Normal"/>
+
+        <text name="action_grabHose" text="%s zu greifen"/>
+        <text name="action_dropHose" text="%s hinzulegen"/>
+        <text name="action_attachHose" text="%s zu koppeln"/>
+        <text name="action_detachHose" text="%s zu entfernen"/>
+
+        <text name="info_hoseRangeRestriction"
+              text="Die maximale Schlauchlänge ist erreicht. Sie können sich nicht weiter entfernen!"/>
+        <text name="info_hoseRangeRestrictionChainToLong" text="Du bist kein Superheld!"/>
+        <text name="info_hoseParkingPlaceToShort" text="Der %sm Lagerplatz ist zu klein für den %sm Schlauch!"/>
+
+        <!-- Input -->
+        <text name="input_mouseInteract" text="Drücke Maustaste %s um"/>
+        <text name="input_attachHose" text="Schlauch ankoppeln"/>
+        <text name="input_detachHose" text="Schlauch trennen"/>
+
+        <!-- Hose system pump motor -->
+        <text name="pumpMotor_changeDirection" text="Pumprichtung in %s wechseln"/>
+        <text name="pumpMotor_directionOut" text="entleeren"/>
+        <text name="pumpMotor_directionIn" text="befüllen"/>
+
+        <text name="pumpMotor_activatePump" text="Pumpe einschalten"/>
+        <text name="pumpMotor_deactivatePump" text="Pumpe ausschalten"/>
+
+        <text name="pumpMotor_warningTurnOffFirst" text="Pumpe zuerst ausschalten!"/>
+        <text name="pumpMotor_warningUnitEmpty" text="Der Behälter ist leer!"/>
+        <text name="pumpMotor_warningObjectEmpty" text="Der Behälter ist leer!"/>
+        <text name="pumpMotor_warningInvalidFilltype" text="Dieser FillType wird nicht unterstützt!"/>
+
+        <!-- Hose system connector references -->
+        <text name="input_toggleManureFlow" text="Güllefluss umschalten"/>
+        <text name="input_toggleLock" text="Schloss umschalten"/>
+
+        <text name="action_toggleLockStateLock" text="%s zu verriegeln"/>
+        <text name="action_toggleLockStateUnlock" text="%s zu entriegeln"/>
+
+        <text name="action_toggleManureFlow" text="den Güllefluss %s"/>
+        <text name="action_toggleManureFlowStateOpen" text="zu öffen"/>
+        <text name="action_toggleManureFlowStateClose" text="zu schließen"/>
+    </texts>
+</l10n>
