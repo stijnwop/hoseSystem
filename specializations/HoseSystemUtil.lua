@@ -250,20 +250,22 @@ end
 function HoseSystemUtil:getReferencesWithSingleConnection(object, referenceId)
     local references = {}
 
-    for id, reference in pairs(object.hoseSystemReferences) do
-        local continue = true
+    if object.hoseSystemReferences ~= nil then
+        for id, reference in pairs(object.hoseSystemReferences) do
+            local continue = true
 
-        if referenceId ~= nil and referenceId == id then
-            continue = false
-        end
+            if referenceId ~= nil and referenceId == id then
+                continue = false
+            end
 
-        if continue then
-            if reference.isUsed and not reference.parkable then
-                if reference.hoseSystem ~= nil and reference.hoseSystem.grabPoints ~= nil then
-                    local grabPoints = HoseSystem:getDetachedReferenceGrabPoints(reference.hoseSystem, id)
+            if continue then
+                if reference.isUsed and not reference.parkable then
+                    if reference.hoseSystem ~= nil and reference.hoseSystem.grabPoints ~= nil then
+                        local grabPoints = HoseSystem:getDetachedReferenceGrabPoints(reference.hoseSystem, id)
 
-                    if #grabPoints > 0 then
-                        table.insert(references, { grabPoint = HoseSystemUtil:getFirstElement(grabPoints), reference = reference, vehicle = object })
+                        if #grabPoints > 0 then
+                            table.insert(references, { grabPoint = HoseSystemUtil:getFirstElement(grabPoints), reference = reference, vehicle = object })
+                        end
                     end
                 end
             end
