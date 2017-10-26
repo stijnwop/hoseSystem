@@ -25,9 +25,9 @@
         <text name="input_detachHose" text="Schlauch trennen"/>
 
         <!-- Hose system pump motor -->
-        <text name="pumpMotor_changeDirection" text="Pumprichtung in %s wechseln"/>
-        <text name="pumpMotor_directionOut" text="entleeren"/>
-        <text name="pumpMotor_directionIn" text="befüllen"/>
+        <text name="pumpMotor_changeDirection" text="Pumprichtung wechseln in: %s"/>
+        <text name="pumpMotor_directionOut" text="Entleeren"/>
+        <text name="pumpMotor_directionIn" text="Befüllen"/>
 
         <text name="pumpMotor_activatePump" text="Pumpe einschalten"/>
         <text name="pumpMotor_deactivatePump" text="Pumpe ausschalten"/>

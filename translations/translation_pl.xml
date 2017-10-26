@@ -24,9 +24,9 @@
         <text name="input_detachHose" text="Odłączanie węża"/>
 
         <!-- Hose system pump motor -->
-        <text name="pumpMotor_changeDirection" text="Zmień kierunek pompy na %s"/>
-        <text name="pumpMotor_directionOut" text="wypompowywanie"/>
-        <text name="pumpMotor_directionIn" text="pompowanie"/>
+        <text name="pumpMotor_changeDirection" text="Zmień kierunek pompy na: %s"/>
+        <text name="pumpMotor_directionOut" text="Wypompowywanie"/>
+        <text name="pumpMotor_directionIn" text="Pompowanie"/>
 
         <text name="pumpMotor_activatePump" text="Włącz pompę"/>
         <text name="pumpMotor_deactivatePump" text="Wyłącz pompę"/>

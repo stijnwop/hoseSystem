@@ -24,7 +24,7 @@
         <text name="input_detachHose" text="Detach hose system"/>
 
         <!-- Hose system pump motor -->
-        <text name="pumpMotor_changeDirection" text="Change pump direction to %s"/>
+        <text name="pumpMotor_changeDirection" text="Change pump direction to: %s"/>
         <text name="pumpMotor_directionOut" text="emptying"/>
         <text name="pumpMotor_directionIn" text="filling"/>
 
