@@ -80,7 +80,7 @@ function HoseSystemPlayerInteractiveRestrictions:restrictPlayerDistance(dt, grab
     if player ~= nil and player.positionIsDirty then
         if player.hoseSystem.interactiveHandling ~= nil and grabPoint.id == player.hoseSystem.index then
             if HoseSystem:getIsAttached(grabPoint.state) then
-                local dependentGrabpoint = HoseSystemUtil:getDependentGrabPoint(self.object.grabPoints, grabPoint.id, false, false)
+                local dependentGrabpoint = HoseSystemUtil:getDependentGrabPoint(self.object.grabPoints, grabPoint.id, true, false)
 
                 if dependentGrabpoint ~= nil then
                     -- If we have a player use the grabpoint as reference

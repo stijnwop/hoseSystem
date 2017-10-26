@@ -697,7 +697,7 @@ function SetFillDirectionEvent:new(object, int)
     event.object = object
     event.int = int
 
-    return self
+    return event
 end
 
 function SetFillDirectionEvent:readStream(streamId, connection)
