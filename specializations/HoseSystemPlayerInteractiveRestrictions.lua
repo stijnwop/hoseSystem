@@ -56,9 +56,9 @@ function HoseSystemPlayerInteractiveRestrictions:update(dt)
         for _, grabPoint in pairs(self.object.grabPoints) do
             if grabPoint ~= nil then
                 if grabPoint.isOwned then
-                    self:restrictPlayerDistance(dt, grabPoint)
+                    self:restrictPlayerDistance(grabPoint, dt)
                 else
-                    self:restrictReferenceDistance(dt, grabPoint)
+                    self:restrictReferenceDistance(grabPoint, dt)
                 end
             end
         end
@@ -74,7 +74,7 @@ end
 -- @param dt
 -- @param grabPoint
 --
-function HoseSystemPlayerInteractiveRestrictions:restrictPlayerDistance(dt, grabPoint)
+function HoseSystemPlayerInteractiveRestrictions:restrictPlayerDistance(grabPoint, dt)
     local player = grabPoint.currentOwner
 
     if player ~= nil and player.positionIsDirty then
@@ -155,11 +155,10 @@ function HoseSystemPlayerInteractiveRestrictions:restrictPlayerDistance(dt, grab
 end
 
 ---
--- @param dt
 -- @param grabPoint
 --
-function HoseSystemPlayerInteractiveRestrictions:restrictReferenceDistance(dt, grabPoint)
-    if self.lastRestrictCheckTime < g_currentMission.time and HoseSystem:getIsConnected(grabPoint.state) then
+function HoseSystemPlayerInteractiveRestrictions:restrictReferenceDistance(grabPoint)
+    if not grabPoint.connectable and self.lastRestrictCheckTime < g_currentMission.time and HoseSystem:getIsConnected(grabPoint.state) then
         local dependentGrabpoint = HoseSystemUtil:getDependentGrabPoint(self.object.grabPoints, grabPoint.id, true, true)
 
         if dependentGrabpoint ~= nil then
