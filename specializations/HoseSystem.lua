@@ -130,12 +130,11 @@ function HoseSystem:load(savegame)
     -- in case we need to access it later we setup callbacks here
     self.poly = {
         interactiveHandling = HoseSystemPlayerInteractiveHandling:new(self),
-        interactiveFillTrigger = HoseSystemFillTriggerInteractive:new(self),
         references = HoseSystemReferences:new(self)
     }
 
     table.insert(self.polymorphismClasses, self.poly.interactiveHandling)
-    table.insert(self.polymorphismClasses, self.poly.interactiveFillTrigger)
+    table.insert(self.polymorphismClasses, HoseSystemFillTriggerInteractive:new(self))
     table.insert(self.polymorphismClasses, self.poly.references)
     table.insert(self.polymorphismClasses, HoseSystemPlayerInteractiveRestrictions:new(self))
 end
@@ -153,7 +152,7 @@ function HoseSystem:loadHoseJoints(xmlFile, baseString)
 
     if rootJointNode ~= nil and jointCount ~= nil then
         for i = 1, jointCount do
-            local count = table.getn(entry.hoseJoints)
+            local count = #entry.hoseJoints
             local jointNode = count > 0 and getChildAt(entry.hoseJoints[count].node, 0) or rootJointNode
 
             if jointNode ~= nil then
