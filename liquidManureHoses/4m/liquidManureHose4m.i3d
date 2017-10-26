@@ -16,8 +16,6 @@
 
 
   <Materials>
-    <Material name="lambert1" materialId="6" diffuseColor="0.498039 0.498039 0.498039 1" ambientColor="1 1 1">
-    </Material>
     <Material name="hose_mat" materialId="8" ambientColor="1 1 1" cosPower="20" specularColor="1 1 1" customShaderId="6" customShaderVariation="colorMask">
       <Texture fileId="2"/>
       <Normalmap fileId="3"/>
@@ -42,7 +40,9 @@
       <CustomParameter name="cv3" value="-2 2 15 0"/>
       <CustomParameter name="lengthInvLength" value="10 0.1 0 0"/>
     </Material>
-    <Material name="effect_mat" materialId="9" diffuseColor="0.498039 0.498039 0.498039 1" ambientColor="1 1 1">
+    <Material name="lambert1" materialId="6" diffuseColor="0.494118 0.494118 0.494118 1" ambientColor="1 1 1">
+    </Material>
+    <Material name="effect_mat" materialId="9" diffuseColor="0.494118 0.494118 0.494118 1" ambientColor="1 1 1">
       <Normalmap fileId="9"/>
     </Material>
   </Materials>
