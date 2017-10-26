@@ -48,4 +48,5 @@
         <storeItem xmlFilename="liquidManureHoses/3m/liquidManureHose3m.xml"/>
         <storeItem xmlFilename="liquidManureHoses/4m/liquidManureHose4m.xml"/>
     </storeItems>
+    <l10n filenamePrefix="translations/translation"/>
 </modDesc>
