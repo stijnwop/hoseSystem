@@ -132,19 +132,19 @@
 
         <!-- Hose system pump motor -->
         <text name="pumpMotor_changeDirection">
-            <en>Change pump direction to %s</en>
-            <de>Pumprichtung in %s wechseln</de>
-            <pl>Zmień kierunek pompy na %s</pl>
+            <en>Change pump direction to: %s</en>
+            <de>Pumprichtung wechseln in: %s</de>
+            <pl>Zmień kierunek pompy na: %s</pl>
         </text>
         <text name="pumpMotor_directionOut">
             <en>Out</en>
-            <de>entleeren</de>
-            <pl>wypompowywanie</pl>
+            <de>Entleeren</de>
+            <pl>Wypompowywanie</pl>
         </text>
         <text name="pumpMotor_directionIn">
             <en>In</en>
-            <de>befüllen</de>
-            <pl>pompowanie</pl>
+            <de>Befüllen</de>
+            <pl>Pompowanie</pl>
         </text>
 
         <text name="pumpMotor_activatePump">
