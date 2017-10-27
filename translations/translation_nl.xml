@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8" standalone="no" ?>
+<l10n>
+    <texts>
+        <text name="typeDesc_liquidManureHose" text="Mest slang"/>
+
+        <text name="function_liquidManureHose"
+              text="Met een mest slang kun je vloeibare mest van een bron naar een doel overpompen. Als het nodig is kun je de mest slang verlengen om grotere afstanden te overbruggen."/>
+
+        <text name="configuration_ext_liquidManureHose" text="Verlengbaar"/>
+        <text name="configuration_nor_liquidManureHose" text="Normaal"/>
+
+        <text name="action_grabHose" text="Pak %s"/>
+        <text name="action_dropHose" text="Laat %s vallen"/>
+        <text name="action_attachHose" text="Koppel %s aan"/>
+        <text name="action_detachHose" text="Koppel %s af"/>
+
+        <text name="info_hoseRangeRestriction" text="De mest slang is niet langer, je kunt niet verder lopen!"/>
+        <text name="info_hoseRangeRestrictionChainToLong" text="Je bent Superman niet!"/>
+        <text name="info_hoseParkingPlaceToShort" text="Het %sm opbergvak is te klein voor de %sm slang!"/>
+
+        <!-- Input -->
+        <text name="input_mouseInteract" text="Druk op de muisknop %s om"/>
+        <text name="input_attachHose" text="Koppel slangen aan"/>
+        <text name="input_detachHose" text="Koppel slangen af"/>
+
+        <!-- Hose system pump motor -->
+        <text name="pumpMotor_changeDirection" text="Verander pomp richting naar: %s"/>
+        <text name="pumpMotor_directionOut" text="Legen"/>
+        <text name="pumpMotor_directionIn" text="Vullen"/>
+
+        <text name="pumpMotor_activatePump" text="Activeer pomp"/>
+        <text name="pumpMotor_deactivatePump" text="Deactiveer pomp"/>
+
+        <text name="pumpMotor_warningTurnOffFirst" text="Zet de pomp eerst uit!"/>
+        <text name="pumpMotor_warningUnitEmpty" text="Er is geen mest meer in de bron!"/>
+        <text name="pumpMotor_warningObjectEmpty" text="Er is geen mest meer in de bron!"/>
+        <text name="pumpMotor_warningInvalidFilltype" text="Dit vultype is niet ondersteund!"/>
+
+        <!-- Hose system connector references -->
+        <text name="input_toggleManureFlow" text="Wissel afsluiter"/>
+        <text name="input_toggleLock" text="Wissel sluiting"/>
+
+        <text name="action_toggleLockStateLock" text="Sluit %s"/>
+        <text name="action_toggleLockStateUnlock" text="Open %s"/>
+
+        <text name="action_toggleManureFlow" text="%s afsluiter"/>
+        <text name="action_toggleManureFlowStateOpen" text="Open"/>
+        <text name="action_toggleManureFlowStateClose" text="Sluit"/>
+    </texts>
+</l10n>
