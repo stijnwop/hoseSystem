@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8" standalone="no" ?>
+<l10n>
+    <texts>
+        <text name="typeDesc_liquidManureHose" text="tömlő"/>
+
+        <text name="function_liquidManureHose"
+              text="A hígtrágya tömlővel át tudod pumpálni a folyékony tartalmat egyik helyről a másikra. Bizonyos esetekben lehetséges összekapcsolni a tömlőket."/>
+
+        <text name="configuration_ext_liquidManureHose" text="Bővíthető"/>
+        <text name="configuration_nor_liquidManureHose" text="Normál"/>
+
+        <text name="action_grabHose" text="%s felvételhez"/>
+        <text name="action_dropHose" text="%s lerakáshoz"/>
+        <text name="action_attachHose" text="%s felrakáshoz"/>
+        <text name="action_detachHose" text="%s levételhez"/>
+
+        <text name="info_hoseRangeRestriction" text="A tömlővel nem mehetsz messzebbre!"/>
+        <text name="info_hoseRangeRestrictionChainToLong" text="Nem vagy szuper ember!"/>
+        <text name="info_hoseParkingPlaceToShort" text="A %sm tartóhelye túl kicsi a %sm tömlőnek!"/>
+
+        <!-- Input -->
+        <text name="input_mouseInteract" text="Nyomd meg az egér %s gombját a(z)"/>
+        <text name="input_attachHose" text="Csatlakoztasd a tömlő rendszert"/>
+        <text name="input_detachHose" text="Kapcsold szét a tömlő rendszert"/>
+
+        <!-- Hose system pump motor -->
+        <text name="pumpMotor_changeDirection" text="Pumpálás iránya: %s"/>
+        <text name="pumpMotor_directionOut" text="kifelé"/>
+        <text name="pumpMotor_directionIn" text="befelé"/>
+
+        <text name="pumpMotor_activatePump" text="Pumpa bekapcsolása"/>
+        <text name="pumpMotor_deactivatePump" text="Pumpa kikapcsolása"/>
+
+        <text name="pumpMotor_warningTurnOffFirst" text="Előbb a pumpát kapcsold ki!"/>
+        <text name="pumpMotor_warningUnitEmpty" text="A forrás pumpája üres!"/>
+        <text name="pumpMotor_warningObjectEmpty" text="Az pumpa forrása üres!"/>
+        <text name="pumpMotor_warningInvalidFilltype" text="Ez a FillType nem támogatott!"/>
+
+        <!-- Hose system connector references -->
+        <text name="input_toggleManureFlow" text="Hígtrágya átfolyás"/>
+        <text name="input_toggleLock" text="Rögzités"/>
+
+        <text name="action_toggleLockStateLock" text="%s rögzítéséhez"/>
+        <text name="action_toggleLockStateUnlock" text="%s kioldásához"/>
+
+        <text name="action_toggleManureFlow" text="hígtrágya áramlás %s"/>
+        <text name="action_toggleManureFlowStateOpen" text="nyitásához"/>
+        <text name="action_toggleManureFlowStateClose" text="záráshoz"/>
+    </texts>
+</l10n>
