@@ -29,7 +29,7 @@ Easy! Add the HoseSystemVehicle specialization to your mod and set the XML entri
 
 ***The latest version of the HoseSystemVehicle.lua can be found in the _modding directory of this repository!***
 
-Full tutorial can be found in the this [Manual](https://www.dropbox.com/s/t7wm0nsqd4hb8u6/Manual%20Attaching.pdf?dl=0) pdf file.
+Full tutorial can be found in the this [Manual](https://github.com/stijnwop/hoseSystem/blob/master/_modding/HoseSystemTutorial.pdf) pdf file.
 
 ## Copyright
 Copyright (c) 2017 Stijn Wopereis
