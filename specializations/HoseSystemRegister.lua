@@ -229,7 +229,9 @@ function HoseSystemRegistrationHelper.loadVehicle(super, vehicleData, asyncCallb
                         return vehicleLoadState
                     end
 
-                    HoseSystemRegistrationHelper:register(super, typeDef.specializations, customEnvironment)
+                    if not super.hoseSystemLoaded then
+                        HoseSystemRegistrationHelper:register(super, typeDef.specializations, customEnvironment)
+                    end
 
                     delete(super.xmlFile)
                     super.xmlFile = nil
@@ -260,6 +262,8 @@ function HoseSystemRegistrationHelper:register(vehicle, specializations, name)
             HoseSystemUtil:log(HoseSystemUtil.DEBUG, 'PumpMotor specialization added to: ' .. name)
         end
     end
+
+    vehicle.hoseSystemLoaded = true
 end
 
 ---
