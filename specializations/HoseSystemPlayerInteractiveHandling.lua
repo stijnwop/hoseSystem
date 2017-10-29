@@ -644,7 +644,7 @@ function HoseSystemPlayerInteractiveHandling:hardConnect(grabPoint, vehicle, ref
     -- Note: cause we delete the connector vehicle from physics we have to attach it back later on
     local grabPoints = {}
     -- Get all the hoses that are connected to a references from the Vehicle
-    local connectedRreferences = HoseSystemUtil:getReferencesWithSingleConnection(vehicle, reference.id)
+    local connectedReferences = HoseSystemUtil:getReferencesWithSingleConnection(vehicle, reference.id)
 
     for index, gp in pairs(self.object.grabPoints) do
         if gp.id ~= grabPoint.id and HoseSystem:getIsConnected(gp.state) then
@@ -652,7 +652,7 @@ function HoseSystemPlayerInteractiveHandling:hardConnect(grabPoint, vehicle, ref
         end
     end
 
-    for i, r in pairs(connectedRreferences) do
+    for i, r in pairs(connectedReferences) do
         HoseSystemUtil:removeHoseSystemJoint(r.reference)
     end
 
@@ -684,7 +684,7 @@ function HoseSystemPlayerInteractiveHandling:hardConnect(grabPoint, vehicle, ref
 
     linkComponent(self.object, grabPoint, reference)
 
-    for i, r in pairs(connectedRreferences) do
+    for i, r in pairs(connectedReferences) do
         HoseSystemUtil:createHoseSystemJoint(r.reference)
     end
 
@@ -720,7 +720,7 @@ end
 function HoseSystemPlayerInteractiveHandling:hardDisconnect(grabPoint, vehicle, reference)
     local grabPoints = {}
     -- Get all the hoses that are connected to a references from the Vehicle
-    local connectedRreferences = HoseSystemUtil:getReferencesWithSingleConnection(vehicle, reference.id)
+    local connectedReferences = HoseSystemUtil:getReferencesWithSingleConnection(vehicle, reference.id)
 
     for index, gp in pairs(self.object.grabPoints) do
         if gp.id ~= grabPoint.id and HoseSystem:getIsConnected(gp.state) then
@@ -741,7 +741,7 @@ function HoseSystemPlayerInteractiveHandling:hardDisconnect(grabPoint, vehicle, 
         removeJoint(grabPoint)
     end
 
-    for i, r in pairs(connectedRreferences) do
+    for i, r in pairs(connectedReferences) do
         HoseSystemUtil:removeHoseSystemJoint(r.reference)
     end
 
@@ -784,7 +784,7 @@ function HoseSystemPlayerInteractiveHandling:hardDisconnect(grabPoint, vehicle, 
         addToPhysics(vehicle.nodeId)
     end
 
-    for i, r in pairs(connectedRreferences) do
+    for i, r in pairs(connectedReferences) do
         HoseSystemUtil:createHoseSystemJoint(r.reference)
     end
 
@@ -810,9 +810,9 @@ function HoseSystemPlayerInteractiveHandling:hardParkHose(grabPoints, vehicle, r
         return
     end
 
-    local connectedRreferences = HoseSystemUtil:getReferencesWithSingleConnection(vehicle, reference.id)
+    local connectedReferences = HoseSystemUtil:getReferencesWithSingleConnection(vehicle, reference.id)
 
-    for i, r in pairs(connectedRreferences) do
+    for i, r in pairs(connectedReferences) do
         HoseSystemUtil:removeHoseSystemJoint(r.reference)
     end
 
@@ -847,7 +847,7 @@ function HoseSystemPlayerInteractiveHandling:hardParkHose(grabPoints, vehicle, r
     self.object.data.parkCenterTargetNode = centerTargetNode
     self.object.data.parkEndTargetNode = endTargetNode
 
-    for i, r in pairs(connectedRreferences) do
+    for i, r in pairs(connectedReferences) do
         HoseSystemUtil:createHoseSystemJoint(r.reference)
     end
 
@@ -908,9 +908,9 @@ function HoseSystemPlayerInteractiveHandling:hardUnparkHose(grabPoints, vehicle,
         return
     end
 
-    local connectedRreferences = HoseSystemUtil:getReferencesWithSingleConnection(vehicle, reference.id)
+    local connectedReferences = HoseSystemUtil:getReferencesWithSingleConnection(vehicle, reference.id)
 
-    for i, r in pairs(connectedRreferences) do
+    for i, r in pairs(connectedReferences) do
         HoseSystemUtil:removeHoseSystemJoint(r.reference)
     end
 
@@ -936,7 +936,7 @@ function HoseSystemPlayerInteractiveHandling:hardUnparkHose(grabPoints, vehicle,
         HoseSystemUtil:addToPhysicsRecursively(vehicle)
     end
 
-    for i, r in pairs(connectedRreferences) do
+    for i, r in pairs(connectedReferences) do
         HoseSystemUtil:createHoseSystemJoint(r.reference)
     end
 

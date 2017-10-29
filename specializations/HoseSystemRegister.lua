@@ -238,7 +238,6 @@ function HoseSystemRegistrationHelper.loadVehicle(super, vehicleData, asyncCallb
 
                     if not super.hoseSystemLoaded then
                         HoseSystemRegistrationHelper:register(super, typeDef.specializations, customEnvironment)
-                        super.hoseSystemLoaded = true
                     end
 
                     delete(super.xmlFile)
@@ -290,6 +289,8 @@ function HoseSystemRegistrationHelper:register(vehicle, specializations, name)
             end
         end
     end
+
+    vehicle.hoseSystemLoaded = true
 end
 
 ---
