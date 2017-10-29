@@ -1,7 +1,13 @@
 <?xml version="1.0" encoding="utf-8" standalone="no" ?>
 <l10n>
+
+    <!-- Note that 'description' is only here for easier translations. It needs to be manually copied to modDesc.xml later. -->
+    <description>
+<![CDATA[Con un tubo flessibile per liquami è possibile pompare un liquido da un punto all'altro. Se applicabile, è possibile estendere il tubo flessibile per coprire distanze maggiori.]]>
+    </description>
+	
     <texts>
-        <text name="typeDesc_liquidManureHose" text="Tubo flessibile liquame"/>
+        <text name="typeDesc_liquidManureHose" text="tubo flessibile liquame"/>
 
         <text name="function_liquidManureHose"
               text="Con un tubo flessibile per liquami è possibile pompare un liquido da un punto all'altro. Se applicabile, è possibile estendere il tubo flessibile per coprire distanze maggiori."/>
@@ -15,15 +21,15 @@
         <text name="action_detachHose" text="sganciare %s"/>
 
         <text name="info_hoseRangeRestriction" text="La lunghezza del tubo non ti permette di allontanarti ancora!"/>
-        <text name="info_hoseRangeRestrictionChainToLong" text="Non sei Superman!"/>
+        <text name="info_hoseRangeRestrictionChainToLong" text="Non sei un supereroe!"/>
         <text name="info_hoseParkingPlaceToShort" text="%sm di spazio di stazionamento non bastano per un tubo da %sm!"/>
 
         <!-- Input -->
         <text name="input_mouseInteract" text="Click %s per"/>
-        <text name="input_mouseInteractMouseLeft" text="todo: translation"/>
-        <text name="input_mouseInteractMouseRight" text="todo: translation"/>
-        <text name="input_attachHose" text="Hose System: Aggancia tubi dinamici"/>
-        <text name="input_detachHose" text="Hose System: Sgancia tubi dinamici"/>
+        <text name="input_mouseInteractMouseLeft" text="sinistro"/>
+        <text name="input_mouseInteractMouseRight" text="destro"/>
+        <text name="input_attachHose" text="HoseSystem: Aggancia tubi dinamici"/>
+        <text name="input_detachHose" text="HoseSystem: Sgancia tubi dinamici"/>
 
         <!-- Hose system pump motor -->
         <text name="pumpMotor_changeDirection" text="Cambia direzione pompa: %s"/>
@@ -39,8 +45,8 @@
         <text name="pumpMotor_warningInvalidFilltype" text="FillType non supportato!"/>
 
         <!-- Hose system connector references -->
-        <text name="input_toggleManureFlow" text="Hose System: Alterna saracinesca"/>
-        <text name="input_toggleLock" text="Hose System: Alterna blocco tubo"/>
+        <text name="input_toggleManureFlow" text="HoseSystem: Alterna saracinesca"/>
+        <text name="input_toggleLock" text="HoseSystem: Alterna blocco tubo"/>
 
         <text name="action_toggleLockStateLock" text="bloccare %s"/>
         <text name="action_toggleLockStateUnlock" text="sbloccare %s"/>
