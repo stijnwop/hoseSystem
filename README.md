@@ -1,5 +1,14 @@
 # HoseSystem for Farming Simulator 17
 
+## Why is the HoseSystem not working!?
+The HoseSystem is currently conflicting with these known mods:
+- Ground Modification
+- RealisticBeacons
+
+To make fully use of the HoseSystem please make sure to remove those mods from your mod folder.
+
+***This list will stay till the creators updated their mod.***
+
 ## Warning!
 Please be aware that this is a ***DEVELOPMENT VERSION***!
 
