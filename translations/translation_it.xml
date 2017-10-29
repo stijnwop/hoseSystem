@@ -20,6 +20,8 @@
 
         <!-- Input -->
         <text name="input_mouseInteract" text="Click %s per"/>
+        <text name="input_mouseInteractMouseLeft" text="todo: translation"/>
+        <text name="input_mouseInteractMouseRight" text="todo: translation"/>
         <text name="input_attachHose" text="Hose System: Aggancia tubi dinamici"/>
         <text name="input_detachHose" text="Hose System: Sgancia tubi dinamici"/>
 

@@ -20,6 +20,8 @@
 
         <!-- Input -->
         <text name="input_mouseInteract" text="Druk op de muisknop %s om"/>
+        <text name="input_mouseInteractMouseLeft" text="links"/>
+        <text name="input_mouseInteractMouseRight" text="rechts"/>
         <text name="input_attachHose" text="Koppel slangen aan"/>
         <text name="input_detachHose" text="Koppel slangen af"/>
 

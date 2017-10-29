@@ -20,6 +20,8 @@
 
         <!-- Input -->
         <text name="input_mouseInteract" text="Nyomd meg az egér %s gombját a(z)"/>
+        <text name="input_mouseInteractMouseLeft" text="todo: translation"/>
+        <text name="input_mouseInteractMouseRight" text="todo: translation"/>
         <text name="input_attachHose" text="Csatlakoztasd a tömlő rendszert"/>
         <text name="input_detachHose" text="Kapcsold szét a tömlő rendszert"/>
 

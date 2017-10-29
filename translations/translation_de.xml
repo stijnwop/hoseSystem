@@ -21,6 +21,8 @@
 
         <!-- Input -->
         <text name="input_mouseInteract" text="Drücke Maustaste %s um"/>
+        <text name="input_mouseInteractMouseLeft" text="links"/>
+        <text name="input_mouseInteractMouseRight" text="rechts"/>
         <text name="input_attachHose" text="Schlauch ankoppeln"/>
         <text name="input_detachHose" text="Schlauch trennen"/>
 

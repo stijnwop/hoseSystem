@@ -47,7 +47,7 @@ function HoseSystemPlayerInteractiveHandling:update(dt)
 
         if grabPoint ~= nil then
             if HoseSystem:getIsAttached(grabPoint.state) and grabPoint.isOwned then
-                g_currentMission:addExtraPrintText(g_i18n:getText('input_mouseInteract'):format(string.lower(MouseHelper.getButtonName(Input.MOUSE_BUTTON_RIGHT))) .. ' ' .. g_i18n:getText('action_dropHose'):format(self.object.typeDesc))
+                g_currentMission:addExtraPrintText(g_i18n:getText('input_mouseInteract'):format(g_i18n:getText('input_mouseInteractMouseRight')) .. ' ' .. g_i18n:getText('action_dropHose'):format(self.object.typeDesc))
 
                 if InputBinding.hasEvent(InputBinding.detachHose) then
                     self:drop(index, grabPoint.currentOwner)
@@ -61,7 +61,7 @@ function HoseSystemPlayerInteractiveHandling:update(dt)
 
                         local node = reference ~= nil and reference.node or grabPoint.node
 
-                        HoseSystemUtil:renderHelpTextOnNode(node, g_i18n:getText('action_attachHose'):format(self.object.typeDesc), g_i18n:getText('input_mouseInteract'):format(string.lower(MouseHelper.getButtonName(Input.MOUSE_BUTTON_LEFT))))
+                        HoseSystemUtil:renderHelpTextOnNode(node, g_i18n:getText('action_attachHose'):format(self.object.typeDesc), g_i18n:getText('input_mouseInteract'):format(g_i18n:getText('input_mouseInteractMouseLeft')))
 
                         g_currentMission:enableHudIcon('attach', 1)
 
@@ -81,7 +81,7 @@ function HoseSystemPlayerInteractiveHandling:update(dt)
 
             if grabPoint ~= nil then
                 if HoseSystem:getIsDetached(grabPoint.state) then
-                    HoseSystemUtil:renderHelpTextOnNode(grabPoint.node, g_i18n:getText('action_grabHose'):format(self.object.typeDesc), g_i18n:getText('input_mouseInteract'):format(string.lower(MouseHelper.getButtonName(Input.MOUSE_BUTTON_LEFT))))
+                    HoseSystemUtil:renderHelpTextOnNode(grabPoint.node, g_i18n:getText('action_grabHose'):format(self.object.typeDesc), g_i18n:getText('input_mouseInteract'):format(g_i18n:getText('input_mouseInteractMouseLeft')))
 
                     g_currentMission:enableHudIcon('attach', 1)
 
@@ -92,7 +92,7 @@ function HoseSystemPlayerInteractiveHandling:update(dt)
                     --
                     if HoseSystemReferences:getAllowsDetach(self.object, index) then
                         if grabPoint.hasJointIndex then
-                            HoseSystemUtil:renderHelpTextOnNode(grabPoint.node, g_i18n:getText('action_detachHose'):format(self.object.typeDesc), g_i18n:getText('input_mouseInteract'):format(string.lower(MouseHelper.getButtonName(Input.MOUSE_BUTTON_RIGHT))))
+                            HoseSystemUtil:renderHelpTextOnNode(grabPoint.node, g_i18n:getText('action_detachHose'):format(self.object.typeDesc), g_i18n:getText('input_mouseInteract'):format(g_i18n:getText('input_mouseInteractMouseRight')))
 
                             if InputBinding.hasEvent(InputBinding.detachHose) then
                                 local vehicle = grabPoint.connectorVehicle

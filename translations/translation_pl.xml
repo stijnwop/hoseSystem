@@ -20,6 +20,8 @@
 
         <!-- Input -->
         <text name="input_mouseInteract" text="Wciśnij %s przycisk myszki, aby"/>
+        <text name="input_mouseInteractMouseLeft" text="todo: translation"/>
+        <text name="input_mouseInteractMouseRight" text="todo: translation"/>
         <text name="input_attachHose" text="Podłączanie węża"/>
         <text name="input_detachHose" text="Odłączanie węża"/>
 

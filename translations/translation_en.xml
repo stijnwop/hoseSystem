@@ -20,6 +20,8 @@
 
         <!-- Input -->
         <text name="input_mouseInteract" text="Press mouse button %s to"/>
+        <text name="input_mouseInteractMouseLeft" text="left"/>
+        <text name="input_mouseInteractMouseRight" text="right"/>
         <text name="input_attachHose" text="Attach hose system"/>
         <text name="input_detachHose" text="Detach hose system"/>
 
