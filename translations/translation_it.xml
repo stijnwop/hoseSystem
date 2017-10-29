@@ -1,11 +1,5 @@
 <?xml version="1.0" encoding="utf-8" standalone="no" ?>
 <l10n>
-
-    <!-- Note that 'description' is only here for easier translations. It needs to be manually copied to modDesc.xml later. -->
-    <description>
-<![CDATA[Con un tubo flessibile per liquami è possibile pompare un liquido da un punto all'altro. Se applicabile, è possibile estendere il tubo flessibile per coprire distanze maggiori.]]>
-    </description>
-	
     <texts>
         <text name="typeDesc_liquidManureHose" text="tubo flessibile liquame"/>
 

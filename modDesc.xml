@@ -17,6 +17,9 @@
         <pl>
             <![CDATA[Za pomocą węża do gnojówki możesz przepompowywać ciecz z jednego zbiornika do innego. Opcjonalnie możesz wydłużyć wąż, aby zwiększyć jego zasięg.]]>
         </pl>
+        <it>
+            <![CDATA[Con un tubo flessibile per liquami è possibile pompare un liquido da un punto all'altro. Se applicabile, è possibile estendere il tubo flessibile per coprire distanze maggiori.]]>
+        </it>
     </description>
     <iconFilename>store.dds</iconFilename>
     <multiplayer supported="true"/>
