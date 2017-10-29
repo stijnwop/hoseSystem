@@ -1,13 +1,13 @@
 ﻿<?xml version="1.0" encoding="utf-8" standalone="no" ?>
 <vehicle type="liquidManureHose">
-	<annotation>Copyright (C) Wopster, All Rights Reserved.</annotation>
+    <annotation>Copyright (C) Wopster, All Rights Reserved.</annotation>
 
     <storeData>
         <name>3M</name>
         <specs>
-			<!-- <fillTypes>liquidManure</fillTypes> -->
-			<!-- <workingWidth>3</workingWidth> -->
-		</specs>
+            <!-- <fillTypes>liquidManure</fillTypes> -->
+            <!-- <workingWidth>3</workingWidth> -->
+        </specs>
         <functions>
             <function>$l10n_function_liquidManureHose</function>
         </functions>
@@ -31,65 +31,67 @@
     <size width="0.2" length="3"/>
 
     <hoseSystem centerNode="1>0" supportedFillTypeCategories="slurryTank">
-        <jointSpline rootJointNode="0>0|0" numJoints="6" />
+        <jointSpline rootJointNode="0>0|0" numJoints="6"/>
 
         <grabPoints>
-            <grabPoint node="0>1" raycastNode="0>0|0|2" componentIndex="0" playerJointRotLimit="40 40 40" playerJointTransLimit="5 5 5" /> <!-- componentChildNode="0>3" /> -->
-            <grabPoint node="2>0" raycastNode="0>0|0|0|0|0|0|0|0" componentIndex="2" playerJointRotLimit="40 40 40" playerJointTransLimit="5 5 5" /> <!-- componentChildNode="2>1" /> -->
+            <grabPoint node="0>1" raycastNode="0>0|0|2" componentIndex="0" playerJointRotLimit="40 40 40"
+                       playerJointTransLimit="5 5 5"/> <!-- componentChildNode="0>3" /> -->
+            <grabPoint node="2>0" raycastNode="0>0|0|0|0|0|0|0|0" componentIndex="2" playerJointRotLimit="40 40 40"
+                       playerJointTransLimit="5 5 5"/> <!-- componentChildNode="2>1" /> -->
         </grabPoints>
 
-         <effect fillTypes="liquidManure">
-            <effectNode effectNode="0>0|0|3|0" delay="0" materialType="hoseSystem" materialTypeId="1" fadeOutTime="0.1" fadeInTime="1" startDelay="0.2" stopDelay="0" />
-         </effect>
+        <effect fillTypes="liquidManure">
+            <effectNode effectNode="0>0|0|3|0" delay="0" materialType="hoseSystem" materialTypeId="1" fadeOutTime="0.1"
+                        fadeInTime="1" startDelay="0.2" stopDelay="0"/>
+        </effect>
     </hoseSystem>
 
-	<designConfigurations>
-        <designConfiguration name="$l10n_configuration_nor_liquidManureHose" price="0" icon="$dataS2/menu/hud/configurations/config_edition.png">
-            <objectChange node="0>1" connectableActive="false" connectableInactive="false" visibilityActive="true" visibilityInactive="true"/>
+    <designConfigurations>
+        <designConfiguration name="$l10n_configuration_nor_liquidManureHose" price="0"
+                             icon="$dataS2/menu/hud/configurations/config_edition.png">
+            <objectChange node="0>1" connectableActive="false" connectableInactive="false" visibilityActive="true"
+                          visibilityInactive="true"/>
             <objectChange node="0>0|0|1|0" visibilityActive="true" visibilityInactive="false"/>
         </designConfiguration>
-        <!--<designConfiguration name="$l10n_configuration_ext_liquidManureHose" price="25" icon="$dataS2/menu/hud/configurations/config_edition.png">-->
-            <!--<objectChange node="0>1" connectableActive="true" connectableInactive="false" connectableAnimation="connect" visibilityActive="true" visibilityInactive="true"/>-->
-            <!--<objectChange node="0>0|0|1|1" visibilityActive="true" visibilityInactive="false"/> -->
-        <!--</designConfiguration>-->
+        <designConfiguration name="$l10n_configuration_ext_liquidManureHose" price="25"
+                             icon="$dataS2/menu/hud/configurations/config_edition.png">
+            <objectChange node="0>1" connectableActive="true" connectableInactive="false" connectableAnimation="connect"
+                          visibilityActive="true" visibilityInactive="true"/>
+            <objectChange node="0>0|0|1|1" visibilityActive="true" visibilityInactive="false"/>
+        </designConfiguration>
     </designConfigurations>
 
-	<baseColorConfigurations price="0" icon="$dataS2/menu/hud/configurations/config_color.png">
-		<baseColorConfiguration color="0.004 0.061 0.117 1.0" />
-		<baseColorConfiguration color="0.013 0.013 0.013 1.0" />
-		<baseColorConfiguration color="0.047 0.195 0.138 1.0" />
-		<baseColorConfiguration color="0.118 0.028 0.021 1.0" />
-        <colorNode node="0>0|0|1" />
+    <baseColorConfigurations price="0" icon="$dataS2/menu/hud/configurations/config_color.png">
+        <baseColorConfiguration color="0.004 0.061 0.117 1.0"/>
+        <baseColorConfiguration color="0.013 0.013 0.013 1.0"/>
+        <baseColorConfiguration color="0.047 0.195 0.138 1.0"/>
+        <baseColorConfiguration color="0.118 0.028 0.021 1.0"/>
+        <colorNode node="0>0|0|1"/>
     </baseColorConfigurations>
 
-	<animations>
+    <animations>
         <animation name="connect">
-            <part node="0>0|0|1|1|1"   startTime="0"   endTime="0.5" startRot="0 0 0" endRot="60 0 0"/>
-            <part node="0>0|0|1|1|1|0" startTime="0"   endTime="0.5" startRot="0 0 0" endRot="-70 0 0"/>
-            <part node="0>0|0|1|1|0"   startTime="0.4" endTime="0.5" startRot="0 0 0" endRot="8 0 0"/>
+            <part node="0>0|0|1|1|1" startTime="0" endTime="0.5" startRot="0 0 0" endRot="60 0 0"/>
+            <part node="0>0|0|1|1|1|0" startTime="0" endTime="0.5" startRot="0 0 0" endRot="-70 0 0"/>
+            <part node="0>0|0|1|1|0" startTime="0.4" endTime="0.5" startRot="0 0 0" endRot="8 0 0"/>
         </animation>
     </animations>
 
-	<!-- LUA: Either force active or set dirt amount self -->
-	<washable dirtDuration="30" washDuration="1" workMultiplier="20" />
+    <washable dirtDuration="500" washDuration="1" workMultiplier="20"/>
 
     <components count="3">
-        <component1 centerOfMass="0 0 0.25" solverIterationCount="40" />
-        <component2 centerOfMass="0 0 0" solverIterationCount="40" />
-        <component3 centerOfMass="0 0 -0.25" solverIterationCount="40" />
-		<joint component1="0" component2="1" index="0>2" transLimit="0 0 0" rotLimit="50 40 0" rotDriveVelocity="0 0 0" maxRotDriveForce="0 0 0" rotLimitSpring="20 20 0" rotLimitDamping="11 11 0"/>
-		<joint component1="1" component2="2" index="1>1" transLimit="0 0 0" rotLimit="50 40 0" rotDriveVelocity="0 0 0" maxRotDriveForce="0 0 0" rotLimitSpring="20 20 0" rotLimitDamping="11 11 0"/>
-		<!-- <collisionPair component1="0" component2="1" enabled="false" /> -->
-		<!-- <collisionPair component1="0" component2="2" enabled="false" /> -->
-	</components>
+        <component1 centerOfMass="0 0 0.25" solverIterationCount="40"/>
+        <component2 centerOfMass="0 0 0" solverIterationCount="40"/>
+        <component3 centerOfMass="0 0 -0.25" solverIterationCount="40"/>
+        <joint component1="0" component2="1" index="0>2" transLimit="0 0 0" rotLimit="50 40 0" rotDriveVelocity="0 0 0"
+               maxRotDriveForce="0 0 0" rotLimitSpring="20 20 0" rotLimitDamping="11 11 0"/>
+        <joint component1="1" component2="2" index="1>1" transLimit="0 0 0" rotLimit="50 40 0" rotDriveVelocity="0 0 0"
+               maxRotDriveForce="0 0 0" rotLimitSpring="20 20 0" rotLimitDamping="11 11 0"/>
+        <!-- <collisionPair component1="0" component2="1" enabled="false" /> -->
+        <!-- <collisionPair component1="0" component2="2" enabled="false" /> -->
+    </components>
 
-    <schemaOverlay file="$dataS2/menu/schemas/implementSchema.png" fileSelected="$dataS2/menu/schemas/implementSchemaSelected.png" width="0.5" height="0.5" attacherJointPosition="0 0"/>
+    <schemaOverlay file="$dataS2/menu/schemas/implementSchema.png"
+                   fileSelected="$dataS2/menu/schemas/implementSchemaSelected.png" width="0.5" height="0.5"
+                   attacherJointPosition="0 0"/>
 </vehicle>
-
-<!--
-	- Build structure of hose -
-	All joints must have its Z axis forward
-	Component 1 need its pivot at start
-	Component "end" need its pivot at end
-	Raycast node (not skinned node) must be placed as sub of the IK joint
--->
