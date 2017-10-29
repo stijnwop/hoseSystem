@@ -501,7 +501,7 @@ function HoseSystemHoseCouplingStrategy:getPriorityReference()
         if reference.isUsed and reference.flowOpened and reference.isLocked then
             if reference.hoseSystem ~= nil and reference.hoseSystem.grabPoints ~= nil then
                 for index, grabPoint in pairs(reference.hoseSystem.grabPoints) do
-                    if HoseSystem:getIsConnected(grabPoint.state) and grabPoint.connectorRefId == referenceId then
+                    if HoseSystem:getIsConnected(grabPoint.state) and grabPoint.connectorVehicle == self.object then
                         return referenceId, index
                     end
                 end
