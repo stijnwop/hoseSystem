@@ -41,7 +41,7 @@ function HoseSystemPlayerInteractiveHandling:update(dt)
         return
     end
 
-    if g_currentMission.player.hoseSystem ~= nil and g_currentMission.player.hoseSystem.interactiveHandling ~= nil then
+    if g_currentMission.player ~= nil and g_currentMission.player.hoseSystem ~= nil and g_currentMission.player.hoseSystem.interactiveHandling ~= nil then
         local index = g_currentMission.player.hoseSystem.index
         local grabPoint = self.object.grabPoints[index]
 
