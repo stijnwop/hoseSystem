@@ -187,6 +187,14 @@ function HoseSystemUtil:addToPhysicsRecursively(vehicle)
         -- Set firstTimeRun to prevent the wheel shape not found warning!
         vehicle.firstTimeRun = false
 
+        if #vehicle.attachedImplements > 0 then
+            for _, implement in pairs(vehicle.attachedImplements) do
+                if implement.object.isHardAttached then
+                    vehicle:hardAttachImplement(implement)
+                end
+            end
+        end
+
         HoseSystemUtil:addToPhysicsRecursively(vehicle.attacherVehicle)
     end
 end
