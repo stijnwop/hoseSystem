@@ -284,6 +284,29 @@ function HoseSystemUtil:getReferencesWithSingleConnection(object, referenceId)
 end
 
 ---
+-- @param object
+--
+function HoseSystemUtil:getConnectedHoseSystems(object, hs)
+    if hs == nil then
+        hs = {}
+    end
+
+    if object.grabPoints ~= nil then
+        for _, grabPoint in pairs(object.grabPoints) do
+            if grabPoint.connectable and HoseSystem:getIsConnected(grabPoint.state) then
+                local vehicle = HoseSystemReferences:getReferenceVehicle(grabPoint.connectorVehicle)
+
+                table.insert(hs, { grabPoint = grabPoint, hoseSystem = object, vehicle = vehicle })
+
+                HoseSystemUtil:getConnectedHoseSystems(grabPoint.connectorVehicle)
+            end
+        end
+    end
+
+    return hs
+end
+
+---
 -- @param reference
 --
 function HoseSystemUtil:getHoseSystemFromReference(reference)
