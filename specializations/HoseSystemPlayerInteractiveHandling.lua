@@ -515,7 +515,7 @@ function HoseSystemPlayerInteractiveHandling:setGrabPointIsUsed(index, isConnect
             -- we have to call on depending objects to tell that we are connecting
             if self.object.isServer then
                 -- call reference functions
-                if grabPoint.connectable or isExtendable then
+                if reference.connectable or isExtendable then
                     vehicle.poly.interactiveHandling:setGrabPointIsUsed(reference.id, isConnected, grabPoint.connectable, true)
                 else
                     vehicle:setIsUsed(reference.id, isConnected, isConnected and self.object or nil)
@@ -689,7 +689,7 @@ function HoseSystemPlayerInteractiveHandling:hardConnect(grabPoint, vehicle, ref
     end
 
     -- Only add the hose to physics partly when not dealing with an extenable hose
-    if reference.isObject ~= nil then
+    if #grabPoints > 0 and not grabPoint.connectable and not reference.connectable then
         self:addToPhysicsParts(grabPoint, grabPoints, vehicle, reference, true)
     else
         self.object:addToPhysics()

@@ -139,25 +139,25 @@ function HoseSystemReferences:searchReferences(grabPoint)
     local sequence = HoseSystemReferences.SEQUENCE
     local reset = true
 
-    if not grabPoint.connectable then
-        if g_currentMission.hoseSystemReferences ~= nil and #g_currentMission.hoseSystemReferences > 0 then
-            for _, hoseSystemReference in pairs(g_currentMission.hoseSystemReferences) do
-                -- Hose references
-                if hoseSystemReference ~= nil then
-                    for i, reference in pairs(hoseSystemReference.hoseSystemReferences) do
-                        if not reference.isUsed then
-                            if HoseSystemReferences:getCanConnect(x, y, z, sequence, grabPoint, reference) then
-                                local object = reference.isObject and hoseSystemReference.fillLevelObject or hoseSystemReference
-                                self:loadFillableObjectAndReference(networkGetObjectId(object), i, false)
-                                reset = false
-                                break
-                            end
+    if g_currentMission.hoseSystemReferences ~= nil and #g_currentMission.hoseSystemReferences > 0 then
+        for _, hoseSystemReference in pairs(g_currentMission.hoseSystemReferences) do
+            -- Hose references
+            if hoseSystemReference ~= nil then
+                for i, reference in pairs(hoseSystemReference.hoseSystemReferences) do
+                    if not reference.isUsed then
+                        if HoseSystemReferences:getCanConnect(x, y, z, sequence, grabPoint, reference) then
+                            local object = reference.isObject and hoseSystemReference.fillLevelObject or hoseSystemReference
+                            self:loadFillableObjectAndReference(networkGetObjectId(object), i, false)
+                            reset = false
+                            break
                         end
                     end
                 end
             end
         end
-    else
+    end
+
+    if grabPoint.connectable then
         if g_currentMission.hoseSystemHoses ~= nil and #g_currentMission.hoseSystemHoses > 0 then
             for _, hoseSystemHose in pairs(g_currentMission.hoseSystemHoses) do
                 if hoseSystemHose ~= self and hoseSystemHose.grabPoints ~= nil then
@@ -172,7 +172,7 @@ function HoseSystemReferences:searchReferences(grabPoint)
 
                                     if vehicleDistance < HoseSystemReferences.VEHICLE_DISTANCE then
                                         if HoseSystemReferences:getCanExtend(reference.id > 1, reference.node, grabPoint.node) then
-                                            self:loadFillableObjectAndReference(networkGetObjectId(hoseSystemHose), i, reference.connectable)
+                                            self:loadFillableObjectAndReference(networkGetObjectId(hoseSystemHose), i, reference.connectable or grabPoint.connectable)
                                             sequence = dist
                                             reset = false
                                             break
@@ -267,6 +267,10 @@ function HoseSystemReferences:getReference(object, index, grabPoint)
     if object ~= nil then
         if object.hoseSystemParent ~= nil then
             object = object.hoseSystemParent
+        end
+
+        if grabPoint.connectable and object.hoseSystemReferences ~= nil and object.hoseSystemReferences[index].parkable then
+            return object.hoseSystemReferences[index]
         end
 
         if not grabPoint.connectable and object.hoseSystemReferences ~= nil then
