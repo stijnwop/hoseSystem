@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8" standalone="no" ?>
+<l10n>
+    <texts>
+        <text name="typeDesc_liquidManureHose" text="шланг"/>
+
+        <text name="function_liquidManureHose"
+              text="Шлангом для жидкого навоза вы можете перекачивать жидкости. При необходимости, вы можете удлинять шланг, чтобы он мог достать дальше."/>
+
+        <text name="configuration_ext_liquidManureHose" text="Расширяемый"/>
+        <text name="configuration_nor_liquidManureHose" text="Обычный"/>
+
+        <text name="action_grabHose" text="взять %s"/>
+        <text name="action_dropHose" text="бросить %s"/>
+        <text name="action_attachHose" text="присоединить %s"/>
+        <text name="action_detachHose" text="отсоединить %s"/>
+
+        <text name="info_hoseRangeRestriction" text="Длинна шланга не позволяет вам двигаться дальше!"/>
+        <text name="info_hoseRangeRestrictionChainToLong" text="Ты не супер человек!"/>
+        <text name="info_hoseParkingPlaceToShort" text="Парковочное место %sm слишком мало для %sm шланга!"/>
+
+        <!-- Input -->
+        <text name="input_mouseInteract" text="Нажмите %s кнопку мыши чтобы"/>
+        <text name="input_mouseInteractMouseLeft" text="левую"/>
+        <text name="input_mouseInteractMouseRight" text="правую"/>
+        <text name="input_attachHose" text="Присоединить систему шлангов"/>
+        <text name="input_detachHose" text="Отсоединить систему шлангов"/>
+
+        <!-- Hose system pump motor -->
+        <text name="pumpMotor_changeDirection" text="Изменить направление перекачивания на: %s"/>
+        <text name="pumpMotor_directionOut" text="выкачивание"/> <!-- слив -->
+        <text name="pumpMotor_directionIn" text="закачивание"/> <!-- наполнение -->
+
+        <text name="pumpMotor_activatePump" text="Включить насос"/>
+        <text name="pumpMotor_deactivatePump" text="Выключить насос"/>
+
+        <text name="pumpMotor_warningTurnOffFirst" text="Для начала выключите насос!"/>
+        <text name="pumpMotor_warningUnitEmpty" text="Блок источника насоса пуст!"/>
+        <text name="pumpMotor_warningObjectEmpty" text="Источник насоса пуст!"/>
+        <text name="pumpMotor_warningInvalidFilltype" text="Тип наполнителя не поддерживается!"/>
+
+        <!-- Hose system connector references -->
+        <text name="input_toggleManureFlow" text="Переключение потока навоза"/>
+        <text name="input_toggleLock" text="Переключить замок"/>
+
+        <text name="action_toggleLockStateLock" text="зафиксировать %s"/>
+        <text name="action_toggleLockStateUnlock" text="отпустить %s"/>
+
+        <text name="action_toggleManureFlow" text="%s поток навоза"/>
+        <text name="action_toggleManureFlowStateOpen" text="открыть"/>
+        <text name="action_toggleManureFlowStateClose" text="закрыть"/>
+    </texts>
+</l10n>
