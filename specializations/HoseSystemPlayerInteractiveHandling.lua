@@ -647,16 +647,11 @@ function HoseSystemPlayerInteractiveHandling:hardConnect(grabPoint, vehicle, ref
     local connectedReferences = HoseSystemUtil:getReferencesWithSingleConnection(vehicle, reference.id)
     local connectedHoseSystems = HoseSystemUtil:getConnectedHoseSystems(vehicle)
 
---    print('connected hoses = ' .. #connectedHoseSystems)
---    print('connected references = ' .. #connectedReferences)
-
     for index, gp in pairs(self.object.grabPoints) do
         if gp.id ~= grabPoint.id and HoseSystem:getIsConnected(gp.state) then
             table.insert(grabPoints, gp)
         end
     end
-
---    print('connected grabPoints = ' .. #grabPoints)
 
     for i, r in pairs(connectedReferences) do
         HoseSystemUtil:removeHoseSystemJoint(r.reference)
@@ -672,7 +667,7 @@ function HoseSystemPlayerInteractiveHandling:hardConnect(grabPoint, vehicle, ref
     end
 
     for i, h in pairs(connectedHoseSystems) do
---        h.hoseSystem:removeFromPhysics()
+        --        h.hoseSystem:removeFromPhysics()
         h.hoseSystem.poly.interactiveHandling:hardDisconnect(h.grabPoint, h.vehicle, h.vehicle.grabPoints[h.grabPoint.connectorRefId])
     end
 
@@ -700,7 +695,7 @@ function HoseSystemPlayerInteractiveHandling:hardConnect(grabPoint, vehicle, ref
     end
 
     -- Only add the hose to physics partly when not dealing with an extenable hose
-    if not reference.isObject and not grabPoint.connectable then
+    if not reference.isObject and not grabPoint.connectable and not reference.connectable then
         self:addToPhysicsParts(grabPoint, grabPoints, vehicle, reference, true)
     else
         self.object:addToPhysics()
@@ -736,6 +731,7 @@ function HoseSystemPlayerInteractiveHandling:hardDisconnect(grabPoint, vehicle, 
     local grabPoints = {}
     -- Get all the hoses that are connected to a references from the Vehicle
     local connectedReferences = HoseSystemUtil:getReferencesWithSingleConnection(vehicle, reference.id)
+    local connectedHoseSystems = HoseSystemUtil:getConnectedHoseSystems(vehicle)
 
     for index, gp in pairs(self.object.grabPoints) do
         if gp.id ~= grabPoint.id and HoseSystem:getIsConnected(gp.state) then
@@ -766,6 +762,10 @@ function HoseSystemPlayerInteractiveHandling:hardDisconnect(grabPoint, vehicle, 
         HoseSystemUtil:removeFromPhysicsRecursively(vehicle)
     else
         removeFromPhysics(vehicle.nodeId)
+    end
+
+    for i, h in pairs(connectedHoseSystems) do
+        h.hoseSystem.poly.interactiveHandling:hardDisconnect(h.grabPoint, h.vehicle, h.vehicle.grabPoints[h.grabPoint.connectorRefId])
     end
 
     setIsCompound(self.object.components[grabPoint.componentIndex].node, true)
@@ -808,6 +808,10 @@ function HoseSystemPlayerInteractiveHandling:hardDisconnect(grabPoint, vehicle, 
         self:addToPhysicsParts(grabPoint, grabPoints, vehicle, reference, false)
     else
         self.object:addToPhysics() -- add it back
+    end
+
+    for i, h in pairs(connectedHoseSystems) do
+        h.hoseSystem.poly.interactiveHandling:hardConnect(h.grabPoint, h.vehicle, h.vehicle.grabPoints[h.grabPoint.connectorRefId])
     end
 
     if self.object.isServer then
