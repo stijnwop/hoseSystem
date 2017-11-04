@@ -700,7 +700,7 @@ function HoseSystemPlayerInteractiveHandling:hardConnect(grabPoint, vehicle, ref
     end
 
     -- Only add the hose to physics partly when not dealing with an extenable hose
-    if not reference.isObject and not grabPoint.connectable then
+    if not grabPoint.connectable and not reference.connectable then
         self:addToPhysicsParts(grabPoint, grabPoints, vehicle, reference, true)
     else
         self.object:addToPhysics()
