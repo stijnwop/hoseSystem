@@ -6,6 +6,7 @@
         <en>Hose System</en>
         <de>Schlauch System</de>
         <pl>System Węży</pl>
+        <ru>Система шлангов</ru>
     </title>
     <description>
         <en>
@@ -20,6 +21,9 @@
         <it>
             <![CDATA[Con un tubo flessibile per liquami è possibile pompare un liquido da un punto all'altro. Se applicabile, è possibile estendere il tubo flessibile per coprire distanze maggiori.]]>
         </it>
+        <ru>
+            <![CDATA[Шлангом для жидкого навоза вы можете перекачивать жидкодсти. При необходимости, вы можете удлинять шланг, чтобы он мог достать дальше.]]>
+        </ru>
     </description>
     <iconFilename>store.dds</iconFilename>
     <multiplayer supported="true"/>
