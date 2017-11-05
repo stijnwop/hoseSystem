@@ -43,7 +43,7 @@ end
 -- @param strict
 --
 function HoseSystemPlayerInteractive:getIsPlayerValid(strict)
-    if g_currentMission.player.hoseSystem == nil then
+    if g_currentMission.player ~= nil and g_currentMission.player.hoseSystem == nil then
         g_currentMission.player.hoseSystem = {}
     end
 

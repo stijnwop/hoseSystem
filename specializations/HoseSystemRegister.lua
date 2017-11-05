@@ -161,7 +161,7 @@ end
 ---
 --
 function HoseSystemRegistrationHelper:getIsPlayerInGrabPointRange()
-    if g_currentMission.player.hoseSystem == nil then
+    if g_currentMission.player ~= nil and g_currentMission.player.hoseSystem == nil then
         g_currentMission.player.hoseSystem = {}
     end
 
