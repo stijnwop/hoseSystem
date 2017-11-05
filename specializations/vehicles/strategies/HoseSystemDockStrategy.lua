@@ -60,7 +60,7 @@ end
 -- @param streamId
 -- @param connection
 --
-function HoseSystemHoseCouplingStrategy:readStream(streamId, connection)
+function HoseSystemDockStrategy:readStream(streamId, connection)
     if connection:getIsServer() then
         for id = 1, streamReadUInt8(streamId) do
             -- load the object later on first frame
@@ -81,7 +81,7 @@ end
 -- @param streamId
 -- @param connection
 --
-function HoseSystemHoseCouplingStrategy:writeStream(streamId, connection)
+function HoseSystemDockStrategy:writeStream(streamId, connection)
     if not connection:getIsServer() then
         streamWriteUInt8(streamId, #self.object.dockingSystemReferences)
 
