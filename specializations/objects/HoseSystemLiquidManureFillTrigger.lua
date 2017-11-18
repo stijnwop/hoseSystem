@@ -520,19 +520,16 @@ function HoseSystemLiquidManureFillTrigger:toggleLock(index, state, force, noEve
     if reference ~= nil and reference.isLocked ~= state or force then
         HoseSystemReferenceLockEvent.sendEvent(self.fillLevelObject.hoseSystemParent, index, state, force, noEventSend)
 
-        local animatedObject = g_currentMission.animatedObjects[reference.lockAnimatedObjectSaveId]
 
-        if animatedObject ~= nil then
-            -- local dir = state and 1 or -1
-            -- local shouldPlay = force or not self:getIsAnimationPlaying(reference.lockAnimationName)
+        if g_currentMission.animatedObjects ~= nil then
+            local animatedObject = g_currentMission.animatedObjects[reference.lockAnimatedObjectSaveId]
 
-            -- if shouldPlay then
-            -- self:playAnimation(reference.lockAnimationName, dir, nil, true)
-            -- reference.isLocked = state
-            -- end
-        else
-            reference.isLocked = state
+            if animatedObject ~= nil then
+                -- Todo: implement animation
+            end
         end
+
+        reference.isLocked = state
     end
 end
 
@@ -549,19 +546,15 @@ function HoseSystemLiquidManureFillTrigger:toggleManureFlow(index, state, force,
     if reference ~= nil and reference.flowOpened ~= state or force then
         HoseSystemReferenceManureFlowEvent.sendEvent(self.fillLevelObject.hoseSystemParent, index, state, force, noEventSend)
 
-        local animatedObject = g_currentMission.animatedObjects[reference.lockAnimatedObjectSaveId]
+        if g_currentMission.animatedObjects ~= nil then
+            local animatedObject = g_currentMission.animatedObjects[reference.manureFlowAnimatedObjectSaveId]
 
-        if animatedObject ~= nil then
-            -- local dir = state and 1 or -1
-            -- local shouldPlay = force or not self:getIsAnimationPlaying(reference.manureFlowAnimationName)
-
-            -- if shouldPlay then
-            -- self:playAnimation(reference.manureFlowAnimationName, dir, nil, true)
-            -- reference.flowOpened = state
-            -- end
-        else
-            reference.flowOpened = state
+            if animatedObject ~= nil then
+                -- Todo: implement animation
+            end
         end
+
+        reference.flowOpened = state
     end
 end
 
