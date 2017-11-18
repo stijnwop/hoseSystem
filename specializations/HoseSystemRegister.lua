@@ -215,33 +215,35 @@ function HoseSystemRegistrationHelper.loadVehicle(super, vehicleData, asyncCallb
         local specializations = typeDef.specializations
         local specializationNames = typeDef.specializationNames
 
-        for i = 1, #specializations do
-            local specializationName = specializationNames[i]
+        if specializations ~= nil and specializationNames ~= nil then
+            for i = 1, #specializations do
+                local specializationName = specializationNames[i]
 
-            if specializationName ~= nil and specializationName:lower() == string.format('%s.%s', customEnvironment, HoseSystemRegistrationHelper.HOSE_SYSTEM_SPEC_KEY):lower() then
-                local specialization = specializations[i]
+                if specializationName ~= nil and specializationName:lower() == string.format('%s.%s', customEnvironment, HoseSystemRegistrationHelper.HOSE_SYSTEM_SPEC_KEY):lower() then
+                    local specialization = specializations[i]
 
-                if specialization.preLoadHoseSystem ~= nil then
-                    super.xmlFile = loadXMLFile('TempConfig', vehicleData.filename)
+                    if specialization.preLoadHoseSystem ~= nil then
+                        super.xmlFile = loadXMLFile('TempConfig', vehicleData.filename)
 
-                    local vehicleLoadState = specializations[i].preLoadHoseSystem(super, vehicleData.savegame)
+                        local vehicleLoadState = specializations[i].preLoadHoseSystem(super, vehicleData.savegame)
 
-                    if vehicleLoadState ~= nil and vehicleLoadState ~= BaseMission.VEHICLE_LOAD_OK then
-                        HoseSystemUtil:log(HoseSystemUtil.ERROR, specializationName .. "-specialization 'preLoadHoseSystem' failed!")
+                        if vehicleLoadState ~= nil and vehicleLoadState ~= BaseMission.VEHICLE_LOAD_OK then
+                            HoseSystemUtil:log(HoseSystemUtil.ERROR, specializationName .. "-specialization 'preLoadHoseSystem' failed!")
 
-                        if asyncCallbackFunction ~= nil then
-                            asyncCallbackFunction(asyncCallbackObject, nil, vehicleLoadState, asyncCallbackArguments)
+                            if asyncCallbackFunction ~= nil then
+                                asyncCallbackFunction(asyncCallbackObject, nil, vehicleLoadState, asyncCallbackArguments)
+                            end
+
+                            return vehicleLoadState
                         end
 
-                        return vehicleLoadState
-                    end
+                        if not super.hoseSystemLoaded then
+                            HoseSystemRegistrationHelper:register(super, typeDef.specializations, customEnvironment)
+                        end
 
-                    if not super.hoseSystemLoaded then
-                        HoseSystemRegistrationHelper:register(super, typeDef.specializations, customEnvironment)
+                        delete(super.xmlFile)
+                        super.xmlFile = nil
                     end
-
-                    delete(super.xmlFile)
-                    super.xmlFile = nil
                 end
             end
         end
