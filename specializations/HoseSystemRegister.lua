@@ -95,33 +95,37 @@ end
 function HoseSystemRegistrationHelper:update(dt)
     self:getIsPlayerInGrabPointRange()
 
-    if g_server ~= nil then -- only server
-        if g_currentMission.hoseSystemRegistrationHelperIsLoaded and HoseSystemRegistrationHelper.runAtFirstFrame then
-            if g_currentMission.missionInfo.vehiclesXMLLoad ~= nil then
-                local xmlFile = loadXMLFile('VehiclesXML', g_currentMission.missionInfo.vehiclesXMLLoad)
+    if not g_currentMission:getIsServer() then
+        return
+    end
 
-                HoseSystemRegistrationHelper:loadVehicles(xmlFile, self.loadHoseSystemReferenceIds)
+    if g_currentMission.hoseSystemRegistrationHelperIsLoaded and HoseSystemRegistrationHelper.runAtFirstFrame then
+        if g_currentMission.missionInfo.vehiclesXMLLoad ~= nil then
+            local xmlFile = loadXMLFile('VehiclesXML', g_currentMission.missionInfo.vehiclesXMLLoad)
 
-                if self.loadHoseSystemReferenceIds ~= nil then
-                    for xmlVehicleId, vehicleId in pairs(self.loadHoseSystemReferenceIds) do
-                        local i = 0
+            HoseSystemRegistrationHelper:loadVehicles(xmlFile, self.loadHoseSystemReferenceIds)
 
-                        while true do
-                            local key = string.format('careerVehicles.vehicle(%d).grabPoint(%d)', xmlVehicleId, i)
+            if self.loadHoseSystemReferenceIds ~= nil then
+                for xmlVehicleId, vehicleId in pairs(self.loadHoseSystemReferenceIds) do
+                    local i = 0
 
-                            if not hasXMLProperty(xmlFile, key) then
-                                break
-                            end
+                    while true do
+                        local key = string.format('careerVehicles.vehicle(%d).grabPoint(%d)', xmlVehicleId, i)
 
-                            local vehicle = g_currentMission.vehicles[vehicleId]
+                        if not hasXMLProperty(xmlFile, key) then
+                            break
+                        end
 
-                            if vehicle ~= nil then
-                                local grabPointId = getXMLInt(xmlFile, key .. '#id')
-                                local connectorVehicleId = getXMLInt(xmlFile, key .. '#connectorVehicleId')
-                                local referenceId = getXMLInt(xmlFile, key .. '#referenceId')
-                                local isExtendable = getXMLBool(xmlFile, key .. '#extenable')
+                        local vehicle = g_currentMission.vehicles[vehicleId]
 
-                                if connectorVehicleId ~= nil and grabPointId ~= nil and referenceId ~= nil and isExtendable ~= nil then
+                        if vehicle ~= nil then
+                            local grabPointId = getXMLInt(xmlFile, key .. '#id')
+                            local connectorVehicleId = getXMLInt(xmlFile, key .. '#connectorVehicleId')
+                            local referenceId = getXMLInt(xmlFile, key .. '#referenceId')
+                            local isExtendable = getXMLBool(xmlFile, key .. '#extenable')
+
+                            if connectorVehicleId ~= nil and grabPointId ~= nil and referenceId ~= nil and isExtendable ~= nil then
+                                if g_currentMission.hoseSystemReferences ~= nil then
                                     local connectorVehicle = g_currentMission.hoseSystemReferences[connectorVehicleId]
 
                                     if connectorVehicle ~= nil then
@@ -135,21 +139,23 @@ function HoseSystemRegistrationHelper:update(dt)
                                             HoseSystemUtil:log(HoseSystemUtil.ERROR, 'Invalid connectorVehicle on gameload!')
                                         end
                                     end
+                                else
+                                    HoseSystemUtil:log(HoseSystemUtil.ERROR, 'No references vehicles where loaded but the savegame still has the connection data!')
                                 end
                             end
-
-                            i = i + 1
                         end
+
+                        i = i + 1
                     end
                 end
-
-                self.loadHoseSystemReferenceIds = {}
-
-                delete(xmlFile)
             end
 
-            HoseSystemRegistrationHelper.runAtFirstFrame = false
+            self.loadHoseSystemReferenceIds = {}
+
+            delete(xmlFile)
         end
+
+        HoseSystemRegistrationHelper.runAtFirstFrame = false
     end
 end
 
