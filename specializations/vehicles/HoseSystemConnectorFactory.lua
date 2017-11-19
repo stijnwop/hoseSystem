@@ -16,12 +16,14 @@ HoseSystemConnectorFactory.typesToInt = {}
 -- Enums
 HoseSystemConnectorFactory.TYPE_DOCK = 'dock'
 HoseSystemConnectorFactory.TYPE_HOSE_COUPLING = 'hoseCoupling'
+HoseSystemConnectorFactory.TYPE_TRANSFER = 'transfer'
 
 local srcDirectory = HoseSystemConnectorFactory.baseDirectory .. 'specializations/vehicles/strategies'
 
 local files = {
     ('%s/%s'):format(srcDirectory, 'HoseSystemHoseCouplingStrategy.lua'),
-    ('%s/%s'):format(srcDirectory, 'HoseSystemDockStrategy.lua')
+    ('%s/%s'):format(srcDirectory, 'HoseSystemDockStrategy.lua'),
+    ('%s/%s'):format(srcDirectory, 'HoseSystemHoseTransferStrategy.lua'),
 }
 
 for _, path in pairs(files) do
@@ -74,6 +76,7 @@ end
 
 HoseSystemConnectorFactory.registerType(HoseSystemConnectorFactory.TYPE_DOCK)
 HoseSystemConnectorFactory.registerType(HoseSystemConnectorFactory.TYPE_HOSE_COUPLING)
+HoseSystemConnectorFactory.registerType(HoseSystemConnectorFactory.TYPE_TRANSFER)
 
 ---
 --
@@ -96,6 +99,8 @@ function HoseSystemConnectorFactory:getFillArmStrategy(type, object)
         strategy = HoseSystemHoseCouplingStrategy:new(object)
     elseif type == HoseSystemConnectorFactory.getInitialType(HoseSystemConnectorFactory.TYPE_DOCK) then
         strategy = HoseSystemDockStrategy:new(object)
+    elseif type == HoseSystemConnectorFactory.getInitialType(HoseSystemConnectorFactory.TYPE_TRANSFER) then
+        strategy = HoseSystemHoseTransferStrategy:new(object)
     end
 
     return strategy

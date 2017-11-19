@@ -42,6 +42,7 @@ function HoseSystemConnector:load(savegame)
     self.connectStrategies = {}
     self.hoseSystemReferences = {}
     self.dockingSystemReferences = {}
+    self.transferSystemReferences = {}
 
     HoseSystemConnector.loadHoseReferences(self, self.xmlFile, 'vehicle.hoseSystemReferences.')
 
