@@ -70,7 +70,6 @@ end
 -- @param self
 -- @param xmlFile
 -- @param base
--- @param references
 --
 function HoseSystemConnector.loadHoseReferences(self, xmlFile, base)
     local i = 0
