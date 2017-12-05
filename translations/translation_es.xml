@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8" standalone="no" `?>
+<l10n>
+    <texts>
+        <text name="typeDesc_liquidManureHose" text="Manguera purín"/>
+
+        <text name="function_liquidManureHose"
+              text="Con una manguera de purín, puede bombear líquido de la fuente al objetivo. Si es aplicable, podría extender la manguera de purín para alcanzar rangos más grandes."/>
+
+        <text name="configuration_ext_liquidManureHose" text="Extensible"/>
+        <text name="configuration_nor_liquidManureHose" text="Normal"/>
+
+        <text name="action_grabHose" text="Agarrar %s"/>
+        <text name="action_dropHose" text="Soltar %s"/>
+        <text name="action_attachHose" text="Enganchar %s"/>
+        <text name="action_detachHose" text="Soltar %s"/>
+
+        <text name="info_hoseRangeRestriction" text="El alcance de la manguera llego a su límite!"/>
+        <text name="info_hoseRangeRestrictionChainToLong" text="No eres un super humano!"/>
+        <text name="info_hoseParkingPlaceToShort" text="El %sm estacionamiento es demasiado pequeño para la manguera %sm !"/>
+
+        <!-- Input -->
+        <text name="input_mouseInteract" text="Presiona el botón del ratón %s a"/>
+        <text name="input_mouseInteractMouseLeft" text="izquierda"/>
+        <text name="input_mouseInteractMouseRight" text="derecha"/>
+        <text name="input_attachHose" text="Enganchar sistema de manguera"/>
+        <text name="input_detachHose" text="Soltar sistema de manguera"/>
+
+        <!-- Hose system pump motor -->
+        <text name="pumpMotor_changeDirection" text="Cambiar la dirección de la bomba a: %s"/>
+        <text name="pumpMotor_directionOut" text="vaciar"/>
+        <text name="pumpMotor_directionIn" text="llenar"/>
+
+        <text name="pumpMotor_activatePump" text="Activar bomba"/>
+        <text name="pumpMotor_deactivatePump" text="Desactivar bomba"/>
+
+        <text name="pumpMotor_warningTurnOffFirst" text="Primero apague la bomba!"/>
+        <text name="pumpMotor_warningUnitEmpty" text="La fuente de la unidad de la bomba esta vacía!"/>
+        <text name="pumpMotor_warningObjectEmpty" text="La bomba esta vacía!"/>
+        <text name="pumpMotor_warningInvalidFilltype" text="Esta carga no esta soportada!"/>
+
+        <!-- Hose system connector references -->
+        <text name="input_toggleManureFlow" text="Alternar flujo de purín"/>
+        <text name="input_toggleLock" text="Alternancia bloqueada"/>
+
+        <text name="action_toggleLockStateLock" text="Bloquear %s"/>
+        <text name="action_toggleLockStateUnlock" text="Desbloquear %s"/>
+
+        <text name="action_toggleManureFlow" text="%s flujo purín"/>
+        <text name="action_toggleManureFlowStateOpen" text="Abrir"/>
+        <text name="action_toggleManureFlowStateClose" text="Cerrar"/>
+    </texts>
+</l10n>
