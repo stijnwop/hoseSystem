@@ -10,6 +10,8 @@ HoseSystemFillTriggerInteractive = {}
 
 HoseSystemFillTriggerInteractive.RAYCAST_DISTANCE = 2 -- meters
 
+local RAYCAST_DIRECTIONS = { 0, -1, 1 }
+
 local HoseSystemFillTriggerInteractive_mt = Class(HoseSystemFillTriggerInteractive)
 
 ---
@@ -34,68 +36,83 @@ end
 function HoseSystemFillTriggerInteractive:delete()
 end
 
+local function raycast(x, y, z, raycastNode, self, direction)
+    if direction > #RAYCAST_DIRECTIONS or self.object.lastRaycastDistance ~= 0 then
+        return
+    end
+
+    local dx, dy, dz = localDirectionToWorld(raycastNode, 0, RAYCAST_DIRECTIONS[direction], -1)
+
+    raycastClosest(x, y, z, dx, dy, dz, 'fillableObjectRaycastCallback', HoseSystemFillTriggerInteractive.RAYCAST_DISTANCE, self)
+
+    raycast(x, y, z, raycastNode, self, direction + 1)
+end
+
 ---
 -- @param dt
 --
 function HoseSystemFillTriggerInteractive:update(dt)
-    if self.object.isServer then
-        if self.object.grabPoints ~= nil then
-            for _, gp in pairs(self.object.grabPoints) do
-                if HoseSystem:getIsDetached(gp.state) then
-                    local x, y, z = getWorldTranslation(gp.raycastNode)
-                    local dx, dy, dz = localDirectionToWorld(gp.raycastNode, 0, 0, -1)
+    if not self.object.isServer then
+        return
+    end
 
-                    self.object.lastRaycastDistance = 0
-                    self.object.lastRaycastObject = nil
+    if self.object.grabPoints ~= nil then
+        self.object.lastRaycastDistance = 0
+        self.object.lastRaycastObject = nil
 
-                    raycastClosest(x, y, z, dx, dy, dz, 'fillableObjectRaycastCallback', HoseSystemFillTriggerInteractive.RAYCAST_DISTANCE, self)
+        for _, gp in pairs(self.object.grabPoints) do
+            if HoseSystem:getIsDetached(gp.state) then
+                local x, y, z = getWorldTranslation(gp.raycastNode)
 
-                    if self.object.lastRaycastDistance ~= 0 then
-                        local isUnderFillplane, planeY = self.object.lastRaycastObject:checkPlaneY(y)
+                raycast(x, y, z, gp.raycastNode, self, 1)
 
-                        if isUnderFillplane and HoseSystemFillTriggerInteractive:allowFillTypeAffectDirtMask(self.object.lastRaycastObject.fillType) then
-                            -- Todo: make this direction based!
-                            --                            local difference = HoseSystemUtil:mathRound(math.abs(planeY - y), 3)
+                if self.object.lastRaycastDistance ~= 0 then
+                    local isUnderFillplane, planeY = self.object.lastRaycastObject:checkPlaneY(y)
 
-                            if self.object:getDirtAmount() < 1 then
-                                self.object:setDirtAmount(1)
+                    if isUnderFillplane and HoseSystemFillTriggerInteractive:allowFillTypeAffectDirtMask(self.object.lastRaycastObject.fillType) then
+                        -- Todo: make this direction based!
+                        --                            local difference = HoseSystemUtil:mathRound(math.abs(planeY - y), 3)
+
+                        if self.object:getDirtAmount() < 1 then
+                            self.object:setDirtAmount(1)
+                        end
+
+                        -- Todo: Moved feature to version 1.1
+                        --                            local param = gp.id > 1 and difference or -1 * difference
+                        --
+                        --                            for _, node in pairs(self.object.washableNodes) do
+                        --                                local x, y, z, w = getShaderParameter(node, 'RDT')
+                        --                                -- Round value to have better check on the param
+                        --                                x = HoseSystemUtil:mathRound(x, 3)
+                        --
+                        --                                local update = false
+                        --
+                        --                                if gp.id > 1 then
+                        --                                    update = x < param
+                        --                                else
+                        --                                    update = param < x
+                        --                                end
+                        --
+                        --                                if update and math.abs(x - param) > 0.01 then
+                        --                                    setShaderParameter(node, 'RDT', param, y, z, w, false)
+                        --                                end
+                        --                            end
+
+                        if HoseSystem.debugRendering then
+                            local xyz = { worldToLocal(gp.raycastNode, x, y, z) }
+                            local color = { 1, 0 }
+
+                            xyz[3] = xyz[3] - HoseSystemFillTriggerInteractive.RAYCAST_DISTANCE
+                            xyz = { localToWorld(gp.raycastNode, xyz[1], xyz[2], xyz[3]) }
+
+                            if self.object.lastRaycastDistance ~= 0 then
+                                color = { 0, 1 }
                             end
 
-                            -- Todo: Moved feature to version 1.1
-                            --                            local param = gp.id > 1 and difference or -1 * difference
-                            --
-                            --                            for _, node in pairs(self.object.washableNodes) do
-                            --                                local x, y, z, w = getShaderParameter(node, 'RDT')
-                            --                                -- Round value to have better check on the param
-                            --                                x = HoseSystemUtil:mathRound(x, 3)
-                            --
-                            --                                local update = false
-                            --
-                            --                                if gp.id > 1 then
-                            --                                    update = x < param
-                            --                                else
-                            --                                    update = param < x
-                            --                                end
-                            --
-                            --                                if update and math.abs(x - param) > 0.01 then
-                            --                                    setShaderParameter(node, 'RDT', param, y, z, w, false)
-                            --                                end
-                            --                            end
+                            drawDebugLine(x, y, z, color[1], color[2], 0, xyz[1], xyz[2], xyz[3], color[1], color[2], 0)
+                            drawDebugLine(x, y, z, color[1], color[2], 0, xyz[1], xyz[2] + HoseSystemFillTriggerInteractive.RAYCAST_DISTANCE, xyz[3], color[1], color[2], 0)
+                            drawDebugLine(x, y, z, color[1], color[2], 0, xyz[1], xyz[2] - HoseSystemFillTriggerInteractive.RAYCAST_DISTANCE, xyz[3], color[1], color[2], 0)
                         end
-                    end
-
-                    if HoseSystem.debugRendering then
-                        local xyz = { worldToLocal(gp.raycastNode, x, y, z) }
-                        local color = { 1, 0 }
-
-                        xyz[3] = xyz[3] - HoseSystemFillTriggerInteractive.RAYCAST_DISTANCE
-                        xyz = { localToWorld(gp.raycastNode, xyz[1], xyz[2], xyz[3]) }
-
-                        if self.object.lastRaycastDistance ~= 0 then
-                            color = { 0, 1 }
-                        end
-
-                        drawDebugLine(x, y, z, color[1], color[2], 0, xyz[1], xyz[2], xyz[3], color[1], color[2], 0)
                     end
                 end
             end
