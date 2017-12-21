@@ -29,16 +29,17 @@ for _, directory in pairs(files) do
     source(directory .. '.lua')
 end
 
-if SpecializationUtil.specializations['hoseSystemConnector'] == nil then
-    SpecializationUtil.registerSpecialization('hoseSystemConnector', 'HoseSystemConnector', HoseSystemRegistrationHelper.baseDirectory .. 'specializations/vehicles/HoseSystemConnector.lua')
-end
+local specializations = {
+    ["hoseSystemConnector"] = 'specializations/vehicles/',
+    ["hoseSystemPumpMotor"] = 'specializations/vehicles/',
+    ["hoseSystemFillArm"] = 'specializations/vehicles/'
+}
 
-if SpecializationUtil.specializations['hoseSystemPumpMotor'] == nil then
-    SpecializationUtil.registerSpecialization('hoseSystemPumpMotor', 'HoseSystemPumpMotor', HoseSystemRegistrationHelper.baseDirectory .. 'specializations/vehicles/HoseSystemPumpMotor.lua')
-end
-
-if SpecializationUtil.specializations['hoseSystemFillArm'] == nil then
-    SpecializationUtil.registerSpecialization('hoseSystemFillArm', 'HoseSystemFillArm', HoseSystemRegistrationHelper.baseDirectory .. 'specializations/vehicles/HoseSystemFillArm.lua')
+for name, directory in pairs(specializations) do
+    if SpecializationUtil.specializations[name] == nil then
+        local classname = HoseSystemUtil:firstToUpper(name)
+        SpecializationUtil.registerSpecialization(name, classname, HoseSystemRegistrationHelper.baseDirectory .. directory .. classname .. ".lua")
+    end
 end
 
 ---
