@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8" standalone="no" ?>
+<l10n>
+    <texts>
+        <text name="typeDesc_liquidManureHose" text="Tuyau à lisier"/>
+
+        <text name="function_liquidManureHose"
+              text="Avec un tuyau à lisier, vous pouvez pomper du lisier d'une source à une cible. Le cas échéant, vous pouvez prolonger les tuyaux à lisier pour atteindre des zones plus lointaines."/>
+
+        <text name="configuration_ext_liquidManureHose" text="Extensible"/>
+        <text name="configuration_nor_liquidManureHose" text="Normal"/>
+
+        <text name="action_grabHose" text="saisir %s"/>
+        <text name="action_dropHose" text="lâcher %s"/>
+        <text name="action_attachHose" text="attacher %s"/>
+        <text name="action_detachHose" text="détacher %s"/>
+
+        <text name="info_hoseRangeRestriction" text="La restriction de distance de flexibles ne vous permet pas d'aller plus loin!"/>
+        <text name="info_hoseRangeRestrictionChainToLong" text="Vous n'êtes pas surhumain!"/>
+        <text name="info_hoseParkingPlaceToShort" text="La place de stationnement de %sm est trop petite pour le tuyau de %sm!"/>
+
+        <!-- Input -->
+        <text name="input_mouseInteract" text="Cliquer le bouton de souris %s pour"/> <!-- may need tune -->
+        <text name="input_mouseInteractMouseLeft" text="gauche"/>
+        <text name="input_mouseInteractMouseRight" text="droite"/>
+        <text name="input_attachHose" text="Attacher système de tuyau"/>
+        <text name="input_detachHose" text="Détacher système de tuyau"/>
+
+        <!-- Hose system pump motor -->
+        <text name="pumpMotor_changeDirection" text="Changer le sens de la pompe pour: %s"/>
+        <text name="pumpMotor_directionOut" text="vidange"/>
+        <text name="pumpMotor_directionIn" text="remplissage"/>
+
+        <text name="pumpMotor_activatePump" text="Activer la pompe"/>
+        <text name="pumpMotor_deactivatePump" text="Désactiver la pompe"/>
+
+        <text name="pumpMotor_warningTurnOffFirst" text="Coupez la pompe d'abord!"/>
+        <text name="pumpMotor_warningUnitEmpty" text="L'élément source de pompage est vide!"/>
+        <text name="pumpMotor_warningObjectEmpty" text="La source de pompe est vide!"/>
+        <text name="pumpMotor_warningInvalidFilltype" text="Cette substance n'est pas supporté!"/>
+
+        <!-- Hose system connector references -->
+        <text name="input_toggleManureFlow" text="Échanger le flux de lisier"/> <!-- may need tune -->
+        <text name="input_toggleLock" text="Verrouiller le sens"/> <!-- may need tune -->
+
+        <text name="action_toggleLockStateLock" text="Verrouiller %s"/>
+        <text name="action_toggleLockStateUnlock" text="Déverrouiller %s"/>
+
+        <text name="action_toggleManureFlow" text="%s flux de lisier"/>
+        <text name="action_toggleManureFlowStateOpen" text="Ouvrir"/>
+        <text name="action_toggleManureFlowStateClose" text="Fermer"/>
+    </texts>
+</l10n>
