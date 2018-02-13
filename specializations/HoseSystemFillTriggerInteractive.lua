@@ -113,7 +113,7 @@ function HoseSystemFillTriggerInteractive:update(dt)
         raycast(x, y, z, self.object.fillArm.node, self, 1)
 
         if self.object.lastRaycastDistance ~= 0 then
-            local isUnderFillplane, planeY = self.object.lastRaycastObject:checkPlaneY(y)
+            local isUnderFillplane, planeY = self.object.lastRaycastObject:checkPlaneY(y + self.object.fillArm.offset, { x, y, z })
 
             if isUnderFillplane and HoseSystemFillTriggerInteractive:allowFillTypeAffectDirtMask(self.object.lastRaycastObject.fillType) then
                 if HoseSystem.debugRendering then
@@ -172,6 +172,24 @@ function HoseSystemFillTriggerInteractive:fillableObjectRaycastCallback(transfor
                         self.object.lastRaycastDistance = distance
 
                         return false
+                    end
+                end
+            end
+        else
+            local vehicle = g_currentMission.nodeToVehicle[transformId]
+
+            if vehicle ~= nil and vehicle ~= self.object then
+                -- if trailer.exactFillRootNode == transformId and trailer.isFillArmPreparedBin ~= nil and trailer.isFillArmPreparedBin then
+                if vehicle.supportsHoseSystem ~= nil and vehicle.supportsHoseSystem then
+                    if vehicle.getAllowFillFromAir ~= nil and vehicle:getAllowFillFromAir() then
+                        for fillType, _ in pairs(self.object.supportedFillTypes) do
+                            if vehicle:allowFillType(fillType) then
+                                self.object.lastRaycastObject = vehicle
+                                self.object.lastRaycastDistance = distance
+                                print("found trailer")
+                                return false
+                            end
+                        end
                     end
                 end
             end
