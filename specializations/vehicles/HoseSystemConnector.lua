@@ -97,7 +97,7 @@ function HoseSystemConnector.loadHoseReferences(self, xmlFile, base)
             local node = HoseSystemXMLUtil.getOrCreateNode(self.components, xmlFile, key)
 
             if node ~= nil then
-                local strategy = factory:getFillArmStrategy(type, self)
+                local strategy = factory:getConnectorStrategy(type, self)
 
                 -- defaults
                 local entry = {

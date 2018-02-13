@@ -92,7 +92,7 @@ end
 -- @param type
 -- @param object
 --
-function HoseSystemConnectorFactory:getFillArmStrategy(type, object)
+function HoseSystemConnectorFactory:getConnectorStrategy(type, object)
     local strategy
 
     if type == HoseSystemConnectorFactory.getInitialType(HoseSystemConnectorFactory.TYPE_HOSE_COUPLING) then
