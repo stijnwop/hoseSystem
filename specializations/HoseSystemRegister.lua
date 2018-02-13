@@ -53,6 +53,7 @@ function HoseSystemRegistrationHelper:loadMap(name)
         -- Register the fill mode for the hose system
         HoseSystemPumpMotor.registerFillMode(HoseSystemConnectorFactory.TYPE_HOSE_COUPLING)
         HoseSystemPumpMotor.registerFillMode(HoseSystemFillArmFactory.TYPE_DOCK)
+        HoseSystemPumpMotor.registerFillMode(HoseSystemFillArmFactory.TYPE_ARM)
 
         -- Register the material for the hose system
         MaterialUtil.registerMaterialType(HoseSystemRegistrationHelper.HOSE_SYSTEM_MATERIAL_TYPE)
