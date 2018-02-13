@@ -56,10 +56,10 @@ function HoseSystemFillTriggerInteractive:update(dt)
         return
     end
 
-    if self.object.grabPoints ~= nil then
-        self.object.lastRaycastDistance = 0
-        self.object.lastRaycastObject = nil
+    self.object.lastRaycastDistance = 0
+    self.object.lastRaycastObject = nil
 
+    if self.object.grabPoints ~= nil then
         for _, gp in pairs(self.object.grabPoints) do
             if HoseSystem:getIsDetached(gp.state) then
                 local x, y, z = getWorldTranslation(gp.raycastNode)
@@ -99,21 +99,25 @@ function HoseSystemFillTriggerInteractive:update(dt)
                         --                            end
 
                         if HoseSystem.debugRendering then
-                            local xyz = { worldToLocal(gp.raycastNode, x, y, z) }
-                            local color = { 1, 0 }
-
-                            xyz[3] = xyz[3] - HoseSystemFillTriggerInteractive.RAYCAST_DISTANCE
-                            xyz = { localToWorld(gp.raycastNode, xyz[1], xyz[2], xyz[3]) }
-
-                            if self.object.lastRaycastDistance ~= 0 then
-                                color = { 0, 1 }
-                            end
-
-                            drawDebugLine(x, y, z, color[1], color[2], 0, xyz[1], xyz[2], xyz[3], color[1], color[2], 0)
-                            drawDebugLine(x, y, z, color[1], color[2], 0, xyz[1], xyz[2] + HoseSystemFillTriggerInteractive.RAYCAST_DISTANCE, xyz[3], color[1], color[2], 0)
-                            drawDebugLine(x, y, z, color[1], color[2], 0, xyz[1], xyz[2] - HoseSystemFillTriggerInteractive.RAYCAST_DISTANCE, xyz[3], color[1], color[2], 0)
+                            HoseSystemFillTriggerInteractive.debugRendering(self, gp.raycastNode, x, y, z)
                         end
                     end
+                end
+            end
+        end
+    end
+
+    if self.object.fillArm ~= nil then
+        local x, y, z = getWorldTranslation(self.object.fillArm.node)
+
+        raycast(x, y, z, self.object.fillArm.node, self, 1)
+
+        if self.object.lastRaycastDistance ~= 0 then
+            local isUnderFillplane, planeY = self.object.lastRaycastObject:checkPlaneY(y)
+
+            if isUnderFillplane and HoseSystemFillTriggerInteractive:allowFillTypeAffectDirtMask(self.object.lastRaycastObject.fillType) then
+                if HoseSystem.debugRendering then
+                    HoseSystemFillTriggerInteractive.debugRendering(self, self.object.fillArm.node, x, y, z)
                 end
             end
         end
@@ -123,6 +127,26 @@ end
 ---
 --
 function HoseSystemFillTriggerInteractive:draw()
+end
+
+---
+--
+function HoseSystemFillTriggerInteractive.debugRendering(self, raycastNode, x, y, z)
+    if HoseSystem.debugRendering then
+        local xyz = { worldToLocal(raycastNode, x, y, z) }
+        local color = { 1, 0 }
+
+        xyz[3] = xyz[3] - HoseSystemFillTriggerInteractive.RAYCAST_DISTANCE
+        xyz = { localToWorld(raycastNode, xyz[1], xyz[2], xyz[3]) }
+
+        if self.object.lastRaycastDistance ~= 0 then
+            color = { 0, 1 }
+        end
+
+        drawDebugLine(x, y, z, color[1], color[2], 0, xyz[1], xyz[2], xyz[3], color[1], color[2], 0)
+        drawDebugLine(x, y, z, color[1], color[2], 0, xyz[1], xyz[2] + HoseSystemFillTriggerInteractive.RAYCAST_DISTANCE, xyz[3], color[1], color[2], 0)
+        drawDebugLine(x, y, z, color[1], color[2], 0, xyz[1], xyz[2] - HoseSystemFillTriggerInteractive.RAYCAST_DISTANCE, xyz[3], color[1], color[2], 0)
+    end
 end
 
 ---
