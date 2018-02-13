@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8" standalone="no" ?>
+
+<vehicles>
+    <vehicle filename="zunhammer18500PE.xml">
+        <hoseSystem hasPumpMotor="true" />
+
+        <pumpMotor startUpTime="1000" litersPerSecond="141" />
+        <pumpSound file="$data/sounds/garantPump_small.wav" pitchOffset="1.00" volume="1" indoorVolumeFactor="0.48" indoorLowpassGain="0.45" />
+
+        <hoseSystemReferences>
+            <hoseSystemReference createNode="true" position="1.274 0.818 2.797" rotation="0 90 -24.5" componentIndex="0" />
+            <hoseSystemReference createNode="true" position="1.11 1.85 -2.66"  inRangeDistance="2" componentIndex="0" parkable="true" offsetDirection="right" parkLength="4" /> <!-- startTransOffset="0 0 0" startRotOffset="5 0 0" endTransOffset="0 0.5 0" endRotOffset="5 0 0" /> -->
+            <hoseSystemReference createNode="true" position="1.28 1.85 -3.05"  inRangeDistance="2" componentIndex="0" parkable="true" offsetDirection="right" parkLength="4" offsetThreshold="4" startTransOffset="0 -0.2 0" startRotOffset="0.4 0 0" /> <!-- startTransOffset="0 0 0" startRotOffset="5 0 0" endTransOffset="0 0.5 0" endRotOffset="5 0 0" /> -->
+            <hoseSystemReference createNode="true" position="-1.11 1.85 -2.66" inRangeDistance="2" componentIndex="0" parkable="true" offsetDirection="right" parkLength="4" /> <!-- startTransOffset="0 0 0" startRotOffset="5 0 0" endTransOffset="0 0.5 0" endRotOffset="5 0 0" /> -->
+            <hoseSystemReference createNode="true" position="-1.28 1.85 -3.05" inRangeDistance="2" componentIndex="0" parkable="true" offsetDirection="right" parkLength="4" offsetThreshold="4" startTransOffset="0 -0.2 0" startRotOffset="0.4 0 0" /> <!-- startTransOffset="0 0 0" startRotOffset="5 0 0" endTransOffset="0 0.5 0" endRotOffset="5 0 0" /> -->
+        </hoseSystemReferences>
+    </vehicle>
+</vehicles>

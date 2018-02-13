@@ -15,11 +15,13 @@ HoseSystemFillArmFactory.typesToInt = {}
 
 -- Enums
 HoseSystemFillArmFactory.TYPE_DOCK = 'dock'
+HoseSystemFillArmFactory.TYPE_ARM = 'arm'
 
 local srcDirectory = HoseSystemFillArmFactory.baseDirectory .. 'specializations/vehicles/strategies'
 
 local files = {
-    ('%s/%s'):format(srcDirectory, 'HoseSystemDockArmStrategy.lua')
+    ('%s/%s'):format(srcDirectory, 'HoseSystemDockArmStrategy.lua'),
+    ('%s/%s'):format(srcDirectory, 'HoseSystemArmStrategy.lua')
 }
 
 for _, path in pairs(files) do
@@ -71,6 +73,7 @@ function HoseSystemFillArmFactory.getInstance()
 end
 
 HoseSystemFillArmFactory.registerType(HoseSystemFillArmFactory.TYPE_DOCK)
+HoseSystemFillArmFactory.registerType(HoseSystemFillArmFactory.TYPE_ARM)
 
 ---
 --
@@ -91,6 +94,8 @@ function HoseSystemFillArmFactory:getFillArmStrategy(type, object)
 
     if type == HoseSystemFillArmFactory.getInitialType(HoseSystemFillArmFactory.TYPE_DOCK) then
         strategy = HoseSystemDockArmStrategy:new(object)
+    elseif type == HoseSystemFillArmFactory.getInitialType(HoseSystemFillArmFactory.TYPE_ARM) then
+        strategy = HoseSystemArmStrategy:new(object)
     end
 
     return strategy
