@@ -186,7 +186,7 @@ function HoseSystemPlayerInteractiveHandling:grab(index, player, syncState, noEv
 
                 for i, component in pairs(self.object.components) do
                     if i ~= grabPoint.componentIndex then
-                        setPairCollision(player.hoseSystem.kinematicHelper.node, component.node, false)
+                        setPairCollision(component.node, player.hoseSystem.kinematicHelper.node, false)
                     end
                 end
 
@@ -281,7 +281,7 @@ function HoseSystemPlayerInteractiveHandling:drop(index, player, syncState, noEv
                     -- set the joint limits back to the state that it only rotates on the connector
                     for index, gp in pairs(self.object.grabPoints) do
                         if index ~= grabPoint.id and HoseSystem:getIsConnected(gp.state) then
-                            self:setJointRotAndTransLimit({ HoseSystemPlayerInteractiveHandling.JOINT_XZ_ROT_LIMIT, 0, HoseSystemPlayerInteractiveHandling.JOINT_XZ_ROT_LIMIT }, { 0, 0, 0 })
+                            self:setJointRotAndTransLimit({ HoseSystemPlayerInteractiveHandling.JOINT_XZ_ROT_LIMIT, HoseSystemPlayerInteractiveHandling.JOINT_XZ_ROT_LIMIT, 0 }, { 0, 0, 0 })
                         end
                     end
                 end
@@ -647,8 +647,8 @@ function HoseSystemPlayerInteractiveHandling:hardConnect(grabPoint, vehicle, ref
     local connectedReferences = HoseSystemUtil:getReferencesWithSingleConnection(vehicle, reference.id)
     local connectedHoseSystems = HoseSystemUtil:getConnectedHoseSystems(vehicle)
 
---    print('connected hoses = ' .. #connectedHoseSystems)
---    print('connected references = ' .. #connectedReferences)
+    --    print('connected hoses = ' .. #connectedHoseSystems)
+    --    print('connected references = ' .. #connectedReferences)
 
     for index, gp in pairs(self.object.grabPoints) do
         if gp.id ~= grabPoint.id and HoseSystem:getIsConnected(gp.state) then
@@ -656,7 +656,7 @@ function HoseSystemPlayerInteractiveHandling:hardConnect(grabPoint, vehicle, ref
         end
     end
 
---    print('connected grabPoints = ' .. #grabPoints)
+    --    print('connected grabPoints = ' .. #grabPoints)
 
     for i, r in pairs(connectedReferences) do
         HoseSystemUtil:removeHoseSystemJoint(r.reference)
@@ -672,7 +672,7 @@ function HoseSystemPlayerInteractiveHandling:hardConnect(grabPoint, vehicle, ref
     end
 
     for i, h in pairs(connectedHoseSystems) do
---        h.hoseSystem:removeFromPhysics()
+        --        h.hoseSystem:removeFromPhysics()
         h.hoseSystem.poly.interactiveHandling:hardDisconnect(h.grabPoint, h.vehicle, h.vehicle.grabPoints[h.grabPoint.connectorRefId])
     end
 
@@ -854,9 +854,15 @@ function HoseSystemPlayerInteractiveHandling:hardParkHose(grabPoints, vehicle, r
     setIsCompoundChild(self.object.components[grabPoints[2].componentIndex].node, true)
 
     -- Center node needs some dummy data
-    HoseSystemPlayerInteractiveHandling:hardParkHoseComponent(index, grabPoints[1], reference, startTargetNode, self.object.components[grabPoints[1].componentIndex].node, reference.startTransOffset, reference.startRotOffset)
-    HoseSystemPlayerInteractiveHandling:hardParkHoseComponent(index, { node = self.object.data.centerNode, id = 2 }, reference, centerTargetNode, self.object.components[(#self.object.components + 1) / 2].node, { 0, 0, 0 }, { 0, 0, 0 }, self.object.data.length / 2)
-    HoseSystemPlayerInteractiveHandling:hardParkHoseComponent(index, grabPoints[2], reference, endTargetNode, self.object.components[grabPoints[2].componentIndex].node, reference.endTransOffset, reference.endRotOffset, self.object.data.length)
+    local parkData = {
+        leadingIndex = index,
+        reference = reference,
+        hoseLength = self.object.data.length
+    }
+
+    HoseSystemPlayerInteractiveHandling:hardParkHoseComponent(parkData, grabPoints[1], startTargetNode, self.object.components[grabPoints[1].componentIndex].node, reference.startTransOffset, reference.startRotOffset)
+    HoseSystemPlayerInteractiveHandling:hardParkHoseComponent(parkData, { node = self.object.data.centerNode, id = 2 }, centerTargetNode, self.object.components[(#self.object.components + 1) / 2].node, { 0, 0, 0 }, { 0, 0, 0 }, self.object.data.length / 2)
+    HoseSystemPlayerInteractiveHandling:hardParkHoseComponent(parkData, grabPoints[2], endTargetNode, self.object.components[grabPoints[2].componentIndex].node, reference.endTransOffset, reference.endRotOffset, self.object.data.length)
 
     self.object.data.parkStartTargetNode = startTargetNode
     self.object.data.parkCenterTargetNode = centerTargetNode
@@ -882,28 +888,34 @@ function HoseSystemPlayerInteractiveHandling:hardParkHose(grabPoints, vehicle, r
 end
 
 ---
--- @param leadingIndex
+-- @param parkData
 -- @param grabPoint
--- @param reference
 -- @param linkNode
 -- @param componentNode
 -- @param transOffset
 -- @param rotOffset
 -- @param offset
 --
-function HoseSystemPlayerInteractiveHandling:hardParkHoseComponent(leadingIndex, grabPoint, reference, linkNode, componentNode, transOffset, rotOffset, offset)
+function HoseSystemPlayerInteractiveHandling:hardParkHoseComponent(parkData, grabPoint, linkNode, componentNode, transOffset, rotOffset, offset)
+    local reference = parkData.reference
     local referenceTranslation = HoseSystemUtil:getOffsetTargetTranslation(reference.node, reference.offsetDirection, offset)
-    local xRotOffset, yRotOffset, zRotOffset = HoseSystemUtil:getOffsetTargetRotation(leadingIndex, unpack(rotOffset))
-    local referenceRotation = { localRotationToLocal(componentNode, grabPoint.node, xRotOffset, yRotOffset, zRotOffset) }
+    local xRotOffset, yRotOffset, zRotOffset = 0, 0, 0
+    local xOffset, yOffset, zOffset = 0, 0, 0
 
-    referenceRotation[2] = HoseSystemUtil:processTargetYRotation(leadingIndex, reference.offsetDirection, referenceRotation[2])
+    -- make offset depending the hoseLength
+    if parkData.hoseLength >= reference.offsetThreshold then
+        xRotOffset, yRotOffset, zRotOffset = HoseSystemUtil:getOffsetTargetRotation(parkData.leadingIndex, unpack(rotOffset))
+        xOffset, yOffset, zOffset = unpack(transOffset)
+    end
+
+    local referenceRotation = { localRotationToLocal(componentNode, grabPoint.node, xRotOffset, yRotOffset, zRotOffset) }
+    referenceRotation[2] = HoseSystemUtil:processTargetYRotation(parkData.leadingIndex, reference.offsetDirection, referenceRotation[2])
 
     local direction = { localDirectionToLocal(componentNode, grabPoint.node, 0, 0, grabPoint.id > 1 and 1 or -1) } -- grabPoints.id > 1 and 1 or -1 grabPoints.id > 1 and 1 or -1
     local upVector = { localDirectionToLocal(componentNode, grabPoint.node, 0, 1, 0) } -- grabPoints.id > 1 and -1 or 1
 
     setDirection(componentNode, direction[1], direction[2], direction[3], upVector[1], upVector[2], upVector[3])
 
-    local xOffset, yOffset, zOffset = unpack(transOffset)
     local translation = { localToLocal(componentNode, grabPoint.node, xOffset, yOffset, zOffset) }
     setTranslation(componentNode, unpack(translation))
     setRotation(componentNode, unpack(referenceRotation))
@@ -1067,7 +1079,7 @@ function HoseSystemPlayerInteractiveHandling:createCustomComponentJoint(grabPoin
                 anchor1 = reference.node,
                 anchor2 = reference.node,
                 isConnector = false,
-                rotLimit = { HoseSystemPlayerInteractiveHandling.JOINT_XZ_ROT_LIMIT, 0, HoseSystemPlayerInteractiveHandling.JOINT_XZ_ROT_LIMIT },
+                rotLimit = { HoseSystemPlayerInteractiveHandling.JOINT_XZ_ROT_LIMIT, HoseSystemPlayerInteractiveHandling.JOINT_XZ_ROT_LIMIT, 0 },
                 transLimit = { 0, 0, 0 }
             })
         end

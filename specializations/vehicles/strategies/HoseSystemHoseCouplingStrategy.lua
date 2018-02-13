@@ -185,6 +185,7 @@ function HoseSystemHoseCouplingStrategy:loadHoseCoupling(xmlFile, key, entry)
     if entry.parkable then
         entry.parkAnimationName = Utils.getNoNil(getXMLString(xmlFile, key .. '#parkAnimationName'), nil)
         entry.parkLength = Utils.getNoNil(getXMLFloat(xmlFile, key .. '#parkLength'), 5) -- Default length of 5m
+        entry.offsetThreshold = Utils.getNoNil(getXMLFloat(xmlFile, key .. '#offsetThreshold'), 0)
         local offsetDirection = Utils.getNoNil(getXMLString(xmlFile, key .. '#offsetDirection'), 'right')
         entry.offsetDirection = string.lower(offsetDirection) ~= 'right' and HoseSystemUtil.DIRECTION_LEFT or HoseSystemUtil.DIRECTION_RIGHT
         entry.startTransOffset = Utils.getNoNil(Utils.getVectorNFromString(getXMLString(xmlFile, key .. '#startTransOffset'), 3), { 0, 0, 0 })
@@ -322,7 +323,7 @@ function HoseSystemHoseCouplingStrategy:updateTick(dt)
                                             isSucking = reference ~= nil
                                         end
 
-                                        self.object:pumpIn(dt, objectFillLevel, objectFillType)
+                                        self.object:pumpIn(self.object, dt, objectFillLevel, objectFillType)
                                     else
                                         self.object:setPumpStarted(false, HoseSystemPumpMotor.UNIT_EMPTY)
                                     end
@@ -334,7 +335,7 @@ function HoseSystemHoseCouplingStrategy:updateTick(dt)
                             self.object:setPumpStarted(false, HoseSystemPumpMotor.OBJECT_EMPTY)
                         end
                     else
-                        self.object:pumpOut(dt)
+                        self.object:pumpOut(self.object, dt)
                     end
                 end
 
@@ -406,7 +407,7 @@ function HoseSystemHoseCouplingStrategy:getValidFillObject(dt)
 
     self.fillLevelChanged = false
 
-    if self.object.hasHoseSystemPumpMotor then
+    if self.object.hasHoseSystemPumpMotor and self.object:getFillMode() == self.object.pumpMotorFillMode then
         self.object:removeFillObject(self.object.fillObject, self.object.pumpMotorFillMode)
     end
 
@@ -426,7 +427,7 @@ function HoseSystemHoseCouplingStrategy:getValidFillObject(dt)
                         if lastReference.isUsed and lastReference.flowOpened and lastReference.isLocked then
                             if lastReference.isObject or SpecializationUtil.hasSpecialization(Fillable, lastVehicle.specializations) then
                                 -- check fill units to allow
-                                self.object:addFillObject(lastVehicle, self.object.pumpMotorFillMode)
+                                self.object:addFillObject(lastVehicle, self.object.pumpMotorFillMode, false)
                             end
                         end
                     end
@@ -437,7 +438,7 @@ function HoseSystemHoseCouplingStrategy:getValidFillObject(dt)
                     if hoseSystem ~= nil then
                         if hoseSystem.lastRaycastDistance ~= 0 and hoseSystem.lastRaycastObject ~= nil then
                             if self.object.hasHoseSystemPumpMotor then
-                                self.object:addFillObject(hoseSystem.lastRaycastObject, self.object.pumpMotorFillMode)
+                                self.object:addFillObject(hoseSystem.lastRaycastObject, self.object.pumpMotorFillMode, true)
                             end
                         elseif reference.manureFlowAnimationName ~= nil then
                             local fillType = self.object:getUnitLastValidFillType(reference.fillUnitIndex)
