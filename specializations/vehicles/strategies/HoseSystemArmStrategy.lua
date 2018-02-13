@@ -29,7 +29,8 @@ end
 -- @param entry
 --
 function HoseSystemArmStrategy:load(xmlFile, key, entry)
---    entry.needsTransfer = Utils.getNoNil(getXMLBool(xmlFile, key .. '#needsTransfer'), false)
+    entry.offset = Utils.getNoNil(getXMLFloat(xmlFile, key .. '#offset'), 0)
+
     self.object.supportedFillTypes = {}
 
     local fillTypeCategories = getXMLString(xmlFile, key .. '#supportedFillTypeCategories')

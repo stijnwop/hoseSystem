@@ -67,7 +67,7 @@ function HoseSystemFillTriggerInteractive:update(dt)
                 raycast(x, y, z, gp.raycastNode, self, 1)
 
                 if self.object.lastRaycastDistance ~= 0 then
-                    local isUnderFillplane, planeY = self.object.lastRaycastObject:checkPlaneY(y)
+                    local isUnderFillplane, planeY = self.object.lastRaycastObject:checkPlaneY(y, { x, y, z })
 
                     if isUnderFillplane and HoseSystemFillTriggerInteractive:allowFillTypeAffectDirtMask(self.object.lastRaycastObject.fillType) then
                         -- Todo: make this direction based!
@@ -186,7 +186,7 @@ function HoseSystemFillTriggerInteractive:fillableObjectRaycastCallback(transfor
                             if vehicle:allowFillType(fillType) then
                                 self.object.lastRaycastObject = vehicle
                                 self.object.lastRaycastDistance = distance
-                                print("found trailer")
+
                                 return false
                             end
                         end
