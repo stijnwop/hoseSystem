@@ -26,7 +26,8 @@ end
 -- @param entry
 --
 function HoseSystemDockArmStrategy:load(xmlFile, key, entry)
-    -- ?
+    entry.needsTransfer = Utils.getNoNil(getXMLBool(xmlFile, key .. '#needsTransfer'), false)
+
     return entry
 end
 
@@ -40,18 +41,20 @@ function HoseSystemDockArmStrategy:updateTick(dt)
 
             -- Todo: move this logic to pumpMotor script since we basically doing it twice (also on the connector).
             if self.object.pumpIsStarted and self.object.fillObject ~= nil then
+                local sourceObject = self.object.sourceObject
+
                 if self.object.fillDirection == HoseSystemPumpMotor.IN then
                     local objectFillTypes = self.object.fillObject:getCurrentFillTypes()
 
                     -- isn't below dubble code?
                     if self.object.fillObject:getFreeCapacity() ~= self.object.fillObject:getCapacity() then
                         for _, objectFillType in pairs(objectFillTypes) do
-                            if self.object:allowUnitFillType(self.object.fillUnitIndex, objectFillType, false) then
+                            if sourceObject:allowUnitFillType(self.object.fillUnitIndex, objectFillType, false) then
                                 local objectFillLevel = self.object.fillObject:getFillLevel(objectFillType)
-                                local fillLevel = self.object:getUnitFillLevel(self.object.fillUnitIndex)
+                                local fillLevel = sourceObject:getUnitFillLevel(self.object.fillUnitIndex)
 
-                                if objectFillLevel > 0 and fillLevel < self.object:getUnitCapacity(self.object.fillUnitIndex) then
-                                    self.object:pumpIn(dt, objectFillLevel, objectFillType)
+                                if objectFillLevel > 0 and fillLevel < sourceObject:getUnitCapacity(self.object.fillUnitIndex) then
+                                    self.object:pumpIn(sourceObject, dt, objectFillLevel, objectFillType)
                                 else
                                     self.object:setPumpStarted(false, HoseSystemPumpMotor.UNIT_EMPTY)
                                 end
@@ -63,7 +66,7 @@ function HoseSystemDockArmStrategy:updateTick(dt)
                         self.object:setPumpStarted(false, HoseSystemPumpMotor.OBJECT_EMPTY)
                     end
                 else
-                    self.object:pumpOut(dt)
+                    self.object:pumpOut(sourceObject, dt)
                 end
             end
 

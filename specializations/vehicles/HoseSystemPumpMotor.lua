@@ -80,7 +80,7 @@ end
 -- @param specializations
 --
 function HoseSystemPumpMotor.prerequisitesPresent(specializations)
-    return SpecializationUtil.hasSpecialization(Fillable, specializations)
+    return SpecializationUtil.hasSpecialization(Fillable, specializations) and SpecializationUtil.hasSpecialization(PowerConsumer, specializations)
 end
 
 ---
@@ -177,6 +177,7 @@ function HoseSystemPumpMotor:load(savegame)
     -- Todo: lookup what we actually need on the current fillObject. (can we fill to multiple targets!?)
     --    self.fillableObjects = {}
 
+    self.sourceObject = nil
     self.fillObject = nil
     self.fillObjectFound = false
     self.fillObjectHasPlane = false
@@ -189,6 +190,7 @@ function HoseSystemPumpMotor:load(savegame)
         self.lastFillObjectHasPlane = false
         self.lastFillFromFillVolume = false
         self.lastFillUnitIndex = 0 -- stream?
+        self.lastSourceObject = nil
     end
 end
 
@@ -213,6 +215,7 @@ function HoseSystemPumpMotor:readStream(streamId, connection)
     self.fillFromFillVolume = streamReadBool(streamId)
     self.fillUnitIndex = streamReadInt32(streamId)
     self.fillObjectHasPlane = streamReadBool(streamId)
+    self.sourceObject = readNetworkNodeObject(streamId)
 end
 
 ---
@@ -228,6 +231,7 @@ function HoseSystemPumpMotor:writeStream(streamId, connection)
     streamWriteBool(streamId, self.fillFromFillVolume)
     streamWriteInt32(streamId, self.fillUnitIndex)
     streamWriteBool(streamId, self.fillObjectHasPlane)
+    writeNetworkNodeObject(streamId, self.sourceObject)
 end
 
 ---
@@ -285,6 +289,7 @@ function HoseSystemPumpMotor:updateTick(dt)
     if self.attacherMotor.check then
         local vehicle = self:getRootAttacherVehicle()
         self.attacherMotor.isStarted = vehicle.getIsMotorStarted ~= nil and vehicle:getIsMotorStarted()
+        self.attacherMotor.vehicle = vehicle
     end
 
     if self.attacherMotor.isStarted then
@@ -310,10 +315,10 @@ function HoseSystemPumpMotor:updateTick(dt)
             local updateFillScale = false
 
             if self.fillUnitIndex ~= 0 then
-                local fillType = self.fillUnits[self.fillUnitIndex].currentFilltype
+                local fillType = self.sourceObject.fillUnits[self.fillUnitIndex].currentFilltype
 
                 if self:getFillDirection() == HoseSystemPumpMotor.IN then
-                    if self:getFillLevel(fillType) / self:getCapacity(fillType) >= self.autoStopPercentage.inDirection then
+                    if self.sourceObject:getFillLevel(fillType) / self.sourceObject:getCapacity(fillType) >= self.autoStopPercentage.inDirection then
                         self:setPumpStarted(false, nil, true)
                     end
 
@@ -321,7 +326,7 @@ function HoseSystemPumpMotor:updateTick(dt)
                         updateFillScale = true
                     end
                 else
-                    if self:getFillLevel(fillType) <= 0 or not self.fillObjectFound and not self.fillFromFillVolume then
+                    if self.sourceObject:getFillLevel(fillType) <= 0 or not self.fillObjectFound and not self.fillFromFillVolume then
                         self:setPumpStarted(false, nil, true)
                     end
 
@@ -400,9 +405,9 @@ function HoseSystemPumpMotor:draw()
             if self.fillObjectFound or self.fillFromFillVolume then
                 if not self.pumpIsStarted then
                     if self.fillUnitIndex ~= 0 then
-                        local fillType = self.fillUnits[self.fillUnitIndex].currentFilltype
+                        local fillType = self.sourceObject.fillUnits[self.fillUnitIndex].currentFilltype
 
-                        if self:getFillLevel(fillType) > 0 then
+                        if self.sourceObject:getFillLevel(fillType) > 0 then
                             g_currentMission:addHelpButtonText(g_i18n:getText('pumpMotor_activatePump'), InputBinding.ACTIVATE_OBJECT)
                         end
                     end
@@ -516,9 +521,9 @@ function HoseSystemPumpMotor:allowPumpStarted()
                 return false
             end
         else
-            local fillType = self.fillUnits[self.fillUnitIndex].currentFilltype
+            local fillType = self.sourceObject.fillUnits[self.fillUnitIndex].currentFilltype
 
-            if (self:getFillLevel(fillType) <= 0 or not self.fillObjectFound and not self.fillFromFillVolume) then
+            if (self.sourceObject:getFillLevel(fillType) <= 0 or not self.fillObjectFound and not self.fillFromFillVolume) then
                 return false
             end
         end
@@ -530,12 +535,13 @@ function HoseSystemPumpMotor:allowPumpStarted()
 end
 
 ---
+-- @param sourceObject
 -- @param dt
 -- @param targetFillLevel
 -- @param targetFillType
 -- @param scale
 --
-function HoseSystemPumpMotor:pumpIn(dt, targetFillLevel, targetFillType, scale)
+function HoseSystemPumpMotor:pumpIn(sourceObject, dt, targetFillLevel, targetFillType, scale)
     if not self.isServer or self:getFillDirection() ~= HoseSystemPumpMotor.IN then
         return
     end
@@ -543,45 +549,47 @@ function HoseSystemPumpMotor:pumpIn(dt, targetFillLevel, targetFillType, scale)
     if self.pumpFillEfficiency.currentScale > 0 then
         local deltaFillLevel = math.min((self.pumpFillEfficiency.litersPerSecond * self.pumpFillEfficiency.currentScale) * 0.001 * dt, targetFillLevel)
 
-        self:doPump(self.fillObject, targetFillType, deltaFillLevel, self.fillVolumeDischargeInfos[self.pumpMotor.dischargeInfoIndex], self.fillObjectIsObject)
+        self:doPump(sourceObject, self.fillObject, targetFillType, deltaFillLevel, sourceObject.fillVolumeDischargeInfos[self.pumpMotor.dischargeInfoIndex], self.fillObjectIsObject)
     end
 end
 
 ---
+-- @param sourceObject
 -- @param dt
 -- @param scale
 --
-function HoseSystemPumpMotor:pumpOut(dt, scale)
+function HoseSystemPumpMotor:pumpOut(sourceObject, dt, scale)
     if not self.isServer or self:getFillDirection() ~= HoseSystemPumpMotor.OUT then
         return
     end
 
-    local fillType = self:getUnitLastValidFillType(self.fillUnitIndex)
-    local fillLevel = self:getFillLevel(fillType)
+    local fillType = sourceObject:getUnitLastValidFillType(self.fillUnitIndex)
+    local fillLevel = sourceObject:getFillLevel(fillType)
 
     -- we checked that the fillObject accepts the fillType already
     if fillLevel > 0 then
         local deltaFillLevel = math.min((self.pumpFillEfficiency.litersPerSecond * self.pumpFillEfficiency.currentScale) * 0.001 * dt, fillLevel)
 
-        self:doPump(self.fillObject, fillType, deltaFillLevel, self.fillVolumeUnloadInfos[self.pumpMotor.unloadInfoIndex], self.fillObjectIsObject)
+        self:doPump(sourceObject, self.fillObject, fillType, deltaFillLevel, sourceObject.fillVolumeUnloadInfos[self.pumpMotor.unloadInfoIndex], self.fillObjectIsObject)
     else
         self:setPumpStarted(false)
     end
 end
 
 ---
+-- @param sourceObject
 -- @param targetObject
 -- @param fillType
 -- @param deltaFill
 -- @param fillInfo
 -- @param isTrigger
 --
-function HoseSystemPumpMotor:doPump(targetObject, fillType, deltaFill, fillInfo, isTrigger)
+function HoseSystemPumpMotor:doPump(sourceObject, targetObject, fillType, deltaFill, fillInfo, isTrigger)
     local fillDirection = self:getFillDirection()
-    local fillLevel = self:getUnitFillLevel(self.fillUnitIndex)
+    local fillLevel = sourceObject:getUnitFillLevel(self.fillUnitIndex)
     local targetObjectFillLevel = targetObject:getFillLevel(fillType)
 
-    self:setFillLevel(fillDirection == HoseSystemPumpMotor.IN and fillLevel + deltaFill or fillLevel - deltaFill, fillType, false, fillInfo)
+    sourceObject:setFillLevel(fillDirection == HoseSystemPumpMotor.IN and fillLevel + deltaFill or fillLevel - deltaFill, fillType, false, fillInfo)
 
     if fillDirection == HoseSystemPumpMotor.OUT then
         targetObject:resetFillLevelIfNeeded(fillType)
@@ -675,8 +683,9 @@ end
 ---
 -- @param object
 -- @param fillMode
+-- @param rayCasted
 --
-function HoseSystemPumpMotor:addFillObject(object, fillMode)
+function HoseSystemPumpMotor:addFillObject(object, fillMode, rayCasted)
     if not self.isServer then
         return
     end
@@ -685,7 +694,15 @@ function HoseSystemPumpMotor:addFillObject(object, fillMode)
         return
     end
 
-    local allowedFillUnitIndex = self:getAllowedFillUnitIndex(object)
+    local sourceObject = self
+
+    if self.fillArm ~= nil and self.fillArm.needsTransfer then
+        local rootVehicle = self:getRootAttacherVehicle()
+
+        sourceObject = HoseSystemPumpMotor.findAttachedTransferTank(rootVehicle)
+    end
+
+    local allowedFillUnitIndex = self:getAllowedFillUnitIndex(object, sourceObject)
 
     -- Todo: lookup table insertings on multiple fill objects
     if allowedFillUnitIndex ~= 0 then
@@ -698,14 +715,16 @@ function HoseSystemPumpMotor:addFillObject(object, fillMode)
         self.fillFromFillVolume = false -- not implemented
         self.fillObjectIsObject = object:isa(FillTrigger) -- or Object.. but we are actually pumping from a map trigger
 
-        if object.checkPlaneY ~= nil then
+        if object.checkPlaneY ~= nil and rayCasted then
             self.fillObjectHasPlane = true
         end
 
         self.fillUnitIndex = allowedFillUnitIndex
-    end
+        -- need to set a source object to distrube the fillType to correct vehicle
+        self.sourceObject = sourceObject
 
-    self:updateFillObject()
+        self:updateFillObject()
+    end
 end
 
 ---
@@ -720,6 +739,7 @@ function HoseSystemPumpMotor:removeFillObject(object, fillMode)
     if self:getFillMode() == fillMode then
         -- Todo: lookup table insertings on multiple fill objects
 
+        self.sourceObject = nil
         self.fillObject = nil
         self.fillObjectFound = false
         self.fillFromFillVolume = false -- not implemented
@@ -734,31 +754,33 @@ end
 ---
 --
 function HoseSystemPumpMotor:updateFillObject()
-    if self.lastFillObjectFound ~= self.fillObjectFound or self.lastFillFromFillVolume ~= self.fillFromFillVolume or self.lastFillUnitIndex ~= self.fillUnitIndex or self.lastFillObjectHasPlane ~= self.fillObjectHasPlane then
-        g_server:broadcastEvent(SendUpdateOnFillEvent:new(self, self.fillObjectFound, self.fillFromFillVolume, self.fillUnitIndex, self.fillObjectHasPlane))
+    if self.lastFillObjectFound ~= self.fillObjectFound or self.lastFillFromFillVolume ~= self.fillFromFillVolume or self.lastFillUnitIndex ~= self.fillUnitIndex or self.lastFillObjectHasPlane ~= self.fillObjectHasPlane or self.lastSourceObject ~= self.sourceObject then
+        g_server:broadcastEvent(SendUpdateOnFillEvent:new(self, self.fillObjectFound, self.fillFromFillVolume, self.fillUnitIndex, self.fillObjectHasPlane, self.sourceObject))
 
         self.lastFillUnitIndex = self.fillUnitIndex
         self.lastFillObjectFound = self.fillObjectFound
         self.lastFillFromFillVolume = self.fillFromFillVolume
         self.lastFillObjectHasPlane = self.fillObjectHasPlane
+        self.lastSourceObject = self.sourceObject
     end
 end
 
 ---
 -- @param object
+-- @param sourceObject
 --
-function HoseSystemPumpMotor:getAllowedFillUnitIndex(object)
-    if self.fillUnits == nil then
+function HoseSystemPumpMotor:getAllowedFillUnitIndex(object, sourceObject)
+    if sourceObject == nil or sourceObject.fillUnits == nil then
         return 0
     end
 
-    for index, fillUnit in pairs(self.fillUnits) do
+    for index, fillUnit in pairs(sourceObject.fillUnits) do
         if fillUnit.currentFillType ~= FillUtil.FILLTYPE_UNKNOWN then
             if object:allowFillType(fillUnit.currentFillType) then
                 return index
             end
         else
-            local fillTypes = self:getUnitFillTypes(index)
+            local fillTypes = sourceObject:getUnitFillTypes(index)
 
             for fillType, bool in pairs(fillTypes) do
                 -- check if object accepts any of our fillTypes
@@ -770,6 +792,28 @@ function HoseSystemPumpMotor:getAllowedFillUnitIndex(object)
     end
 
     return 0
+end
+
+function HoseSystemPumpMotor.findAttachedTransferTank(object)
+    if object.transferSystemReferences ~= nil and SpecializationUtil.hasSpecialization(Fillable, object.specializations) then
+        local reference = next(object.transferSystemReferences)
+
+        if reference ~= nil then
+            return object
+        end
+    end
+
+    for _, implement in pairs(object.attachedImplements) do
+        if implement.object ~= nil then
+            local implementFound = HoseSystemPumpMotor.findAttachedTransferTank(implement.object)
+
+            if implementFound ~= nil then
+                return implementFound
+            end
+        end
+    end
+
+    return nil
 end
 
 --
@@ -984,7 +1028,7 @@ function SendUpdateOnFillEvent:emptyNew()
     return event
 end
 
-function SendUpdateOnFillEvent:new(vehicle, fillObjectFound, fillFromFillVolume, fillUnitIndex, fillObjectHasPlane)
+function SendUpdateOnFillEvent:new(vehicle, fillObjectFound, fillFromFillVolume, fillUnitIndex, fillObjectHasPlane, sourceObject)
     local event = SendUpdateOnFillEvent:emptyNew()
 
     event.vehicle = vehicle
@@ -992,6 +1036,7 @@ function SendUpdateOnFillEvent:new(vehicle, fillObjectFound, fillFromFillVolume,
     event.fillFromFillVolume = fillFromFillVolume
     event.fillUnitIndex = fillUnitIndex
     event.fillObjectHasPlane = fillObjectHasPlane
+    event.sourceObject = sourceObject
 
     return event
 end
@@ -1002,6 +1047,7 @@ function SendUpdateOnFillEvent:writeStream(streamId, connection)
     streamWriteBool(streamId, self.fillFromFillVolume)
     streamWriteInt32(streamId, self.fillUnitIndex)
     streamWriteBool(streamId, self.fillObjectHasPlane)
+    writeNetworkNodeObject(streamId, self.sourceObject)
 end
 
 function SendUpdateOnFillEvent:readStream(streamId, connection)
@@ -1010,6 +1056,7 @@ function SendUpdateOnFillEvent:readStream(streamId, connection)
     self.fillFromFillVolume = streamReadBool(streamId)
     self.fillUnitIndex = streamReadInt32(streamId)
     self.fillObjectHasPlane = streamReadBool(streamId)
+    self.sourceObject = readNetworkNodeObject(streamId)
     self:run(connection)
 end
 
@@ -1018,4 +1065,5 @@ function SendUpdateOnFillEvent:run(connection)
     self.vehicle.fillFromFillVolume = self.fillFromFillVolume
     self.vehicle.fillUnitIndex = self.fillUnitIndex
     self.vehicle.fillObjectHasPlane = self.fillObjectHasPlane
+    self.vehicle.sourceObject = self.sourceObject
 end

@@ -149,7 +149,7 @@ function HoseSystemDockStrategy:update(dt)
 
         if self.object.isServer and (referenceId ~= nil and not self.object.dockingSystemReferences[referenceId].parkable) or not inrange then
             if inrange and dockingArmObject ~= self.object then
-                dockingArmObject:addFillObject(self.object, dockingArmObject.pumpMotorFillArmMode)
+                dockingArmObject:addFillObject(self.object, dockingArmObject.pumpMotorFillArmMode, false)
                 self:setIsUsed(referenceId, inrange, dockingArmObject)
             elseif not inrange and dockingArmObject ~= nil then
                 dockingArmObject:removeFillObject(self.object, dockingArmObject.pumpMotorFillArmMode)
