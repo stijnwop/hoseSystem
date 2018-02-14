@@ -414,7 +414,6 @@ function HoseSystemConnector:setIsDockUsed(id, state, dockingArmObject, noEventS
         local reference = self.dockingSystemReferences[id]
 
         if reference ~= nil and reference.isUsed ~= state then
-            print(reference.type .. " <= type | state => " .. tostring(state) .. " | docking object => " .. tostring(dockingArmObject))
             HoseSystemReferenceIsUsedEvent.sendEvent(reference.type, self, id, state, dockingArmObject, noEventSend)
 
             reference.isUsed = state

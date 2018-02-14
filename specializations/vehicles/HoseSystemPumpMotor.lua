@@ -511,23 +511,16 @@ end
 function HoseSystemPumpMotor:allowPumpStarted()
     local fillMode = self:getFillMode()
 
-    print("known fillmode = " .. fillMode)
-
     if not HoseSystemPumpMotor.allowFillMode(fillMode) then
-        print("not allowed fillmode = " .. fillMode)
         return false
     end
 
     if self.fillUnitIndex == 0 then
-
-        print("fillUnitIndex = " .. self.fillUnitIndex)
         return false
     end
 
     if self:getFillDirection() == HoseSystemPumpMotor.IN then
         if not self.fillObjectFound and not self.fillFromFillVolume then
-
-            print("fillObjectFound not = " .. tostring(self.fillObjectFound))
             return false
         end
     else
