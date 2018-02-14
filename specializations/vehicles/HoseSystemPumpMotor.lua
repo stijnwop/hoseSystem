@@ -709,7 +709,6 @@ function HoseSystemPumpMotor:addFillObject(object, fillMode, rayCasted)
         local oldFillmode = self:getFillMode()
 
         if oldFillmode ~= fillMode then
-            print(fillMode)
             self:setFillMode(fillMode)
         end
 
