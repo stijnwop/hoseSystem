@@ -29,6 +29,7 @@ function HoseSystemConnector:preLoad(savegame)
     self.toggleLock = HoseSystemConnector.toggleLock
     self.toggleManureFlow = HoseSystemConnector.toggleManureFlow
     self.setIsUsed = HoseSystemConnector.setIsUsed
+    self.setIsDockUsed = HoseSystemConnector.setIsDockUsed
     self.getIsPlayerInReferenceRange = HoseSystemConnector.getIsPlayerInReferenceRange
 
     -- overwrittenFunctions
@@ -363,7 +364,7 @@ function HoseSystemConnector:setIsUsed(index, state, hoseSystem, noEventSend)
         local reference = self.hoseSystemReferences[index]
 
         if reference ~= nil and reference.isUsed ~= state then
-            HoseSystemReferenceIsUsedEvent.sendEvent(self, index, state, hoseSystem, noEventSend)
+            HoseSystemReferenceIsUsedEvent.sendEvent(reference.type, self, index, state, hoseSystem, noEventSend)
 
             reference.isUsed = state
 
@@ -398,6 +399,26 @@ function HoseSystemConnector:setIsUsed(index, state, hoseSystem, noEventSend)
                     self:playAnimation(reference.parkAnimationName, dir, nil, true)
                 end
             end
+        end
+    end
+end
+
+---
+-- @param id
+-- @param state
+-- @param dockingArmObject
+-- @param noEventSend
+--
+function HoseSystemConnector:setIsDockUsed(id, state, dockingArmObject, noEventSend)
+    if self.dockingSystemReferences ~= nil then
+        local reference = self.dockingSystemReferences[id]
+
+        if reference ~= nil and reference.isUsed ~= state then
+            print(reference.type .. " <= type | state => " .. tostring(state) .. " | docking object => " .. tostring(dockingArmObject))
+            HoseSystemReferenceIsUsedEvent.sendEvent(reference.type, self, id, state, dockingArmObject, noEventSend)
+
+            reference.isUsed = state
+            reference.dockingArmObject = dockingArmObject
         end
     end
 end

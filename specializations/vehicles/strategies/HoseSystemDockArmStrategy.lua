@@ -14,7 +14,7 @@ function HoseSystemDockArmStrategy:new(object, mt)
     setmetatable(dockArmStrategy, mt == nil and HoseSystemDockArmStrategy_mt or mt)
 
     if object.hasHoseSystemPumpMotor then
-        object.pumpMotorFillArmMode = HoseSystemPumpMotor.getInitialFillMode(HoseSystemFillArmFactory.TYPE_DOCK)
+        object.pumpMotorDockArmMode = HoseSystemPumpMotor.getInitialFillMode(HoseSystemFillArmFactory.TYPE_DOCK)
     end
 
     return dockArmStrategy
@@ -36,7 +36,7 @@ end
 
 function HoseSystemDockArmStrategy:updateTick(dt)
     if self.object.hasHoseSystemPumpMotor then
-        if self.object.isServer and self.object:getFillMode() == self.object.pumpMotorFillArmMode then
+        if self.object.isServer and self.object:getFillMode() == self.object.pumpMotorDockArmMode then
             local isSucking = self.object.fillObjectFound
 
             -- Todo: move this logic to pumpMotor script since we basically doing it twice (also on the connector).

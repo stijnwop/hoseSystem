@@ -7,7 +7,7 @@
 -- Copyright (c) Wopster and Xentro, 2017
 
 HoseSystemPumpMotor = {
-    sendNumBits = 1,
+    sendNumBits = 3,
     fillModesNum = 0,
     fillModes = {}
 }
@@ -118,7 +118,7 @@ function HoseSystemPumpMotor:load(savegame)
     }
 
     self.pumpIsStarted = false
-    self.fillMode = 0 -- 0 is nothing
+    self.fillMode = HoseSystemPumpMotor.fillModesNum -- 0 is nothing
     self.fillDirection = HoseSystemPumpMotor.IN
 
     local limit = getXMLString(self.xmlFile, "vehicle.pumpMotor#limitedFillDirection")
@@ -466,7 +466,7 @@ end
 -- @param noEventSend
 --
 function HoseSystemPumpMotor:setFillMode(int, noEventSend)
-    self.fillMode = math.floor(int) -- cast it to int!
+    self.fillMode = int
 
     SetFillModeEvent.sendEvent(self, int, noEventSend)
 end
@@ -511,24 +511,31 @@ end
 function HoseSystemPumpMotor:allowPumpStarted()
     local fillMode = self:getFillMode()
 
-    if HoseSystemPumpMotor.allowFillMode(fillMode) then
-        if self.fillUnitIndex == 0 then
+    print("known fillmode = " .. fillMode)
+
+    if not HoseSystemPumpMotor.allowFillMode(fillMode) then
+        print("not allowed fillmode = " .. fillMode)
+        return false
+    end
+
+    if self.fillUnitIndex == 0 then
+
+        print("fillUnitIndex = " .. self.fillUnitIndex)
+        return false
+    end
+
+    if self:getFillDirection() == HoseSystemPumpMotor.IN then
+        if not self.fillObjectFound and not self.fillFromFillVolume then
+
+            print("fillObjectFound not = " .. tostring(self.fillObjectFound))
             return false
         end
-
-        if self:getFillDirection() == HoseSystemPumpMotor.IN then
-            if not self.fillObjectFound and not self.fillFromFillVolume then
-                return false
-            end
-        else
-            local fillType = self.sourceObject.fillUnits[self.fillUnitIndex].currentFilltype
-
-            if (self.sourceObject:getFillLevel(fillType) <= 0 or not self.fillObjectFound and not self.fillFromFillVolume) then
-                return false
-            end
-        end
     else
-        return false
+        local fillType = self.sourceObject.fillUnits[self.fillUnitIndex].currentFilltype
+
+        if (self.sourceObject:getFillLevel(fillType) <= 0 or not self.fillObjectFound and not self.fillFromFillVolume) then
+            return false
+        end
     end
 
     return true
@@ -686,7 +693,7 @@ end
 -- @param rayCasted
 --
 function HoseSystemPumpMotor:addFillObject(object, fillMode, rayCasted)
-    if not self.isServer then
+    if not self.isServer or self.fillObjectFound then
         return
     end
 
@@ -706,7 +713,10 @@ function HoseSystemPumpMotor:addFillObject(object, fillMode, rayCasted)
 
     -- Todo: lookup table insertings on multiple fill objects
     if allowedFillUnitIndex ~= 0 then
-        if self:getFillMode() ~= fillMode then
+        local oldFillmode = self:getFillMode()
+
+        if oldFillmode ~= fillMode then
+            print(fillMode)
             self:setFillMode(fillMode)
         end
 
@@ -732,13 +742,13 @@ end
 -- @param fillMode
 --
 function HoseSystemPumpMotor:removeFillObject(object, fillMode)
-    if not self.isServer then
+    if not self.isServer or not self.fillObjectFound then
         return
     end
 
-    if self:getFillMode() == fillMode then
+    local oldFillmode = self:getFillMode()
+    if oldFillmode == fillMode then
         -- Todo: lookup table insertings on multiple fill objects
-
         self.sourceObject = nil
         self.fillObject = nil
         self.fillObjectFound = false
@@ -746,7 +756,6 @@ function HoseSystemPumpMotor:removeFillObject(object, fillMode)
         self.fillObjectIsObject = false
         self.fillObjectHasPlane = false
         self.fillUnitIndex = 0
-
         self:updateFillObject()
     end
 end

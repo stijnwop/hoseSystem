@@ -56,7 +56,7 @@ function HoseSystemArmStrategy:updateTick(dt)
         self.fillTriggerInteractive:update(dt)
 
         if self.object.lastRaycastObject ~= nil then
-            self.object:addFillObject(self.object.lastRaycastObject, self.object.pumpMotorFillArmMode, false)
+            self.object:addFillObject(self.object.lastRaycastObject, self.object.pumpMotorFillArmMode, true)
         else
             self.object:removeFillObject(self.object.lastRaycastObject, self.object.pumpMotorFillArmMode)
         end

@@ -64,7 +64,7 @@ function HoseSystemDockStrategy:readStream(streamId, connection)
     if connection:getIsServer() then
         for id = 1, streamReadUInt8(streamId) do
             -- load the object later on first frame
-            self:setIsUsed(id, streamReadBool(streamId), nil, true)
+            self.object:setIsDockUsed(id, streamReadBool(streamId), nil, true)
 
             if streamReadBool(streamId) then
                 if self.dockObjectsToload == nil then
@@ -148,11 +148,11 @@ function HoseSystemDockStrategy:update(dt)
         end
 
         if self.object.isServer and (referenceId ~= nil and not self.object.dockingSystemReferences[referenceId].parkable) or not inrange then
-            if inrange and dockingArmObject ~= self.object then
-                dockingArmObject:addFillObject(self.object, dockingArmObject.pumpMotorFillArmMode, false)
-                self:setIsUsed(referenceId, inrange, dockingArmObject)
-            elseif not inrange and dockingArmObject ~= nil then
-                dockingArmObject:removeFillObject(self.object, dockingArmObject.pumpMotorFillArmMode)
+            if inrange and dockingArmObject ~= self.object and not dockingArmObject.fillObjectFound then
+                dockingArmObject:addFillObject(self.object, dockingArmObject.pumpMotorDockArmMode, false)
+                self.object:setIsDockUsed(referenceId, inrange, dockingArmObject)
+            elseif not inrange and dockingArmObject ~= nil and dockingArmObject.fillObjectFound then
+                dockingArmObject:removeFillObject(self.object, dockingArmObject.pumpMotorDockArmMode)
             end
         end
 
@@ -255,7 +255,7 @@ function HoseSystemDockStrategy:getDockArmInrange(dockingArmObject)
                     return true, referenceId
                 else
                     if reference.isUsed and self.object.isServer then
-                        self:setIsUsed(referenceId, false)
+                        self.object:setIsDockUsed(referenceId, false)
                     end
                 end
             end
@@ -289,25 +289,6 @@ function HoseSystemDockStrategy:triggerCallback(triggerId, otherActorId, onEnter
                     end
                 end
             end
-        end
-    end
-end
-
----
--- @param id
--- @param state
--- @param dockingArmObject
--- @param noEventSend
---
-function HoseSystemDockStrategy:setIsUsed(id, state, dockingArmObject, noEventSend)
-    if self.object.dockingSystemReferences ~= nil then
-        local reference = self.object.dockingSystemReferences[id]
-
-        if reference ~= nil and reference.isUsed ~= state then
-            HoseSystemReferenceIsUsedEvent.sendEvent(self, id, state, dockingArmObject, noEventSend)
-
-            reference.isUsed = state
-            reference.dockingArmObject = dockingArmObject
         end
     end
 end

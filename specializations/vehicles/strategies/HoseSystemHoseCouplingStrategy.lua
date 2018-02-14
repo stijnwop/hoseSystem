@@ -407,7 +407,7 @@ function HoseSystemHoseCouplingStrategy:getValidFillObject(dt)
 
     self.fillLevelChanged = false
 
-    if self.object.hasHoseSystemPumpMotor and self.object:getFillMode() == self.object.pumpMotorFillMode then
+    if self.object.hasHoseSystemPumpMotor then
         self.object:removeFillObject(self.object.fillObject, self.object.pumpMotorFillMode)
     end
 

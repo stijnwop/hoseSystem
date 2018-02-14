@@ -157,6 +157,7 @@ function HoseSystemLiquidManureFillTrigger:load(superFunc, nodeId, fillLevelObje
         -- self.fillModes = {}
         self.supportsHoseSystem = self.detectionNode ~= nil or referencesCount > 0
         self.shaderOnIdle = true
+        self.referenceType = HoseSystemConnectorFactory.getInitialType(HoseSystemConnectorFactory.TYPE_HOSE_COUPLING)
 
         g_currentMission:addNodeObject(self.nodeId, self)
 
@@ -567,7 +568,7 @@ function HoseSystemLiquidManureFillTrigger:setIsUsed(index, state, hoseSystem, n
     local reference = self.hoseSystemReferences[index]
 
     if reference ~= nil and reference.isUsed ~= state then
-        HoseSystemReferenceIsUsedEvent.sendEvent(self.fillLevelObject.hoseSystemParent, index, state, hoseSystem, noEventSend)
+        HoseSystemReferenceIsUsedEvent.sendEvent(self.referenceType, self.fillLevelObject.hoseSystemParent, index, state, hoseSystem, noEventSend)
 
         reference.isUsed = state
         reference.hoseSystem = hoseSystem

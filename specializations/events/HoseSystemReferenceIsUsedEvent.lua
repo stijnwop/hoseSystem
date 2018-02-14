@@ -16,9 +16,10 @@ function HoseSystemReferenceIsUsedEvent:emptyNew()
     return event
 end
 
-function HoseSystemReferenceIsUsedEvent:new(object, referenceId, state, hoseSystem)
+function HoseSystemReferenceIsUsedEvent:new(type, object, referenceId, state, hoseSystem)
     local event = HoseSystemReferenceIsUsedEvent:emptyNew()
 
+    event.type = type
     event.object = object
     event.referenceId = referenceId
     event.state = state
@@ -28,6 +29,7 @@ function HoseSystemReferenceIsUsedEvent:new(object, referenceId, state, hoseSyst
 end
 
 function HoseSystemReferenceIsUsedEvent:writeStream(streamId, connection)
+    streamWriteInt8(streamId, self.type)
     writeNetworkNodeObject(streamId, self.object)
     streamWriteUIntN(streamId, self.referenceId - 1, HoseSystemUtil.eventHelper.REFERENCES_NUM_SEND_BITS)
     streamWriteBool(streamId, self.state)
@@ -39,6 +41,7 @@ function HoseSystemReferenceIsUsedEvent:writeStream(streamId, connection)
 end
 
 function HoseSystemReferenceIsUsedEvent:readStream(streamId, connection)
+    self.type = streamReadInt8(streamId)
     self.object = readNetworkNodeObject(streamId)
     self.referenceId = streamReadUIntN(streamId, HoseSystemUtil.eventHelper.REFERENCES_NUM_SEND_BITS) + 1
     self.state = streamReadBool(streamId)
@@ -55,15 +58,19 @@ function HoseSystemReferenceIsUsedEvent:run(connection)
         g_server:broadcastEvent(self, false, connection, self.object)
     end
 
-    self.object:setIsUsed(self.referenceId, self.state, self.hoseSystem, true)
+    if self.type == HoseSystemConnectorFactory.getInitialType(HoseSystemConnectorFactory.TYPE_HOSE_COUPLING) then
+        self.object:setIsUsed(self.referenceId, self.state, self.hoseSystem, true)
+    elseif self.type == HoseSystemConnectorFactory.getInitialType(HoseSystemConnectorFactory.TYPE_DOCK) then
+        self.object:setIsDockUsed(self.referenceId, self.state, self.hoseSystem, true)
+    end
 end
 
-function HoseSystemReferenceIsUsedEvent.sendEvent(object, referenceId, state, hoseSystem, noEventSend)
+function HoseSystemReferenceIsUsedEvent.sendEvent(type, object, referenceId, state, hoseSystem, noEventSend)
     if noEventSend == nil or noEventSend == false then
         if g_server ~= nil then
-            g_server:broadcastEvent(HoseSystemReferenceIsUsedEvent:new(object, referenceId, state, hoseSystem), nil, nil, object)
+            g_server:broadcastEvent(HoseSystemReferenceIsUsedEvent:new(type, object, referenceId, state, hoseSystem), nil, nil, object)
         else
-            g_client:getServerConnection():sendEvent(HoseSystemReferenceIsUsedEvent:new(object, referenceId, state, hoseSystem))
+            g_client:getServerConnection():sendEvent(HoseSystemReferenceIsUsedEvent:new(type, object, referenceId, state, hoseSystem))
         end
     end
 end
