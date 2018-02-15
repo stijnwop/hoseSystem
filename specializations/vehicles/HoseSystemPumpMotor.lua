@@ -44,7 +44,7 @@ end
 --
 function HoseSystemPumpMotor.registerFillMode(name)
     if HoseSystemPumpMotor.fillModesNum >= 2 ^ HoseSystemPumpMotor.sendNumBits then
-        HoseSystemUtil:log(HoseSystemUtil.ERROR, ('Max number of fill modes is %s!'):format(HoseSystemPumpMotor.sendNumBits))
+        HoseSystemUtil:log(HoseSystemUtil.ERROR, ('Max number of fill modes is %s!'):format(2 ^ HoseSystemPumpMotor.sendNumBits))
         return
     end
 
