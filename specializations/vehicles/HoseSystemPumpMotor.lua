@@ -43,6 +43,11 @@ end
 -- @param name
 --
 function HoseSystemPumpMotor.registerFillMode(name)
+    if HoseSystemPumpMotor.fillModesNum >= 2 ^ HoseSystemPumpMotor.sendNumBits then
+        HoseSystemUtil:log(HoseSystemUtil.ERROR, ('Max number of fill modes is %s!'):format(HoseSystemPumpMotor.sendNumBits))
+        return
+    end
+
     local key = HoseSystemPumpMotor.formatFillModeKey(name)
     if HoseSystemPumpMotor.fillModes[key] == nil then
         HoseSystemPumpMotor.fillModesNum = HoseSystemPumpMotor.fillModesNum + 1
