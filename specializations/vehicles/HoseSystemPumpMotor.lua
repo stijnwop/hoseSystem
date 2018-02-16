@@ -7,7 +7,7 @@
 -- Copyright (c) Wopster and Xentro, 2017
 
 HoseSystemPumpMotor = {
-    sendNumBits = 3,
+    sendNumBits = 3, -- max 8 fill modes.. 2^8
     fillModesNum = 0,
     fillModes = {}
 }
@@ -31,6 +31,7 @@ HoseSystemPumpMotor.AUTO_STOP_MULTIPLIER_OUT = 0.98
 HoseSystemPumpMotor.WARNING_TIME = 1500
 HoseSystemPumpMotor.STARTUP_TIME = 1500
 HoseSystemPumpMotor.MAX_EFFICIENCY_TIME = 1500
+HoseSystemPumpMotor.RPM_INCREASE = 5
 
 ---
 -- @param name
@@ -98,6 +99,7 @@ function HoseSystemPumpMotor:preLoad(savegame)
     self.setFillDirection = SpecializationUtil.callSpecializationsFunction('setFillDirection')
     self.allowPumpStarted = HoseSystemPumpMotor.allowPumpStarted
     self.setPumpStarted = SpecializationUtil.callSpecializationsFunction('setPumpStarted')
+    self.handlePump = HoseSystemPumpMotor.handlePump
     self.pumpIn = HoseSystemPumpMotor.pumpIn
     self.pumpOut = HoseSystemPumpMotor.pumpOut
     self.doPump = HoseSystemPumpMotor.doPump
@@ -123,7 +125,7 @@ function HoseSystemPumpMotor:load(savegame)
     }
 
     self.pumpIsStarted = false
-    self.fillMode = HoseSystemPumpMotor.fillModesNum -- 0 is nothing
+    self.fillMode = 0 -- 0 is nothing
     self.fillDirection = HoseSystemPumpMotor.IN
 
     local limit = getXMLString(self.xmlFile, "vehicle.pumpMotor#limitedFillDirection")
@@ -197,6 +199,8 @@ function HoseSystemPumpMotor:load(savegame)
         self.lastFillUnitIndex = 0 -- stream?
         self.lastSourceObject = nil
     end
+
+    self.pumpEfficiencyDirtyFlag = self:getNextDirtyFlag()
 end
 
 ---
@@ -205,6 +209,8 @@ function HoseSystemPumpMotor:delete()
     if self.isClient then
         SoundUtil.deleteSample(self.samplePump)
     end
+
+    self:removeFillObject(nil, self:getFillMode())
 end
 
 ---
@@ -240,22 +246,39 @@ function HoseSystemPumpMotor:writeStream(streamId, connection)
 end
 
 ---
--- @param posX
--- @param posY
--- @param isDown
--- @param isUp
--- @param button
+-- @param streamId
+-- @param timestamp
+-- @param connection
 --
-function HoseSystemPumpMotor:mouseEvent(posX, posY, isDown, isUp, button)
+function HoseSystemPumpMotor:readUpdateStream(streamId, timestamp, connection)
+    if connection:getIsServer() then
+        local isDirty = streamReadBool(streamId)
+
+        if isDirty then
+            self.pumpEfficiency.currentScale = streamReadFloat32(streamId)
+            self.pumpFillEfficiency.currentScale = streamReadFloat32(streamId)
+        end
+    end
 end
 
 ---
--- @param unicode
--- @param sym
--- @param modifier
--- @param isDown
+-- @param streamId
+-- @param connection
+-- @param dirtyMask
 --
-function HoseSystemPumpMotor:keyEvent(unicode, sym, modifier, isDown)
+function HoseSystemPumpMotor:writeUpdateStream(streamId, connection, dirtyMask)
+    if not connection:getIsServer() then
+        if streamWriteBool(streamId, bitAND(dirtyMask, self.pumpEfficiencyDirtyFlag) ~= 0) then
+            streamWriteFloat32(streamId, self.pumpEfficiency.currentScale)
+            streamWriteFloat32(streamId, self.pumpFillEfficiency.currentScale)
+        end
+    end
+end
+
+function HoseSystemPumpMotor:mouseEvent(...)
+end
+
+function HoseSystemPumpMotor:keyEvent(...)
 end
 
 ---
@@ -308,67 +331,81 @@ function HoseSystemPumpMotor:updateTick(dt)
             end
         end
 
-        if self.pumpIsStarted then
-            if not self.fillObjectFound then -- if we lost the object stop pump
-                self:setPumpStarted(false, nil, true)
-            end
+        if self.isServer then
+            if self.pumpIsStarted then
+                if not self.fillObjectFound then -- if we lost the object stop pump
+                    self:setPumpStarted(false)
+                end
 
-            if self.pumpEfficiency.currentStartUpTime < self.pumpEfficiency.startUpTime then
-                self.pumpEfficiency.currentStartUpTime = math.min(self.pumpEfficiency.currentStartUpTime + dt, self.pumpEfficiency.startUpTime)
-            end
+                if self.pumpEfficiency.currentStartUpTime < self.pumpEfficiency.startUpTime then
+                    self.pumpEfficiency.currentStartUpTime = math.min(self.pumpEfficiency.currentStartUpTime + dt, self.pumpEfficiency.startUpTime)
+                end
 
-            local updateFillScale = false
+                local updateFillScale = false
 
-            if self.fillUnitIndex ~= 0 then
-                local fillType = self.sourceObject.fillUnits[self.fillUnitIndex].currentFilltype
+                if self.fillUnitIndex ~= 0 then
+                    local fillType = self.sourceObject.fillUnits[self.fillUnitIndex].currentFilltype
 
-                if self:getFillDirection() == HoseSystemPumpMotor.IN then
-                    if self.sourceObject:getFillLevel(fillType) / self.sourceObject:getCapacity(fillType) >= self.autoStopPercentage.inDirection then
-                        self:setPumpStarted(false, nil, true)
-                    end
+                    if self:getFillDirection() == HoseSystemPumpMotor.IN then
+                        if self.sourceObject:getFillLevel(fillType) / self.sourceObject:getCapacity(fillType) >= self.autoStopPercentage.inDirection then
+                            self:setPumpStarted(false)
+                        end
 
-                    if self.isSucking then
+                        if self.isSucking then
+                            updateFillScale = true
+                        end
+                    else
+                        if self.sourceObject:getFillLevel(fillType) <= 0 or not self.fillObjectFound and not self.fillFromFillVolume then
+                            self:setPumpStarted(false)
+                        end
+
                         updateFillScale = true
                     end
-                else
-                    if self.sourceObject:getFillLevel(fillType) <= 0 or not self.fillObjectFound and not self.fillFromFillVolume then
-                        self:setPumpStarted(false, nil, true)
-                    end
-
-                    updateFillScale = true
                 end
-            end
 
-            if updateFillScale then
-                if self.pumpFillEfficiency.currentTime < self.pumpFillEfficiency.maxTime then
-                    self.pumpFillEfficiency.currentTime = math.min(self.pumpFillEfficiency.currentTime + dt, self.pumpFillEfficiency.maxTime)
+                if updateFillScale then
+                    if self.pumpFillEfficiency.currentTime < self.pumpFillEfficiency.maxTime then
+                        self.pumpFillEfficiency.currentTime = math.min(self.pumpFillEfficiency.currentTime + dt, self.pumpFillEfficiency.maxTime)
+                    end
+                else
+                    if self.pumpFillEfficiency.currentTime > 0 then
+                        self.pumpFillEfficiency.currentTime = math.max(self.pumpFillEfficiency.currentTime - dt, 0)
+                    end
                 end
             else
+                if self.pumpEfficiency.currentStartUpTime > 0 then
+                    self.pumpEfficiency.currentStartUpTime = math.max(self.pumpEfficiency.currentStartUpTime - dt, 0)
+                end
+
                 if self.pumpFillEfficiency.currentTime > 0 then
                     self.pumpFillEfficiency.currentTime = math.max(self.pumpFillEfficiency.currentTime - dt, 0)
                 end
             end
-        else
-            if self.pumpEfficiency.currentStartUpTime > 0 then
-                self.pumpEfficiency.currentStartUpTime = math.max(self.pumpEfficiency.currentStartUpTime - dt, 0)
-            end
-
-            if self.pumpFillEfficiency.currentTime > 0 then
-                self.pumpFillEfficiency.currentTime = math.max(self.pumpFillEfficiency.currentTime - dt, 0)
-            end
         end
     else
-        self:setPumpStarted(false, nil, true)
-        self.pumpEfficiency.currentStartUpTime = 0
-        self.pumpFillEfficiency.currentTime = 0
+        if self.isServer then
+            self:setPumpStarted(false)
+            self.pumpEfficiency.currentStartUpTime = 0
+            self.pumpFillEfficiency.currentTime = 0
+        end
     end
 
-    self.pumpEfficiency.currentScale = Utils.clamp(self.pumpEfficiency.currentStartUpTime / self.pumpEfficiency.startUpTime, 0, 1)
-    self.pumpFillEfficiency.currentScale = Utils.clamp(self.pumpFillEfficiency.currentTime / self.pumpFillEfficiency.maxTime, 0, 1)
+    if self.isServer then
+        self.pumpEfficiency.currentScale = Utils.clamp(self.pumpEfficiency.currentStartUpTime / self.pumpEfficiency.startUpTime, 0, 1)
+        self.pumpFillEfficiency.currentScale = Utils.clamp(self.pumpFillEfficiency.currentTime / self.pumpFillEfficiency.maxTime, 0, 1)
+
+        if self.pumpEfficiency.currentScale ~= self.pumpEfficiency.currentScaleSend or self.pumpFillEfficiency.currentScale ~= self.pumpFillEfficiency.currentScaleSend then
+            self:raiseDirtyFlags(self.pumpEfficiencyDirtyFlag)
+            self.pumpEfficiency.currentScaleSend = self.pumpEfficiency.currentScale
+            self.pumpFillEfficiency.currentScaleSend = self.pumpFillEfficiency.currentScale
+        end
+    end
 
     if self.isClient then
         if self.pumpIsStarted then
             if self.pumpEfficiency.currentScale ~= 0 then
+                SoundUtil.setSamplePitch(self.samplePump, math.max(self.pumpEfficiency.currentScale, 0.08))
+
                 if self:getIsActiveForSound(true) then
                     SoundUtil.playSample(self.samplePump, 0, 0, nil)
                     SoundUtil.stop3DSample(self.samplePump)
@@ -516,7 +553,7 @@ end
 function HoseSystemPumpMotor:allowPumpStarted()
     local fillMode = self:getFillMode()
 
-    if not HoseSystemPumpMotor.allowFillMode(fillMode) then
+    if not HoseSystemPumpMotor.allowFillMode(fillMode) and not fillMode == 0 then
         return false
     end
 
@@ -537,6 +574,50 @@ function HoseSystemPumpMotor:allowPumpStarted()
     end
 
     return true
+end
+
+function HoseSystemPumpMotor:handlePump(fillMode, dt)
+    if not self.isServer then
+        return
+    end
+
+    if self:getFillMode() == fillMode then
+        local isSucking = self.fillObjectFound
+
+        if self.pumpIsStarted and self.fillObject ~= nil then
+            local fillDirection = self:getFillDirection()
+
+            if fillDirection == HoseSystemPumpMotor.IN then
+                local objectFillTypes = self.fillObject:getCurrentFillTypes()
+
+                if self.fillObject:getFreeCapacity() ~= self.fillObject:getCapacity() then
+                    for _, objectFillType in pairs(objectFillTypes) do
+                        if self.sourceObject:allowUnitFillType(self.fillUnitIndex, objectFillType, false) then
+                            local objectFillLevel = self.fillObject:getFillLevel(objectFillType)
+                            local fillLevel = self.sourceObject:getUnitFillLevel(self.fillUnitIndex)
+
+                            if objectFillLevel > 0 and fillLevel < self.sourceObject:getUnitCapacity(self.fillUnitIndex) then
+                                self:pumpIn(self.sourceObject, dt, objectFillLevel, objectFillType)
+                            else
+                                self:setPumpStarted(false, HoseSystemPumpMotor.UNIT_EMPTY)
+                            end
+                        else
+                            self:setPumpStarted(false, HoseSystemPumpMotor.INVALID_FILLTYPE)
+                        end
+                    end
+                else
+                    self:setPumpStarted(false, HoseSystemPumpMotor.OBJECT_EMPTY)
+                end
+            else
+                self:pumpOut(self.sourceObject, dt)
+            end
+        end
+
+        if self.isSucking ~= isSucking then
+            self.isSucking = isSucking
+            g_server:broadcastEvent(IsSuckingEvent:new(self, self.isSucking))
+        end
+    end
 end
 
 ---
@@ -662,7 +743,7 @@ end
 --
 function HoseSystemPumpMotor:getConsumedPtoTorque(superFunc)
     if self.pumpIsStarted then
-        local rpm = superFunc(self) * 3
+        local rpm = superFunc(self) * HoseSystemPumpMotor.RPM_INCREASE
 
         return rpm * self.pumpEfficiency.currentScale
     end
@@ -691,7 +772,7 @@ end
 -- @param rayCasted
 --
 function HoseSystemPumpMotor:addFillObject(object, fillMode, rayCasted)
-    if not self.isServer or self.fillObjectFound then
+    if not self.isServer then
         return
     end
 
@@ -739,7 +820,7 @@ end
 -- @param fillMode
 --
 function HoseSystemPumpMotor:removeFillObject(object, fillMode)
-    if not self.isServer or not self.fillObjectFound then
+    if not self.isServer then
         return
     end
 
@@ -1063,7 +1144,10 @@ function SendUpdateOnFillEvent:readStream(streamId, connection)
     self.fillUnitIndex = streamReadInt32(streamId)
     self.fillObjectHasPlane = streamReadBool(streamId)
     self.sourceObject = readNetworkNodeObject(streamId)
-    self:run(connection)
+
+    if self.vehicle ~= nil then
+        self:run(connection)
+    end
 end
 
 function SendUpdateOnFillEvent:run(connection)
