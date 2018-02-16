@@ -148,10 +148,10 @@ function HoseSystemDockStrategy:update(dt)
         end
 
         if self.object.isServer and (referenceId ~= nil and not self.object.dockingSystemReferences[referenceId].parkable) or not inrange then
-            if inrange and dockingArmObject ~= self.object and not dockingArmObject.fillObjectFound then
+            if inrange and dockingArmObject ~= nil and dockingArmObject ~= self.object and not dockingArmObject.fillObjectFound then
                 dockingArmObject:addFillObject(self.object, dockingArmObject.pumpMotorDockArmMode, false)
                 self.object:setIsDockUsed(referenceId, inrange, dockingArmObject)
-            elseif not inrange and dockingArmObject ~= nil and dockingArmObject.fillObjectFound then
+            elseif not inrange and dockingArmObject ~= nil and dockingArmObject ~= self.object and dockingArmObject.fillObjectFound then
                 dockingArmObject:removeFillObject(self.object, dockingArmObject.pumpMotorDockArmMode)
             end
         end
@@ -159,6 +159,10 @@ function HoseSystemDockStrategy:update(dt)
         if not inrange and self.dockingArmObjectsDelayedDelete[dockingArmObject] ~= nil and self.dockingArmObjectsDelayedDelete[dockingArmObject] < g_currentMission.time then
             self.dockingArmObjectsDelayedDelete[dockingArmObject] = nil
             HoseSystemUtil:removeElementFromList(self.dockingArmObjects, dockingArmObject)
+
+            if self.object.isClient then -- force last position
+                self:deformDockFunnel(dt + 100, false, dockingArmObject)
+            end
         end
     end
 end
@@ -238,7 +242,7 @@ end
 -- @param dockingArmObject
 --
 function HoseSystemDockStrategy:getDockArmInrange(dockingArmObject)
-    if dockingArmObject ~= nil then
+    if dockingArmObject ~= nil and entityExists(dockingArmObject.fillArm.node) then
         local armTrans = { getWorldTranslation(dockingArmObject.fillArm.node) }
         local distanceSequence = HoseSystemDockStrategy.DOCK_INRANGE_DISTANCE
 
@@ -257,6 +261,15 @@ function HoseSystemDockStrategy:getDockArmInrange(dockingArmObject)
                     if reference.isUsed and self.object.isServer then
                         self.object:setIsDockUsed(referenceId, false)
                     end
+                end
+            end
+        end
+    else
+        if self.object.isServer then
+            for referenceId, reference in pairs(self.object.dockingSystemReferences) do
+                if reference.isUsed and reference.dockingArmObject == dockingArmObject then
+                    dockingArmObject:removeFillObject(self.object, dockingArmObject.pumpMotorDockArmMode)
+                    self.object:setIsDockUsed(referenceId, false)
                 end
             end
         end
@@ -281,10 +294,12 @@ function HoseSystemDockStrategy:triggerCallback(triggerId, otherActorId, onEnter
             if object ~= nil then
                 if object.hasHoseSystemFillArm and HoseSystemUtil.getHasStrategy(HoseSystemDockArmStrategy, object.fillArmStrategies) then
                     if onEnter then
-                        if not HoseSystemUtil.getHasListElement(self.dockingArmObjects, object) then
+                        if self.dockingArmObjectsDelayedDelete[object] ~= nil then
+                            self.dockingArmObjectsDelayedDelete[object] = nil
+                        else
                             table.insert(self.dockingArmObjects, object)
                         end
-                    elseif onLeave then
+                    else
                         self.dockingArmObjectsDelayedDelete[object] = g_currentMission.time + HoseSystemDockStrategy.DEFORMATION_RESET_TIME
                     end
                 end
