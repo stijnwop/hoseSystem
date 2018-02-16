@@ -113,7 +113,7 @@ function HoseSystemConnector.loadHoseReferences(self, xmlFile, base)
 
                 self.connectStrategies = HoseSystemUtil.insertStrategy(strategy, self.connectStrategies)
             else
-                -- Todo: log invalid node
+                HoseSystemUtil:log(HoseSystemUtil.ERROR, "Invalid reference node: " .. i)
             end
         end
 
@@ -360,6 +360,7 @@ end
 -- @param noEventSend
 --
 function HoseSystemConnector:setIsUsed(index, state, hoseSystem, noEventSend)
+    -- Todo move to strategy
     if self.hoseSystemReferences ~= nil then
         local reference = self.hoseSystemReferences[index]
 
@@ -367,8 +368,6 @@ function HoseSystemConnector:setIsUsed(index, state, hoseSystem, noEventSend)
             HoseSystemReferenceIsUsedEvent.sendEvent(reference.type, self, index, state, hoseSystem, noEventSend)
 
             reference.isUsed = state
-
-            -- Todo call strategy
             reference.hoseSystem = hoseSystem
 
             if not reference.parkable then

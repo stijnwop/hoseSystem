@@ -35,6 +35,7 @@ function HoseSystemHoseTransferStrategy:loadTransfer(xmlFile, key, entry)
 end
 
 function HoseSystemHoseTransferStrategy:update(dt)
+    -- perhaps update hose? Generic creations or just connect on attach and detach?
 end
 
 function HoseSystemHoseTransferStrategy:updateTick(dt)
