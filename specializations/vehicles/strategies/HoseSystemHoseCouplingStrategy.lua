@@ -178,6 +178,11 @@ function HoseSystemHoseCouplingStrategy:loadHoseCoupling(xmlFile, key, entry)
     entry.grabPoints = nil
     entry.isObject = false
     entry.componentIndex = Utils.getNoNil(getXMLFloat(xmlFile, key .. 'componentIndex'), 0) + 1
+
+    if entry.componentIndex > 1 and entry.componentIndex > #self.object.components then
+        HoseSystemUtil:log(HoseSystemUtil.ERROR, ('The given componentIndex (%s) is higher then the component count!'):format(entry.componentIndex))
+    end
+
     entry.parkable = Utils.getNoNil(getXMLBool(xmlFile, key .. '#parkable'), false)
     entry.lockAnimationName = Utils.getNoNil(getXMLString(xmlFile, key .. '#lockAnimationName'), nil)
     entry.manureFlowAnimationName = Utils.getNoNil(getXMLString(xmlFile, key .. '#manureFlowAnimationName'), nil)
