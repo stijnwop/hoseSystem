@@ -115,6 +115,7 @@ function HoseSystem:load(savegame)
         if effects ~= nil then
             local effect = {
                 effects = effects,
+                activeIndex = nil,
                 isActive = false
             }
 
@@ -690,6 +691,7 @@ function HoseSystem:toggleEmptyingEffect(activate, yDirectionSpeed, index, fillT
 
         if activate then
             EffectManager:setFillType(self.hoseEffects.effects, fillType)
+            self.hoseEffects.activeIndex = index
 
             if self.hoseEffects.effects ~= nil then
                 local grabPoint = self.grabPoints[index]
@@ -718,42 +720,15 @@ function HoseSystem:setEmptyEffect(activate, dt)
 
             -- Set the direction of the effect always in toward the dection node
             if self.hoseEffects.effects ~= nil then
-                if self.lastRaycastDistance ~= 0 then
-                    local target = { getWorldTranslation(self.lastRaycastObject.detectionNode) }
-                    local targetRot = 0
+                local grabPoint = self.grabPoints[self.hoseEffects.activeIndex]
+                local trans = { getWorldTranslation(grabPoint.node) }
+                local rot = { getRotation(grabPoint.node) }
 
-                    for _, effect in pairs(self.hoseEffects.effects) do
-                        if effect.curRotation == nil then
-                            effect.orgRotation = { getRotation(effect.node) }
-                            effect.curRotation = { getRotation(effect.node) }
-                        end
+                rot[2] = grabPoint.id == 1 and math.rad(0) or math.rad(180)
 
-                        for i = 1, 3 do
-                            if i == 1 then -- x axis
-                                local x, y, z = getWorldTranslation(effect.node)
-                                local _, y, z = worldDirectionToLocal(getParent(effect.node), target[1] - x, target[2] - y, target[3] - z)
-                                targetRot = -math.atan2(y, z) -- x axis
-
-                                targetRot = Utils.normalizeRotationForShortestPath(targetRot, effect.curRotation[i])
-                            end
-
-                            if math.abs(effect.curRotation[i] - targetRot) > 0.000001 then
-                                if effect.curRotation[i] < targetRot then
-                                    effect.curRotation[i] = math.min(effect.curRotation[i] + dt, targetRot)
-                                else
-                                    effect.curRotation[i] = math.max(effect.curRotation[i] - dt, targetRot)
-                                end
-
-                                if effect.curRotation[i] > 2 * math.pi then
-                                    effect.curRotation[i] = effect.curRotation[i] - 2 * math.pi
-                                elseif effect.curRotation[i] < -2 * math.pi then
-                                    effect.curRotation[i] = effect.curRotation[i] + 2 * math.pi
-                                end
-                            end
-                        end
-
-                        setRotation(effect.node, effect.curRotation[1], effect.orgRotation[2], effect.orgRotation[3])
-                    end
+                for _, effect in pairs(self.hoseEffects.effects) do
+                    setWorldTranslation(effect.node, unpack(trans))
+                    setRotation(effect.node, unpack(rot))
                 end
             end
         else
