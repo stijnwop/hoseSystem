@@ -695,7 +695,7 @@ function HoseSystem:toggleEmptyingEffect(activate, yDirectionSpeed, index, fillT
 
             if self.hoseEffects.effects ~= nil then
                 local grabPoint = self.grabPoints[index]
-                local trans = { getWorldTranslation(grabPoint.node) }
+                local trans = { getWorldTranslation(self.components[grabPoint.componentIndex].node) }
 
                 for _, effect in pairs(self.hoseEffects.effects) do
                     local rot = { getRotation(effect.node) }
@@ -721,7 +721,7 @@ function HoseSystem:setEmptyEffect(activate, dt)
             -- Set the direction of the effect always in toward the dection node
             if self.hoseEffects.effects ~= nil then
                 local grabPoint = self.grabPoints[self.hoseEffects.activeIndex]
-                local trans = { getWorldTranslation(grabPoint.node) }
+                local trans = { getWorldTranslation(self.components[grabPoint.componentIndex].node) }
                 local rot = { getRotation(grabPoint.node) }
 
                 rot[2] = grabPoint.id == 1 and math.rad(0) or math.rad(180)
