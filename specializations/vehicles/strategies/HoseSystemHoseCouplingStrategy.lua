@@ -301,17 +301,19 @@ function HoseSystemHoseCouplingStrategy:updateTick(dt)
                 --                end
 
                 if self.object.pumpIsStarted and self.object.fillObject ~= nil then
+                    local sourceObject = self.object.sourceObject
+
                     if self.object.fillDirection == HoseSystemPumpMotor.IN then
                         local objectFillTypes = self.object.fillObject:getCurrentFillTypes()
 
                         -- isn't below dubble code?
                         if self.object.fillObject:getFreeCapacity() ~= self.object.fillObject:getCapacity() then
                             for _, objectFillType in pairs(objectFillTypes) do
-                                if self.object:allowUnitFillType(self.object.fillUnitIndex, objectFillType, false) then
+                                if sourceObject:allowUnitFillType(self.object.fillUnitIndex, objectFillType, false) then
                                     local objectFillLevel = self.object.fillObject:getFillLevel(objectFillType)
-                                    local fillLevel = self.object:getUnitFillLevel(self.object.fillUnitIndex)
+                                    local fillLevel = sourceObject:getUnitFillLevel(self.object.fillUnitIndex)
 
-                                    if objectFillLevel > 0 and fillLevel < self.object:getUnitCapacity(self.object.fillUnitIndex) then
+                                    if objectFillLevel > 0 and fillLevel < sourceObject:getUnitCapacity(self.object.fillUnitIndex) then
                                         if self.object.fillObject.checkPlaneY ~= nil then
                                             local lastGrabPoint, _ = self:getLastGrabpointRecursively(reference.hoseSystem.grabPoints[HoseSystemConnector:getFillableVehicle(self.object.currentGrabPointIndex, #reference.hoseSystem.grabPoints)])
 
@@ -328,7 +330,7 @@ function HoseSystemHoseCouplingStrategy:updateTick(dt)
                                             isSucking = reference ~= nil
                                         end
 
-                                        self.object:pumpIn(self.object, dt, objectFillLevel, objectFillType)
+                                        self.object:pumpIn(sourceObject, dt, objectFillLevel, objectFillType)
                                     else
                                         self.object:setPumpStarted(false, HoseSystemPumpMotor.UNIT_EMPTY)
                                     end
@@ -340,7 +342,7 @@ function HoseSystemHoseCouplingStrategy:updateTick(dt)
                             self.object:setPumpStarted(false, HoseSystemPumpMotor.OBJECT_EMPTY)
                         end
                     else
-                        self.object:pumpOut(self.object, dt)
+                        self.object:pumpOut(sourceObject, dt)
                     end
                 end
 

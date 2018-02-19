@@ -22,6 +22,7 @@ HoseSystemPumpMotor.TURN_OFF = 1
 HoseSystemPumpMotor.UNIT_EMPTY = 2
 HoseSystemPumpMotor.OBJECT_EMPTY = 3
 HoseSystemPumpMotor.INVALID_FILLTYPE = 4
+HoseSystemPumpMotor.OBJECT_FULL = 5
 
 HoseSystemPumpMotor.DEFAULT_LITERS_PER_SECOND = 100
 
@@ -86,7 +87,12 @@ end
 -- @param specializations
 --
 function HoseSystemPumpMotor.prerequisitesPresent(specializations)
-    return SpecializationUtil.hasSpecialization(Fillable, specializations) and SpecializationUtil.hasSpecialization(PowerConsumer, specializations)
+    if not SpecializationUtil.hasSpecialization(Fillable, specializations) and SpecializationUtil.hasSpecialization(PowerConsumer, specializations) then
+        HoseSystemUtil:log(HoseSystemUtil.ERROR, "Specialization HoseSystemPumpMotor needs the specialization Fillable and PowerConsumer")
+        return false
+    end
+
+    return true
 end
 
 ---
@@ -96,9 +102,9 @@ function HoseSystemPumpMotor:preLoad(savegame)
     self.getFillMode = HoseSystemPumpMotor.getFillMode
     self.setFillMode = HoseSystemPumpMotor.setFillMode
     self.getFillDirection = HoseSystemPumpMotor.getFillDirection
-    self.setFillDirection = SpecializationUtil.callSpecializationsFunction('setFillDirection')
+    self.setFillDirection = HoseSystemPumpMotor.setFillDirection
     self.allowPumpStarted = HoseSystemPumpMotor.allowPumpStarted
-    self.setPumpStarted = SpecializationUtil.callSpecializationsFunction('setPumpStarted')
+    self.setPumpStarted = HoseSystemPumpMotor.setPumpStarted
     self.handlePump = HoseSystemPumpMotor.handlePump
     self.pumpIn = HoseSystemPumpMotor.pumpIn
     self.pumpOut = HoseSystemPumpMotor.pumpOut
@@ -173,6 +179,7 @@ function HoseSystemPumpMotor:load(savegame)
     self.warningMessage.messages[HoseSystemPumpMotor.TURN_OFF] = g_i18n:getText('pumpMotor_warningTurnOffFirst')
     self.warningMessage.messages[HoseSystemPumpMotor.UNIT_EMPTY] = g_i18n:getText('pumpMotor_warningUnitEmpty')
     self.warningMessage.messages[HoseSystemPumpMotor.OBJECT_EMPTY] = g_i18n:getText('pumpMotor_warningObjectEmpty')
+    self.warningMessage.messages[HoseSystemPumpMotor.OBJECT_FULL] = g_i18n:getText('pumpMotor_warningObjectFull')
     self.warningMessage.messages[HoseSystemPumpMotor.INVALID_FILLTYPE] = g_i18n:getText('pumpMotor_warningInvalidFilltype')
 
     self.pumpMotor = {
@@ -314,6 +321,29 @@ end
 -- @param dt
 --
 function HoseSystemPumpMotor:updateTick(dt)
+    if self.isClient then
+        if self.pumpIsStarted then
+            if self.pumpEfficiency.currentScale ~= 0 then
+                SoundUtil.setSamplePitch(self.samplePump, math.max(self.pumpFillEfficiency.currentScale, 0.25))
+                SoundUtil.setSampleVolume(self.samplePump, math.max(self.pumpEfficiency.currentScale, 0.08))
+
+                if self:getIsActiveForSound(true) then
+                    SoundUtil.playSample(self.samplePump, 0, 0, nil)
+                    SoundUtil.stop3DSample(self.samplePump)
+                else
+                    SoundUtil.stopSample(self.samplePump)
+                    SoundUtil.play3DSample(self.samplePump)
+                end
+            else
+                SoundUtil.stopSample(self.samplePump)
+                SoundUtil.stop3DSample(self.samplePump)
+            end
+        else
+            SoundUtil.stopSample(self.samplePump)
+            SoundUtil.stop3DSample(self.samplePump)
+        end
+    end
+
     if self.attacherMotor.check then
         local vehicle = self:getRootAttacherVehicle()
         self.attacherMotor.isStarted = vehicle.getIsMotorStarted ~= nil and vehicle:getIsMotorStarted()
@@ -398,29 +428,6 @@ function HoseSystemPumpMotor:updateTick(dt)
             self:raiseDirtyFlags(self.pumpEfficiencyDirtyFlag)
             self.pumpEfficiency.currentScaleSend = self.pumpEfficiency.currentScale
             self.pumpFillEfficiency.currentScaleSend = self.pumpFillEfficiency.currentScale
-        end
-    end
-
-    if self.isClient then
-        if self.pumpIsStarted then
-            if self.pumpEfficiency.currentScale ~= 0 then
-                SoundUtil.setSamplePitch(self.samplePump, math.max(self.pumpEfficiency.currentScale, 0.08))
-
-                if self:getIsActiveForSound(true) then
-                    SoundUtil.playSample(self.samplePump, 0, 0, nil)
-                    SoundUtil.stop3DSample(self.samplePump)
-                    SoundUtil.setSampleVolume(self.samplePump, math.max(self.pumpEfficiency.currentScale, 0.08))
-                else
-                    SoundUtil.stopSample(self.samplePump)
-                    SoundUtil.play3DSample(self.samplePump)
-                end
-            else
-                SoundUtil.stopSample(self.samplePump)
-                SoundUtil.stop3DSample(self.samplePump)
-            end
-        else
-            SoundUtil.stopSample(self.samplePump)
-            SoundUtil.stop3DSample(self.samplePump)
         end
     end
 end
@@ -689,23 +696,17 @@ function HoseSystemPumpMotor:doPump(sourceObject, targetObject, fillType, deltaF
         local fillSourceStruct = { x = x, y = y, z = z, d1x = d1x, d1y = d1y, d1z = d1z, d2x = d2x, d2y = d2y, d2z = d2z }
 
         targetObject:setFillLevel(fillDirection == HoseSystemPumpMotor.IN and targetObjectFillLevel - deltaFill or targetObjectFillLevel + deltaFill, fillType, false, fillSourceStruct)
-
-        if fillDirection == HoseSystemPumpMotor.OUT then
-            if targetObjectFillLevel >= (targetObject:getCapacity(fillType) * self.autoStopPercentage.outDirection) then
-                self:setPumpStarted(false)
-            end
-        end
     else
         if isTrigger then
             targetObject:setFillLevel(fillDirection == HoseSystemPumpMotor.IN and targetObjectFillLevel - deltaFill or targetObjectFillLevel + deltaFill)
         else
             targetObject:setFillLevel(fillDirection == HoseSystemPumpMotor.IN and targetObjectFillLevel - deltaFill or targetObjectFillLevel + deltaFill, fillType)
         end
+    end
 
-        if fillDirection == HoseSystemPumpMotor.OUT then
-            if targetObjectFillLevel >= (targetObject:getCapacity(fillType) * self.autoStopPercentage.outDirection) then
-                self:setPumpStarted(false)
-            end
+    if fillDirection == HoseSystemPumpMotor.OUT then
+        if targetObjectFillLevel >= (targetObject:getCapacity(fillType) * self.autoStopPercentage.outDirection) then
+            self:setPumpStarted(false, HoseSystemPumpMotor.OBJECT_FULL)
         end
     end
 end
