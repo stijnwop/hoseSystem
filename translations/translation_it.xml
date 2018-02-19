@@ -37,7 +37,7 @@
         <text name="pumpMotor_warningTurnOffFirst" text="Prima spegni la pompa!"/>
         <text name="pumpMotor_warningUnitEmpty" text="L'unità di ricarica è vuota!"/>
         <text name="pumpMotor_warningObjectEmpty" text="La fonte della pompa è vuota!"/>
-        <text name="pumpMotor_warningObjectFull" text="The pump source is full!"/><!-- needs translation -->
+        <text name="pumpMotor_warningObjectFull" text="La fonte della pompa è piena!"/>
         <text name="pumpMotor_warningInvalidFilltype" text="FillType non supportato!"/>
 
         <!-- Hose system connector references -->
