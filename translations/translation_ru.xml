@@ -26,9 +26,9 @@
         <text name="input_detachHose" text="Отсоединить систему шлангов"/>
 
         <!-- Hose system pump motor -->
-        <text name="pumpMotor_changeDirection" text="Изменить направление перекачивания на: %s"/>
-        <text name="pumpMotor_directionOut" text="выкачивание"/> <!-- слив -->
-        <text name="pumpMotor_directionIn" text="закачивание"/> <!-- наполнение -->
+        <text name="pumpMotor_changeDirection" text="Текущее направление перекачивания: %s"/>
+        <text name="pumpMotor_directionOut" text="наполнение"/>
+        <text name="pumpMotor_directionIn" text="разгрузка"/>
 
         <text name="pumpMotor_activatePump" text="Включить насос"/>
         <text name="pumpMotor_deactivatePump" text="Выключить насос"/>
@@ -36,17 +36,17 @@
         <text name="pumpMotor_warningTurnOffFirst" text="Для начала выключите насос!"/>
         <text name="pumpMotor_warningUnitEmpty" text="Блок источника насоса пуст!"/>
         <text name="pumpMotor_warningObjectEmpty" text="Источник насоса пуст!"/>
-        <text name="pumpMotor_warningObjectFull" text="The pump source is full!"/><!-- needs translation -->
+        <text name="pumpMotor_warningObjectFull" text="Источник насоса полный!"/>
         <text name="pumpMotor_warningInvalidFilltype" text="Тип наполнителя не поддерживается!"/>
 
         <!-- Hose system connector references -->
-        <text name="input_toggleManureFlow" text="Переключение потока навоза"/>
+        <text name="input_toggleManureFlow" text="Переключение затвора для жижи"/>
         <text name="input_toggleLock" text="Переключить замок"/>
 
         <text name="action_toggleLockStateLock" text="зафиксировать %s"/>
         <text name="action_toggleLockStateUnlock" text="отпустить %s"/>
 
-        <text name="action_toggleManureFlow" text="%s поток навоза"/>
+        <text name="action_toggleManureFlow" text="%s затвор для жижи"/>
         <text name="action_toggleManureFlowStateOpen" text="открыть"/>
         <text name="action_toggleManureFlowStateClose" text="закрыть"/>
     </texts>
