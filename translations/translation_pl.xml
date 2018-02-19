@@ -36,7 +36,7 @@
         <text name="pumpMotor_warningTurnOffFirst" text="Najpierw wyłącz pompę!"/>
         <text name="pumpMotor_warningUnitEmpty" text="Źródło pompy jest puste!"/>
         <text name="pumpMotor_warningObjectEmpty" text="Źródło pompy jest puste!"/>
-        <text name="pumpMotor_warningObjectFull" text="The pump source is full!"/><!-- needs translation -->
+        <text name="pumpMotor_warningObjectFull" text="Źródło pompy jest pełne!"/>
         <text name="pumpMotor_warningInvalidFilltype" text="Ten typ ładunku nie jest obsługiwany!"/>
 
         <!-- Hose system connector references -->
