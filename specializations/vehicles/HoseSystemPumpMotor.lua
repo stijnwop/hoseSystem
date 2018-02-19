@@ -327,7 +327,7 @@ function HoseSystemPumpMotor:updateTick(dt)
                 SoundUtil.setSamplePitch(self.samplePump, math.max(self.pumpFillEfficiency.currentScale, 0.25))
                 SoundUtil.setSampleVolume(self.samplePump, math.max(self.pumpEfficiency.currentScale, 0.08))
 
-                if self:getIsActiveForSound(true) then
+                if self:getIsActiveForSound() then
                     SoundUtil.playSample(self.samplePump, 0, 0, nil)
                     SoundUtil.stop3DSample(self.samplePump)
                 else
