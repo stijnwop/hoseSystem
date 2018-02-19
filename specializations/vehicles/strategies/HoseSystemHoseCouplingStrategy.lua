@@ -281,16 +281,32 @@ end
 --
 function HoseSystemHoseCouplingStrategy:updateTick(dt)
     if self.object.isClient then
-        self:updateHoseSystem(self.fillLevelChanged, true)
+        local update = self.fillLevelChanged
+
+        if self.object.fillObjectHasPlane then
+            if self.object.fillObjectFound or self.object.fillFromFillVolume then
+                update = true
+            end
+        else
+            if not self.object.fillObjectFound and self.object.pumpIsStarted then
+                update = false
+            end
+        end
+
+        self:updateHoseSystem(update, self.fillLevelChanged)
     end
 
     self:getValidFillObject(dt)
+
+    if self.fillLevelChanged ~= self.lastFillLevelChanged then
+        self.object:raiseDirtyFlags(self.object.fillLevelChangedDirtyFlag)
+        self.lastFillLevelChanged = self.fillLevelChanged
+    end
 
     if self.object.hasHoseSystemPumpMotor then
         if self.object.isServer then
             if self.object:getFillMode() == self.object.pumpMotorFillMode then
                 local isSucking = false
-
                 local reference = self.object.hoseSystemReferences[self.object.currentReferenceIndex]
 
                 -- Todo: Moved feature to version 1.1 determine pump efficiency based on hose chain lenght
@@ -352,23 +368,12 @@ function HoseSystemHoseCouplingStrategy:updateTick(dt)
                 end
             end
 
+            -- Todo: move this to the object and don't let this control it
             if self.object.fillObjectFound then
                 if self.object.fillObject ~= nil and self.object.fillObject.checkPlaneY ~= nil then -- we are raycasting a fillplane
                     if self.object.fillObject.updateShaderPlane ~= nil then
                         self.object.fillObject:updateShaderPlane(self.object.pumpIsStarted, self.object.fillDirection, self.object.pumpFillEfficiency.litersPerSecond)
                     end
-                end
-            end
-        end
-
-        if self.object.isClient then
-            if self.object.fillObjectHasPlane then
-                if self.object.fillObjectFound or self.object.fillFromFillVolume then
-                    self:updateHoseSystem(true)
-                end
-            else
-                if not self.object.fillObjectFound and self.object.pumpIsStarted then
-                    self:updateHoseSystem(false)
                 end
             end
         end
@@ -394,7 +399,7 @@ function HoseSystemHoseCouplingStrategy:updateHoseSystem(allow, force)
                 local unitIndex = force and reference.fillUnitIndex or self.object.fillUnitIndex
                 local fillType = self.object:getUnitLastValidFillType(unitIndex)
 
-                lastHoseSystem:toggleEmptyingEffect((allow and self.object.pumpIsStarted and self.object.fillDirection == HoseSystemPumpMotor.OUT) or (allow and force), lastGrabPoint.id > 1 and 1 or -1, lastGrabPoint.id, fillType)
+                lastHoseSystem:toggleEmptyingEffect(self.object, (allow and self.object.pumpIsStarted and self.object.fillDirection == HoseSystemPumpMotor.OUT) or (allow and force), lastGrabPoint.id > 1 and 1 or -1, lastGrabPoint.id, fillType)
             end
         end
     end
@@ -442,7 +447,7 @@ function HoseSystemHoseCouplingStrategy:getValidFillObject(dt)
                     local hoseSystem = reference.hoseSystem
 
                     -- check what the lastGrabPoint has on it's raycast
-                    if hoseSystem ~= nil then
+                    if hoseSystem ~= nil and reference.flowOpened then
                         if hoseSystem.lastRaycastDistance ~= 0 and hoseSystem.lastRaycastObject ~= nil then
                             if self.object.hasHoseSystemPumpMotor then
                                 self.object:addFillObject(hoseSystem.lastRaycastObject, self.object.pumpMotorFillMode, true)
@@ -463,11 +468,6 @@ function HoseSystemHoseCouplingStrategy:getValidFillObject(dt)
                 end
             end
         end
-    end
-
-    if self.fillLevelChanged ~= self.lastFillLevelChanged then
-        self.object:raiseDirtyFlags(self.object.fillLevelChangedDirtyFlag)
-        self.lastFillLevelChanged = self.fillLevelChanged
     end
 end
 
@@ -506,7 +506,7 @@ function HoseSystemHoseCouplingStrategy:getPriorityReference()
     end
 
     for referenceId, reference in pairs(self.object.hoseSystemReferences) do
-        if reference.isUsed and reference.flowOpened and reference.isLocked then
+        if reference.isUsed and reference.isLocked then
             if reference.hoseSystem ~= nil and reference.hoseSystem.grabPoints ~= nil then
                 for index, grabPoint in pairs(reference.hoseSystem.grabPoints) do
                     if HoseSystem:getIsConnected(grabPoint.state) and grabPoint.connectorVehicle == self.object then
