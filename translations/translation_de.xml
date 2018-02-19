@@ -37,6 +37,7 @@
         <text name="pumpMotor_warningTurnOffFirst" text="Pumpe zuerst ausschalten!"/>
         <text name="pumpMotor_warningUnitEmpty" text="Der Behälter ist leer!"/>
         <text name="pumpMotor_warningObjectEmpty" text="Der Behälter ist leer!"/>
+        <text name="pumpMotor_warningObjectFull" text="Der Behälter ist voll!"/>
         <text name="pumpMotor_warningInvalidFilltype" text="Dieser FillType wird nicht unterstützt!"/>
 
         <!-- Hose system connector references -->

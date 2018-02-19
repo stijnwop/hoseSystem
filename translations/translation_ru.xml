@@ -36,6 +36,7 @@
         <text name="pumpMotor_warningTurnOffFirst" text="Для начала выключите насос!"/>
         <text name="pumpMotor_warningUnitEmpty" text="Блок источника насоса пуст!"/>
         <text name="pumpMotor_warningObjectEmpty" text="Источник насоса пуст!"/>
+        <text name="pumpMotor_warningObjectFull" text="The pump source is full!"/><!-- needs translation -->
         <text name="pumpMotor_warningInvalidFilltype" text="Тип наполнителя не поддерживается!"/>
 
         <!-- Hose system connector references -->

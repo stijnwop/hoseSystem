@@ -14,9 +14,11 @@
         <text name="action_attachHose" text="attacher %s"/>
         <text name="action_detachHose" text="détacher %s"/>
 
-        <text name="info_hoseRangeRestriction" text="La restriction de distance de flexibles ne vous permet pas d'aller plus loin!"/>
+        <text name="info_hoseRangeRestriction"
+              text="La restriction de distance de flexibles ne vous permet pas d'aller plus loin!"/>
         <text name="info_hoseRangeRestrictionChainToLong" text="Vous n'êtes pas surhumain!"/>
-        <text name="info_hoseParkingPlaceToShort" text="La place de stationnement de %sm est trop petite pour le tuyau de %sm!"/>
+        <text name="info_hoseParkingPlaceToShort"
+              text="La place de stationnement de %sm est trop petite pour le tuyau de %sm!"/>
 
         <!-- Input -->
         <text name="input_mouseInteract" text="Cliquer le bouton de souris %s pour"/> <!-- may need tune -->
@@ -36,6 +38,7 @@
         <text name="pumpMotor_warningTurnOffFirst" text="Coupez la pompe d'abord!"/>
         <text name="pumpMotor_warningUnitEmpty" text="L'élément source de pompage est vide!"/>
         <text name="pumpMotor_warningObjectEmpty" text="La source de pompe est vide!"/>
+        <text name="pumpMotor_warningObjectFull" text="The pump source is full!"/><!-- needs translation -->
         <text name="pumpMotor_warningInvalidFilltype" text="Cette substance n'est pas supporté!"/>
 
         <!-- Hose system connector references -->

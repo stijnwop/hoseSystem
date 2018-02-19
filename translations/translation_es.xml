@@ -16,7 +16,8 @@
 
         <text name="info_hoseRangeRestriction" text="El alcance de la manguera llego a su límite!"/>
         <text name="info_hoseRangeRestrictionChainToLong" text="No eres un super humano!"/>
-        <text name="info_hoseParkingPlaceToShort" text="El %sm estacionamiento es demasiado pequeño para la manguera %sm !"/>
+        <text name="info_hoseParkingPlaceToShort"
+              text="El %sm estacionamiento es demasiado pequeño para la manguera %sm !"/>
 
         <!-- Input -->
         <text name="input_mouseInteract" text="Presiona el botón del ratón %s a"/>
@@ -36,6 +37,7 @@
         <text name="pumpMotor_warningTurnOffFirst" text="Primero apague la bomba!"/>
         <text name="pumpMotor_warningUnitEmpty" text="La fuente de la unidad de la bomba esta vacía!"/>
         <text name="pumpMotor_warningObjectEmpty" text="La bomba esta vacía!"/>
+        <text name="pumpMotor_warningObjectFull" text="The pump source is full!"/><!-- needs translation -->
         <text name="pumpMotor_warningInvalidFilltype" text="Esta carga no esta soportada!"/>
 
         <!-- Hose system connector references -->

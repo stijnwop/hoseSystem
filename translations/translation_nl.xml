@@ -36,7 +36,8 @@
         <text name="pumpMotor_warningTurnOffFirst" text="Zet de pomp eerst uit!"/>
         <text name="pumpMotor_warningUnitEmpty" text="Er is geen mest meer in de bron!"/>
         <text name="pumpMotor_warningObjectEmpty" text="Er is geen mest meer in de bron!"/>
-        <text name="pumpMotor_warningInvalidFilltype" text="Dit vultype is niet ondersteund!"/>
+        <text name="pumpMotor_warningObjectFull" text="De bron is vol!"/>
+        <text name="pumpMotor_warningInvalidFilltype" text="Dit filltype is niet ondersteund!"/>
 
         <!-- Hose system connector references -->
         <text name="input_toggleManureFlow" text="Wissel afsluiter"/>

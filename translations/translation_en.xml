@@ -36,6 +36,7 @@
         <text name="pumpMotor_warningTurnOffFirst" text="Turn pump off first!"/>
         <text name="pumpMotor_warningUnitEmpty" text="The source pump unit is empty!"/>
         <text name="pumpMotor_warningObjectEmpty" text="The pump source is empty!"/>
+        <text name="pumpMotor_warningObjectFull" text="The pump source is full!"/>
         <text name="pumpMotor_warningInvalidFilltype" text="FillType is not supported!"/>
 
         <!-- Hose system connector references -->
