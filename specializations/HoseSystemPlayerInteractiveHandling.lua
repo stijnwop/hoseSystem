@@ -75,7 +75,7 @@ function HoseSystemPlayerInteractiveHandling:update(dt)
     else
         --        local index = self:getIsPlayerInGrabPointRange()
 
-        if g_currentMission.player.hoseSystem ~= nil and g_currentMission.player.hoseSystem.closestIndex ~= nil and g_currentMission.player.hoseSystem.closestHoseSystem == self.object then
+        if g_currentMission.player ~= nil and g_currentMission.player.hoseSystem ~= nil and g_currentMission.player.hoseSystem.closestIndex ~= nil and g_currentMission.player.hoseSystem.closestHoseSystem == self.object then
             local index = g_currentMission.player.hoseSystem.closestIndex
             local grabPoint = self.object.grabPoints[index]
 
