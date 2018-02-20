@@ -174,39 +174,39 @@ function HoseSystemRegistrationHelper:getIsPlayerInGrabPointRange()
     end
 
     if g_currentMission.player ~= nil then
-    local closestIndex
-    local distance = math.huge
-    local playerDistance = self.minDistance
-    local playerTrans = { getWorldTranslation(g_currentMission.player.rootNode) }
+        local closestIndex
+        local distance = math.huge
+        local playerDistance = self.minDistance
+        local playerTrans = { getWorldTranslation(g_currentMission.player.rootNode) }
 
-    if HoseSystemPlayerInteractive:getIsPlayerValid(true) and g_currentMission.hoseSystemHoses ~= nil then
-        for _, hoseSystem in pairs(g_currentMission.hoseSystemHoses) do
-            for index, grabPoint in pairs(hoseSystem.grabPoints) do
-                if grabPoint.node ~= nil then
-                    local trans = { getWorldTranslation(grabPoint.node) }
-                    local gpDistance = Utils.vector3Length(trans[1] - playerTrans[1], trans[2] - playerTrans[2], trans[3] - playerTrans[3])
+        if HoseSystemPlayerInteractive:getIsPlayerValid(true) and g_currentMission.hoseSystemHoses ~= nil then
+            for _, hoseSystem in pairs(g_currentMission.hoseSystemHoses) do
+                for index, grabPoint in pairs(hoseSystem.grabPoints) do
+                    if grabPoint.node ~= nil then
+                        local trans = { getWorldTranslation(grabPoint.node) }
+                        local gpDistance = Utils.vector3Length(trans[1] - playerTrans[1], trans[2] - playerTrans[2], trans[3] - playerTrans[3])
 
-                    playerDistance = Utils.getNoNil(grabPoint.playerDistance, playerDistance)
+                        playerDistance = Utils.getNoNil(grabPoint.playerDistance, playerDistance)
 
-                    if gpDistance < distance and gpDistance < playerDistance then
-                        if g_currentMission.player.hoseSystem.closestIndex == nil or g_currentMission.player.hoseSystem.closestHoseSystem == hoseSystem or g_currentMission.player.hoseSystem.closestDistance > gpDistance then
-                            g_currentMission.player.hoseSystem.closestIndex = index
-                            g_currentMission.player.hoseSystem.closestHoseSystem = hoseSystem
-                            g_currentMission.player.hoseSystem.closestDistance = gpDistance
+                        if gpDistance < distance and gpDistance < playerDistance then
+                            if g_currentMission.player.hoseSystem.closestIndex == nil or g_currentMission.player.hoseSystem.closestHoseSystem == hoseSystem or g_currentMission.player.hoseSystem.closestDistance > gpDistance then
+                                g_currentMission.player.hoseSystem.closestIndex = index
+                                g_currentMission.player.hoseSystem.closestHoseSystem = hoseSystem
+                                g_currentMission.player.hoseSystem.closestDistance = gpDistance
+                            end
+
+                            distance = gpDistance
                         end
-
-                        distance = gpDistance
                     end
                 end
             end
         end
-    end
 
-    if distance > playerDistance then
-        g_currentMission.player.hoseSystem.closestIndex = nil
-        g_currentMission.player.hoseSystem.closestHoseSystem = nil
-        g_currentMission.player.hoseSystem.closestDistance = nil
-    end
+        if distance > playerDistance then
+            g_currentMission.player.hoseSystem.closestIndex = nil
+            g_currentMission.player.hoseSystem.closestHoseSystem = nil
+            g_currentMission.player.hoseSystem.closestDistance = nil
+        end
     end
 end
 

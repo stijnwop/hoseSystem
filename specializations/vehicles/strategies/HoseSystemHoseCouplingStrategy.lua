@@ -399,7 +399,7 @@ function HoseSystemHoseCouplingStrategy:updateHoseSystem(allow, force)
                 local unitIndex = force and reference.fillUnitIndex or self.object.fillUnitIndex
                 local fillType = self.object:getUnitLastValidFillType(unitIndex)
 
-                lastHoseSystem:toggleEmptyingEffect(self.object, (allow and self.object.pumpIsStarted and self.object.fillDirection == HoseSystemPumpMotor.OUT) or (allow and force), lastGrabPoint.id > 1 and 1 or -1, lastGrabPoint.id, fillType)
+                lastHoseSystem:toggleEmptyingEffect((allow and self.object.pumpIsStarted and self.object.fillDirection == HoseSystemPumpMotor.OUT) or (allow and force), lastGrabPoint.id > 1 and 1 or -1, lastGrabPoint.id, fillType)
             end
         end
     end
