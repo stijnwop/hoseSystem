@@ -173,6 +173,7 @@ function HoseSystemRegistrationHelper:getIsPlayerInGrabPointRange()
         g_currentMission.player.hoseSystem = {}
     end
 
+    if g_currentMission.player ~= nil then
     local closestIndex
     local distance = math.huge
     local playerDistance = self.minDistance
@@ -205,6 +206,7 @@ function HoseSystemRegistrationHelper:getIsPlayerInGrabPointRange()
         g_currentMission.player.hoseSystem.closestIndex = nil
         g_currentMission.player.hoseSystem.closestHoseSystem = nil
         g_currentMission.player.hoseSystem.closestDistance = nil
+    end
     end
 end
 
