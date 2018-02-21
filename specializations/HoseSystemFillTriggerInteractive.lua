@@ -67,7 +67,7 @@ function HoseSystemFillTriggerInteractive:update(dt)
                 raycast(x, y, z, gp.raycastNode, self, 1)
 
                 if self.object.lastRaycastDistance ~= 0 then
-                    local isUnderFillplane, planeY = self.object.lastRaycastObject:checkPlaneY(y, { x, y, z })
+                    local isUnderFillplane, planeY = self.object.lastRaycastObject:checkPlaneY(y + gp.planeOffset, { x, y, z })
 
                     if isUnderFillplane and HoseSystemFillTriggerInteractive:allowFillTypeAffectDirtMask(self.object.lastRaycastObject.fillType) then
                         -- Todo: make this direction based!
@@ -113,7 +113,7 @@ function HoseSystemFillTriggerInteractive:update(dt)
         raycast(x, y, z, self.object.fillArm.node, self, 1)
 
         if self.object.lastRaycastDistance ~= 0 then
-            local isUnderFillplane, planeY = self.object.lastRaycastObject:checkPlaneY(y + self.object.fillArm.offset, { x, y, z })
+            local isUnderFillplane, _ = self.object.lastRaycastObject:checkPlaneY(y + self.object.fillArm.planeOffset, { x, y, z })
 
             if isUnderFillplane and HoseSystemFillTriggerInteractive:allowFillTypeAffectDirtMask(self.object.lastRaycastObject.fillType) then
                 if HoseSystem.debugRendering then

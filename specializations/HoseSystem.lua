@@ -214,6 +214,7 @@ function HoseSystem:loadGrabPoints(xmlFile, baseString)
                 id = i + 1, -- Table index
                 node = node,
                 raycastNode = Utils.indexToObject(self.components, getXMLString(xmlFile, key .. '#raycastNode')),
+                planeOffset = Utils.getNoNil(getXMLFloat(xmlFile, key .. '#planeOffset'), 0.085),
                 nodeOrgTrans = { getRotation(node) },
                 nodeOrgRot = { getRotation(node) },
                 playerJointRotLimit = { Utils.getNoNil(rx, 0), Utils.getNoNil(ry, 0), Utils.getNoNil(rz, 0) },
