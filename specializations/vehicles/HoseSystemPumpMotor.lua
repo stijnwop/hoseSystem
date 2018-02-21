@@ -225,15 +225,17 @@ end
 -- @param connection
 --
 function HoseSystemPumpMotor:readStream(streamId, connection)
-    self:setPumpStarted(streamReadBool(streamId), nil, true)
-    self:setFillDirection(streamReadUIntN(streamId, HoseSystemPumpMotor.sendNumBits), true)
-    self:setFillMode(streamReadUIntN(streamId, HoseSystemPumpMotor.sendNumBits), true)
+    if connection:getIsServer() then
+        self:setPumpStarted(streamReadBool(streamId), nil, true)
+        self:setFillDirection(streamReadUIntN(streamId, HoseSystemPumpMotor.sendNumBits), true)
+        self:setFillMode(streamReadUIntN(streamId, HoseSystemPumpMotor.sendNumBits), true)
 
-    self.fillObjectFound = streamReadBool(streamId)
-    self.fillFromFillVolume = streamReadBool(streamId)
-    self.fillUnitIndex = streamReadInt32(streamId)
-    self.fillObjectHasPlane = streamReadBool(streamId)
-    self.sourceObject = readNetworkNodeObject(streamId)
+        self.fillObjectFound = streamReadBool(streamId)
+        self.fillFromFillVolume = streamReadBool(streamId)
+        self.fillUnitIndex = streamReadInt32(streamId)
+        self.fillObjectHasPlane = streamReadBool(streamId)
+        self.sourceObject = readNetworkNodeObject(streamId)
+    end
 end
 
 ---
@@ -241,15 +243,17 @@ end
 -- @param connection
 --
 function HoseSystemPumpMotor:writeStream(streamId, connection)
-    streamWriteBool(streamId, self.pumpIsStarted)
-    streamWriteUIntN(streamId, self.fillDirection, HoseSystemPumpMotor.sendNumBits)
-    streamWriteUIntN(streamId, self.fillMode, HoseSystemPumpMotor.sendNumBits)
+    if not connection:getIsServer() then
+        streamWriteBool(streamId, self.pumpIsStarted)
+        streamWriteUIntN(streamId, self.fillDirection, HoseSystemPumpMotor.sendNumBits)
+        streamWriteUIntN(streamId, self.fillMode, HoseSystemPumpMotor.sendNumBits)
 
-    streamWriteBool(streamId, self.fillObjectFound)
-    streamWriteBool(streamId, self.fillFromFillVolume)
-    streamWriteInt32(streamId, self.fillUnitIndex)
-    streamWriteBool(streamId, self.fillObjectHasPlane)
-    writeNetworkNodeObject(streamId, self.sourceObject)
+        streamWriteBool(streamId, self.fillObjectFound)
+        streamWriteBool(streamId, self.fillFromFillVolume)
+        streamWriteInt32(streamId, self.fillUnitIndex)
+        streamWriteBool(streamId, self.fillObjectHasPlane)
+        writeNetworkNodeObject(streamId, self.sourceObject)
+    end
 end
 
 ---
@@ -453,7 +457,7 @@ function HoseSystemPumpMotor:draw()
         else
             if self.fillObjectFound or self.fillFromFillVolume then
                 if not self.pumpIsStarted then
-                    if self.fillUnitIndex ~= 0 then
+                    if self.fillUnitIndex ~= 0 and self.sourceObject ~= nil then
                         local fillType = self.sourceObject.fillUnits[self.fillUnitIndex].currentFilltype
 
                         if self.sourceObject:getFillLevel(fillType) > 0 then
