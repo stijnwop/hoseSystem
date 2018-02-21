@@ -583,13 +583,22 @@ function HoseSystemPumpMotor:allowPumpStarted()
     return true
 end
 
-function HoseSystemPumpMotor:handlePump(fillMode, dt)
+---
+-- @param fillMode
+-- @param dt
+-- @param isAbleToPump
+--
+function HoseSystemPumpMotor:handlePump(fillMode, dt, isAbleToPump)
     if not self.isServer then
         return
     end
 
     if self:getFillMode() == fillMode then
         local isSucking = self.fillObjectFound
+
+        if isAbleToPump ~= nil and not isAbleToPump then
+            isSucking = false
+        end
 
         if self.pumpIsStarted and self.fillObject ~= nil then
             local fillDirection = self:getFillDirection()

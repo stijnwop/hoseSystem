@@ -29,7 +29,7 @@ end
 -- @param entry
 --
 function HoseSystemArmStrategy:load(xmlFile, key, entry)
-    entry.offset = Utils.getNoNil(getXMLFloat(xmlFile, key .. '#offset'), 0)
+    entry.planeOffset = Utils.getNoNil(getXMLFloat(xmlFile, key .. '#planeOffset'), 0)
 
     self.object.supportedFillTypes = {}
 
@@ -62,6 +62,21 @@ function HoseSystemArmStrategy:updateTick(dt)
             self.object:removeFillObject(self.object.lastRaycastObject, self.object.pumpMotorFillArmMode)
         end
 
-        self.object:handlePump(self.object.pumpMotorFillArmMode, dt)
+        local fillDirection = self.object:getFillDirection()
+        local isAbleToPump = true
+
+        -- if fill direction is IN we have some exceptions
+        if fillDirection == HoseSystemPumpMotor.IN then
+            if self.object.fillObjectHasPlane and self.object.fillObject.checkPlaneY ~= nil then
+                if self.object.lastRaycastDistance ~= 0 then
+                    local x, y, z = getWorldTranslation(self.object.fillArm.node)
+                    local isUnderFillplane, _ = self.object.lastRaycastObject:checkPlaneY(y + self.object.fillArm.planeOffset, { x, y, z })
+
+                    isAbleToPump = isUnderFillplane
+                end
+            end
+        end
+
+        self.object:handlePump(self.object.pumpMotorFillArmMode, dt, isAbleToPump)
     end
 end
