@@ -387,6 +387,8 @@ function HoseSystemPlayerInteractiveHandling:attach(index, vehicle, referenceId,
                 end
             end
 
+            object:onConnectorAttach(referenceId, self.object)
+
             -- force the mesh updates again
             if self.object.isClient then
                 self.object:updateSpline(true)
@@ -445,6 +447,8 @@ function HoseSystemPlayerInteractiveHandling:detach(index, vehicle, referenceId,
                 self:hardDisconnect(grabPoint, object, reference)
             end
 
+            object:onConnectorDetach(referenceId)
+
             for _, grabPoint in pairs(grabPoints) do
                 if self.object.isServer then
                     setTranslation(grabPoint.node, unpack(grabPoint.nodeOrgTrans))
@@ -498,30 +502,32 @@ function HoseSystemPlayerInteractiveHandling:setGrabPointIsUsed(index, isConnect
         isCalledFromReference = false
     end
 
+    -- Todo: i want to get rid of this crap.
+
     -- event
     HoseSystemIsUsedEvent.sendEvent(self.object, index, isConnected, isExtendable, isCalledFromReference, noEventSend)
 
     local grabPoint = self.object.grabPoints[index]
 
     if grabPoint ~= nil then
-        local vehicle = HoseSystemReferences:getReferenceVehicle(grabPoint.connectorVehicle)
+--        local vehicle = HoseSystemReferences:getReferenceVehicle(grabPoint.connectorVehicle)
 
         grabPoint.state = isConnected and HoseSystem.STATE_CONNECTED or HoseSystem.STATE_DETACHED
         grabPoint.hasJointIndex = not isCalledFromReference and isConnected -- tell clients on which grabPoint to call the detach function on
 
-        if vehicle ~= nil and not isCalledFromReference then
-            local reference = HoseSystemReferences:getReference(grabPoint.connectorVehicle, grabPoint.connectorRefId, grabPoint)
+--        if vehicle ~= nil and not isCalledFromReference then
+--            local reference = HoseSystemReferences:getReference(grabPoint.connectorVehicle, grabPoint.connectorRefId, grabPoint)
 
             -- we have to call on depending objects to tell that we are connecting
-            if self.object.isServer then
+--            if self.object.isServer then
                 -- call reference functions
-                if reference.connectable or isExtendable then
-                    vehicle.poly.interactiveHandling:setGrabPointIsUsed(reference.id, isConnected, grabPoint.connectable, true)
-                else
-                    vehicle:setIsUsed(reference.id, isConnected, isConnected and self.object or nil)
-                end
-            end
-        end
+--                if reference.connectable or isExtendable then
+--                    vehicle.poly.interactiveHandling:setGrabPointIsUsed(reference.id, isConnected, grabPoint.connectable, true)
+--                else
+--                    vehicle:setIsUsed(reference.id, isConnected, isConnected and self.object or nil)
+--                end
+--            end
+--        end
     end
 end
 

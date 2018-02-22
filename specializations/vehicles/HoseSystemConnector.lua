@@ -31,6 +31,8 @@ function HoseSystemConnector:preLoad(savegame)
     self.setIsUsed = HoseSystemConnector.setIsUsed
     self.setIsDockUsed = HoseSystemConnector.setIsDockUsed
     self.getIsPlayerInReferenceRange = HoseSystemConnector.getIsPlayerInReferenceRange
+    self.onConnectorAttach = HoseSystemConnector.onConnectorAttach
+    self.onConnectorDetach = HoseSystemConnector.onConnectorDetach
 
     -- overwrittenFunctions
     self.getIsOverloadingAllowed = Utils.overwrittenFunction(self.getIsOverloadingAllowed, HoseSystemConnector.getIsOverloadingAllowed)
@@ -274,8 +276,10 @@ function HoseSystemConnector:getIsPlayerInReferenceRange()
     local playerDistanceSequence = HoseSystemConnector.PLAYER_DISTANCE
 
     if self.hoseSystemReferences ~= nil then
-        for referenceId, reference in pairs(self.hoseSystemReferences) do
-            if reference.isUsed and not reference.parkable and reference.hoseSystem ~= nil then
+        for referenceId, _ in pairs(self.attachedHoseSystemReferences) do
+            local reference = self.hoseSystemReferences[referenceId]
+
+            if reference ~= nil and reference.isUsed and not reference.parkable and reference.hoseSystem ~= nil then
                 local trans = { getWorldTranslation(reference.node) }
                 local distance = Utils.vector3Length(trans[1] - playerTrans[1], trans[2] - playerTrans[2], trans[3] - playerTrans[3])
 
@@ -426,4 +430,38 @@ end
 --
 function HoseSystemConnector:getIsOverloadingAllowed()
     return false
+end
+
+function HoseSystemConnector:onConnectorAttach(referenceId, hoseSystem)
+    -- Todo: make this strategy based?
+    -- register attached hoses this way
+    local reference = self.hoseSystemReferences[referenceId]
+
+    if reference ~= nil and self.attachedHoseSystemReferences[referenceId] == nil then
+        self.attachedHoseSystemReferences[referenceId] = true
+        HoseSystemUtil:log(HoseSystemUtil.DEBUG, "register attached hose")
+        HoseSystemUtil:log(HoseSystemUtil.DEBUG, self.attachedHoseSystemReferences)
+    end
+
+    if self.isServer then
+        self:setIsUsed(referenceId, true, hoseSystem)
+    end
+end
+
+function HoseSystemConnector:onConnectorDetach(referenceId)
+    local reference = self.hoseSystemReferences[referenceId]
+
+    if self.isServer then
+        self:setIsUsed(referenceId, false)
+
+        if self.hasHoseSystemPumpMotor then
+            self:removeFillObject(self.fillObject, self.pumpMotorFillMode)
+        end
+    end
+
+    if reference ~= nil and self.attachedHoseSystemReferences[referenceId] then
+        self.attachedHoseSystemReferences[referenceId] = nil
+        HoseSystemUtil:log(HoseSystemUtil.DEBUG, "unregister attached hose")
+        HoseSystemUtil:log(HoseSystemUtil.DEBUG, self.attachedHoseSystemReferences)
+    end
 end

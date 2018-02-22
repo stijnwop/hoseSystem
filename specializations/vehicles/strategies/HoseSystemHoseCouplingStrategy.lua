@@ -42,6 +42,7 @@ function HoseSystemHoseCouplingStrategy:new(object, mt)
     self.fillLevelChanged = false
     self.changedReferenceIds = {}
 
+    object.attachedHoseSystemReferences = {}
     object.queuedReferences = {}
     object.lastQueuedReferences = {}
 
@@ -80,12 +81,26 @@ function HoseSystemHoseCouplingStrategy:readUpdateStream(streamId, timestamp, co
     if connection:getIsServer() then
         if streamReadBool(streamId) then
             self.fillLevelChanged = streamReadBool(streamId)
-            self.changedReferenceIds = {}
 
-            for id = 1, streamReadInt8(streamId) do
-                local referenceId = streamReadUIntN(streamId, HoseSystemUtil.eventHelper.REFERENCES_NUM_SEND_BITS) + 1
-                table.insert(self.changedReferenceIds, referenceId)
+--            self.changedReferenceIds = {}
+
+            if HoseSystem.debugRendering then
+                HoseSystemUtil:log(HoseSystemUtil.DEBUG, 'Coupling readUpdateStream [fillLevelChanged] = ' .. tostring(self.fillLevelChanged))
             end
+
+            for referenceId, entry in pairs(self.object.queuedReferences) do
+                entry.showEffect = streamReadBool(streamId)
+            end
+
+--            for id = 1, streamReadInt8(streamId) do
+--                local referenceId = streamReadUIntN(streamId, HoseSystemUtil.eventHelper.REFERENCES_NUM_SEND_BITS) + 1
+--
+--                if HoseSystem.debugRendering then
+--                    HoseSystemUtil:log(HoseSystemUtil.DEBUG, 'Coupling readUpdateStream active references [referenceId] = ' .. tostring(referenceId))
+--                end
+--
+--                table.insert(self.changedReferenceIds, referenceId)
+--            end
         end
     end
 end
@@ -98,14 +113,27 @@ end
 function HoseSystemHoseCouplingStrategy:writeUpdateStream(streamId, connection, dirtyMask)
     if not connection:getIsServer() then
         if streamWriteBool(streamId, bitAND(dirtyMask, self.object.fillLevelChangedDirtyFlag) ~= 0) then
-            local numChanged = #self.changedReferenceIds
+--            local numChanged = #self.changedReferenceIds
 
             streamWriteBool(streamId, self.fillLevelChanged)
-            streamWriteInt8(streamId, numChanged)
 
-            for id = 1, numChanged do
-                streamWriteUIntN(streamId, self.changedReferenceIds[id] - 1, HoseSystemUtil.eventHelper.REFERENCES_NUM_SEND_BITS)
+            for referenceId, entry in pairs(self.object.queuedReferences) do
+                streamWriteBool(streamId, entry.showEffect)
             end
+
+--            streamWriteInt8(streamId, numChanged)
+--
+--            if HoseSystem.debugRendering then
+--                HoseSystemUtil:log(HoseSystemUtil.DEBUG, 'Coupling writeUpdateStream [fillLevelChanged] = ' .. tostring(self.fillLevelChanged))
+--            end
+--
+--            for id = 1, numChanged do
+--                streamWriteUIntN(streamId, self.changedReferenceIds[id] - 1, HoseSystemUtil.eventHelper.REFERENCES_NUM_SEND_BITS)
+--
+--                if HoseSystem.debugRendering then
+--                    HoseSystemUtil:log(HoseSystemUtil.DEBUG, 'Coupling writeUpdateStream active references [referenceId] = ' .. tostring(self.changedReferenceIds[id]))
+--                end
+--            end
         end
     end
 end
@@ -132,6 +160,10 @@ function HoseSystemHoseCouplingStrategy:readStream(streamId, connection)
 
             self.object:toggleLock(id, streamReadBool(streamId), false, true)
             self.object:toggleManureFlow(id, streamReadBool(streamId), false, true)
+
+            if reference.isUsed and self.object.attachedHoseSystemReferences[reference.id] == nil then
+                self.object.attachedHoseSystemReferences[reference.id] = true
+            end
         end
     end
 end
@@ -296,6 +328,12 @@ function HoseSystemHoseCouplingStrategy:updateTick(dt)
         self:updateQueuedReferencesGraphics(update, self.fillLevelChanged)
     end
 
+    if self.fillLevelChanged ~= self.lastFillLevelChanged or self.changedReferenceIds ~= self.lastChangedReferenceIds then
+        self.object:raiseDirtyFlags(self.object.fillLevelChangedDirtyFlag)
+        self.lastFillLevelChanged = self.fillLevelChanged
+        self.lastChangedReferenceIds = self.changedReferenceIds
+    end
+
     self:findFillObject(dt)
 
     -- Todo: Moved feature to version 1.1 determine pump efficiency based on hose chain lenght
@@ -342,12 +380,6 @@ function HoseSystemHoseCouplingStrategy:updateTick(dt)
             end
         end
     end
-
-    if self.fillLevelChanged ~= self.lastFillLevelChanged or self.changedReferenceIds ~= self.lastChangedReferenceIds then
-        self.object:raiseDirtyFlags(self.object.fillLevelChangedDirtyFlag)
-        self.lastFillLevelChanged = self.fillLevelChanged
-        self.lastChangedReferenceIds = self.changedReferenceIds
-    end
 end
 
 ---
@@ -393,28 +425,26 @@ function HoseSystemHoseCouplingStrategy:findFillObject(dt)
     end
 
     self.fillLevelChanged = false
-    self.changedReferenceIds = {}
-
-    if self.object.hasHoseSystemPumpMotor then
-        self.object:removeFillObject(self.object.fillObject, self.object.pumpMotorFillMode)
-    end
+--    self.changedReferenceIds = {}
 
     for referenceId, entry in pairs(self.object.queuedReferences) do
         local reference = self.object.hoseSystemReferences[referenceId]
 
         if reference ~= nil then
             if entry.lastGrabPoint ~= nil then
+                local fillObject
+                local isRayCasted = false
+
                 if HoseSystem:getIsConnected(entry.lastGrabPoint.state) and not entry.lastGrabPoint.connectable then
-                    if self.object.hasHoseSystemPumpMotor and not self.object.fillObjectFound then
+                    if self.object.hasHoseSystemPumpMotor then
                         local lastVehicle = HoseSystemReferences:getReferenceVehicle(entry.lastGrabPoint.connectorVehicle)
                         local lastReference = lastVehicle.hoseSystemReferences[entry.lastGrabPoint.connectorRefId]
 
                         if lastReference ~= nil and lastVehicle ~= nil and lastVehicle.grabPoints == nil then -- checks if it's not a hose!
                             if lastReference.isUsed and lastReference.flowOpened and lastReference.isLocked then
                                 if lastReference.isObject or SpecializationUtil.hasSpecialization(Fillable, lastVehicle.specializations) then
-                                    -- check fill units to allow
                                     entry.isActive = true
-                                    self.object:addFillObject(lastVehicle, self.object.pumpMotorFillMode, false)
+                                    fillObject = lastVehicle
                                 end
                             end
                         end
@@ -425,10 +455,14 @@ function HoseSystemHoseCouplingStrategy:findFillObject(dt)
                     -- check what the lastGrabPoint has on it's raycast
                     if hoseSystem ~= nil and reference.flowOpened then
                         if hoseSystem.lastRaycastDistance ~= 0 and hoseSystem.lastRaycastObject ~= nil then
-                            if self.object.hasHoseSystemPumpMotor and not self.object.fillObjectFound then
-                                self.object:addFillObject(hoseSystem.lastRaycastObject, self.object.pumpMotorFillMode, true)
+                            if self.object.hasHoseSystemPumpMotor then
                                 entry.isActive = true
-                                table.insert(self.changedReferenceIds, referenceId)
+                                entry.showEffect = true
+
+                                isRayCasted = true
+                                fillObject = hoseSystem.lastRaycastObject
+
+--                                table.insert(self.changedReferenceIds, referenceId)
                             end
                         elseif reference.manureFlowAnimationName ~= nil then
                             local fillType = self.object:getUnitLastValidFillType(reference.fillUnitIndex)
@@ -438,11 +472,22 @@ function HoseSystemHoseCouplingStrategy:findFillObject(dt)
                                 local deltaFillLevel = math.min(HoseSystemHoseCouplingStrategy.EMPTY_LITER_PER_SECOND * dt / 1000, fillLevel)
 
                                 self.fillLevelChanged = true
-                                table.insert(self.changedReferenceIds, referenceId)
+                                entry.showEffect = true
+--                                table.insert(self.changedReferenceIds, referenceId)
 
                                 self.object:setFillLevel(fillLevel - deltaFillLevel, fillType)
                             end
                         end
+                    end
+                end
+
+                if entry.isActive then
+                    if not self.object.fillObjectFound then
+                        self.object:addFillObject(fillObject, self.object.pumpMotorFillMode, isRayCasted)
+                    end
+                else
+                    if self.object.fillObjectFound then
+                        self.object:removeFillObject(fillObject, self.object.pumpMotorFillMode)
                     end
                 end
             end
@@ -455,15 +500,18 @@ end
 function HoseSystemHoseCouplingStrategy:priorityQueueReferences()
     local references = {}
 
-    for id, reference in pairs(self.object.hoseSystemReferences) do
-        if reference.isUsed and reference.isLocked then
+    for id, _ in pairs(self.object.attachedHoseSystemReferences) do
+        local reference = self.object.hoseSystemReferences[id]
+
+        if reference ~= nil and reference.isUsed and reference.isLocked then
             if reference.hoseSystem ~= nil and reference.grabPointId ~= nil then
                 local otherGrabPointId = HoseSystemConnector:getFillableVehicle(reference.grabPointId, #reference.hoseSystem.grabPoints)
                 local lastGrabPoint, lastHoseSystem = self:getLastGrabpointRecursively(reference.hoseSystem.grabPoints[otherGrabPointId], reference.hoseSystem)
-                local entry = { grabPointId = reference.grabPointId, lastGrabPoint = lastGrabPoint, lastHoseSystem = lastHoseSystem, showEffect = false }
+                local entry = { grabPointId = reference.grabPointId, lastGrabPoint = lastGrabPoint, lastHoseSystem = lastHoseSystem }
 
                 if self.object.isServer then
                     entry.isActive = false
+                    entry.showEffect = false
                 end
 
                 references[id] = entry
@@ -511,7 +559,7 @@ function HoseSystemHoseCouplingStrategy:updateQueuedReferencesGraphics(allow, fo
                 local unitIndex = force and reference.fillUnitIndex or self.object.fillUnitIndex
                 local fillType = self.object:getUnitLastValidFillType(unitIndex)
 
-                entry.showEffect = HoseSystemUtil.getHasListElement(self.changedReferenceIds, referenceId)
+--                entry.showEffect = HoseSystemUtil.getHasListElement(self.changedReferenceIds, referenceId)
 
                 -- Todo: make this more readable
                 entry.lastHoseSystem:toggleEmptyingEffect((entry.showEffect and allow and self.object.pumpIsStarted and self.object.fillDirection == HoseSystemPumpMotor.OUT) or (entry.showEffect and allow and force), entry.lastGrabPoint.id > 1 and 1 or -1, entry.lastGrabPoint.id, fillType)

@@ -57,6 +57,8 @@ function HoseSystemLiquidManureFillTrigger:load(superFunc, nodeId, fillLevelObje
         self.setIsUsed = HoseSystemLiquidManureFillTrigger.setIsUsed
         self.toggleLock = HoseSystemLiquidManureFillTrigger.toggleLock
         self.toggleManureFlow = HoseSystemLiquidManureFillTrigger.toggleManureFlow
+        self.onConnectorAttach = HoseSystemLiquidManureFillTrigger.onConnectorAttach
+        self.onConnectorDetach = HoseSystemLiquidManureFillTrigger.onConnectorDetach
 
         -- detection for hose
         self.checkPlaneY = HoseSystemLiquidManureFillTrigger.checkPlaneY
@@ -70,6 +72,7 @@ function HoseSystemLiquidManureFillTrigger:load(superFunc, nodeId, fillLevelObje
         self.components = {}
         self.referenceNodes = {}
         self.hoseSystemReferences = {}
+        self.attachedHoseSystemReferences = {}
 
         local baseDirectory = g_currentMission.loadingMapBaseDirectory
 
@@ -320,15 +323,17 @@ end
 -- @param playerTrans
 --
 function HoseSystemLiquidManureFillTrigger:getNearestReference(playerTrans)
-    if self.hoseSystemReferences == nil then
+    if self.hoseSystemReferences == nil or next(self.attachedHoseSystemReferences) == nil then
         return nil
     end
 
     local x, y, z = unpack(playerTrans)
     local nearestDisSequence = HoseSystemLiquidManureFillTrigger.PLAYER_DISTANCE
 
-    for referenceIndex, reference in pairs(self.hoseSystemReferences) do
-        if reference.isUsed and reference.hoseSystem ~= nil then
+    for referenceId, _ in pairs(self.attachedHoseSystemReferences) do
+        local reference = self.hoseSystemReferences[referenceId]
+
+        if reference ~= nil and reference.isUsed and reference.hoseSystem ~= nil then
             for grabPointIndex, grabPoint in pairs(reference.hoseSystem.grabPoints) do
                 if HoseSystem:getIsConnected(grabPoint.state) and grabPoint.connectorRefId == referenceIndex then
                     local gx, gy, gz = getWorldTranslation(reference.node)
@@ -541,7 +546,6 @@ end
 -- @param noEventSend
 --
 function HoseSystemLiquidManureFillTrigger:toggleManureFlow(index, state, force, noEventSend)
-
     local reference = self.hoseSystemReferences[index]
 
     if reference ~= nil and reference.flowOpened ~= state or force then
@@ -580,6 +584,35 @@ function HoseSystemLiquidManureFillTrigger:setIsUsed(index, state, hoseSystem, n
         if reference.manureFlowAnimatedObjectSaveId == nil then
             self:toggleManureFlow(index, state, true)
         end
+    end
+end
+
+function HoseSystemLiquidManureFillTrigger:onConnectorAttach(referenceId, hoseSystem)
+    -- register attached hoses this way
+    local reference = self.hoseSystemReferences[referenceId]
+
+    if reference ~= nil and self.attachedHoseSystemReferences[referenceId] == nil then
+        self.attachedHoseSystemReferences[referenceId] = true
+        HoseSystemUtil:log(HoseSystemUtil.DEBUG, "register attached hose by object")
+        HoseSystemUtil:log(HoseSystemUtil.DEBUG, self.attachedHoseSystemReferences)
+    end
+
+    if self.fillLevelObject.isServer then
+        self:setIsUsed(referenceId, true, hoseSystem)
+    end
+end
+
+function HoseSystemLiquidManureFillTrigger:onConnectorDetach(referenceId)
+    local reference = self.hoseSystemReferences[referenceId]
+
+    if self.fillLevelObject.isServer then
+        self:setIsUsed(referenceId, false)
+    end
+
+    if reference ~= nil and self.attachedHoseSystemReferences[referenceId] then
+        self.attachedHoseSystemReferences[referenceId] = nil
+        HoseSystemUtil:log(HoseSystemUtil.DEBUG, "unregister attached hose by object")
+        HoseSystemUtil:log(HoseSystemUtil.DEBUG, self.attachedHoseSystemReferences)
     end
 end
 
