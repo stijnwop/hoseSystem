@@ -438,9 +438,11 @@ function HoseSystemConnector:onConnectorAttach(referenceId, hoseSystem)
     local reference = self.hoseSystemReferences[referenceId]
 
     if reference ~= nil and self.attachedHoseSystemReferences[referenceId] == nil then
-        self.attachedHoseSystemReferences[referenceId] = true
-        HoseSystemUtil:log(HoseSystemUtil.DEBUG, "register attached hose")
-        HoseSystemUtil:log(HoseSystemUtil.DEBUG, self.attachedHoseSystemReferences)
+        self.attachedHoseSystemReferences[referenceId] = {
+            showEffect = false
+        }
+
+        HoseSystemUtil:log(HoseSystemUtil.DEBUG, "Registered new hose! Total: " .. #self.attachedHoseSystemReferences)
     end
 
     if self.isServer then
@@ -461,7 +463,6 @@ function HoseSystemConnector:onConnectorDetach(referenceId)
 
     if reference ~= nil and self.attachedHoseSystemReferences[referenceId] then
         self.attachedHoseSystemReferences[referenceId] = nil
-        HoseSystemUtil:log(HoseSystemUtil.DEBUG, "unregister attached hose")
-        HoseSystemUtil:log(HoseSystemUtil.DEBUG, self.attachedHoseSystemReferences)
+        HoseSystemUtil:log(HoseSystemUtil.DEBUG, "Unregistered hose: " .. #self.attachedHoseSystemReferences)
     end
 end
