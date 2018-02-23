@@ -244,6 +244,18 @@ function HoseSystem:loadGrabPoints(xmlFile, baseString)
 
         i = i + 1 -- i++
     end
+
+    local firstGrabPointIndex = Utils.getNoNil(getXMLInt(xmlFile, baseString .. '#firstGrabPointIndex'), HoseSystemUtil:getFirstElement(self.grabPoints))
+    local lastGrabPointIndex = Utils.getNoNil(getXMLInt(xmlFile, baseString .. '#lastGrabPointIndex'), HoseSystemUtil:getLastElement(self.grabPoints))
+
+    if self.grabPoints[firstGrabPointIndex] == nil or self.grabPoints[lastGrabPointIndex] == nil then
+        HoseSystemUtil:log(HoseSystemUtil.ERROR, 'Invalid firstGrabPoint or lastGrabPoint index, please check your XML!')
+    end
+
+    self.grabPointData = {
+        firstIndex = firstGrabPointIndex,
+        lastIndex = lastGrabPointIndex
+    }
 end
 
 ---
@@ -663,6 +675,15 @@ function HoseSystem:getDetachedReferenceGrabPoints(object, referenceId)
 end
 
 ---
+-- @param object
+-- @param grabPointId
+-- @return int
+--
+function HoseSystem.getOtherGrabPointId(object, grabPointId)
+    return grabPointId == object.grabPointData.firstIndex and object.grabPointData.lastIndex or object.grabPointData.firstIndex
+end
+
+---
 -- @param index
 -- @param shouldLock
 -- @param noEventSend
@@ -682,11 +703,10 @@ end
 
 ---
 -- @param activate
--- @param yDirectionSpeed
 -- @param index
 -- @param fillType
 --
-function HoseSystem:toggleEmptyingEffect(activate, yDirectionSpeed, index, fillType)
+function HoseSystem:toggleEmptyingEffect(activate, index, fillType)
     if self.hoseEffects ~= nil and self.hoseEffects.isActive ~= activate then
         self.hoseEffects.isActive = activate
 
