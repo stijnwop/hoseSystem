@@ -592,7 +592,10 @@ function HoseSystemLiquidManureFillTrigger:onConnectorAttach(referenceId, hoseSy
     local reference = self.hoseSystemReferences[referenceId]
 
     if reference ~= nil and self.attachedHoseSystemReferences[referenceId] == nil then
-        self.attachedHoseSystemReferences[referenceId] = true
+        self.attachedHoseSystemReferences[referenceId] = {
+            showEffect = false
+        }
+
         HoseSystemUtil:log(HoseSystemUtil.DEBUG, "register attached hose by object")
         HoseSystemUtil:log(HoseSystemUtil.DEBUG, self.attachedHoseSystemReferences)
     end
