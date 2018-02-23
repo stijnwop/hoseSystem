@@ -33,7 +33,7 @@
     <hoseSystem centerNode="1>0" supportedFillTypeCategories="slurryTank">
         <jointSpline rootJointNode="0>0|0" numJoints="6"/>
 
-        <grabPoints>
+        <grabPoints firstGrabPointIndex="1" lastGrabPointIndex="2">
             <grabPoint node="0>1" raycastNode="0>0|0|2" componentIndex="0" playerJointRotLimit="40 40 40"
                        playerJointTransLimit="5 5 5"/> <!-- componentChildNode="0>3" /> -->
             <grabPoint node="2>0" raycastNode="0>0|0|0|0|0|0|0|0" componentIndex="2" playerJointRotLimit="40 40 40"
