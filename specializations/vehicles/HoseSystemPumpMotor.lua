@@ -234,7 +234,10 @@ function HoseSystemPumpMotor:readStream(streamId, connection)
         self.fillFromFillVolume = streamReadBool(streamId)
         self.fillUnitIndex = streamReadInt32(streamId)
         self.fillObjectHasPlane = streamReadBool(streamId)
-        self.sourceObject = readNetworkNodeObject(streamId)
+
+        if streamReadBool(streamId) then
+            self.sourceObjectNetworkId = readNetworkNodeObjectId(streamId)
+        end
     end
 end
 
@@ -252,7 +255,14 @@ function HoseSystemPumpMotor:writeStream(streamId, connection)
         streamWriteBool(streamId, self.fillFromFillVolume)
         streamWriteInt32(streamId, self.fillUnitIndex)
         streamWriteBool(streamId, self.fillObjectHasPlane)
-        writeNetworkNodeObject(streamId, self.sourceObject)
+
+        local writeNetworkSourceObject = self.sourceObject ~= nil and self.sourceObject ~= self
+        streamWriteBool(streamId, writeNetworkSourceObject)
+
+        -- Only write source object when we have a different source than ourselves
+        if writeNetworkSourceObject then
+            writeNetworkNodeObjectId(streamId, networkGetObjectId(self.sourceObject))
+        end
     end
 end
 
@@ -296,6 +306,20 @@ end
 -- @param dt
 --
 function HoseSystemPumpMotor:update(dt)
+    if self.firstTimeRun and self.fillObjectFound then
+        if self.sourceObjectNetworkId ~= nil then
+            local networkSourceObject = networkGetObject(self.sourceObjectNetworkId)
+
+            if networkSourceObject ~= nil then
+                self.sourceObject = networkSourceObject
+                self.sourceObjectNetworkId = nil
+            end
+        else
+            -- we are the source
+            self.sourceObject = self
+        end
+    end
+
     if self:getIsActive() then
         if self:getIsActiveForInput() and not self:hasInputConflictWithSelection() then
             if InputBinding.hasEvent(InputBinding.ACTIVATE_OBJECT) then
