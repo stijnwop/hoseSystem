@@ -49,16 +49,12 @@ end
 ---
 --
 function HoseSystemHoseCouplingStrategy:preDelete()
-    if self.object.hoseSystemReferences ~= nil and g_currentMission.hoseSystemHoses ~= nil then
-        for referenceId, reference in pairs(self.object.hoseSystemReferences) do
-            if reference.isUsed then
-                if reference.hoseSystem ~= nil and reference.hoseSystem.grabPoints ~= nil then
-                    for grabPointIndex, grabPoint in pairs(reference.hoseSystem.grabPoints) do
-                        if HoseSystem:getIsConnected(grabPoint.state) and grabPoint.connectorRefId == referenceId then
-                            reference.hoseSystem.poly.interactiveHandling:detach(grabPointIndex, self.object, referenceId, false)
-                        end
-                    end
-                end
+    if self.object.isServer and self.object.attachedHoseSystemReferences ~= nil and g_currentMission.hoseSystemHoses ~= nil then
+        for referenceId, entry in pairs(self.object.attachedHoseSystemReferences) do
+            local reference = self.object.hoseSystemReferences[referenceId]
+
+            if reference.isUsed and reference.hoseSystem ~= nil then
+                reference.hoseSystem.poly.interactiveHandling:detach(reference.grabPointId, self.object, referenceId, false)
             end
         end
     end
@@ -488,12 +484,12 @@ end
 
 ---
 -- @param hoseSystem
--- @param object
+-- @param referenceId
 --
-function HoseSystemHoseCouplingStrategy.getGrabPointIdFromReference(hoseSystem, object)
+function HoseSystemHoseCouplingStrategy.getGrabPointIdFromReference(hoseSystem, referenceId)
     if hoseSystem ~= nil and hoseSystem.grabPoints ~= nil then
         for id, grabPoint in pairs(hoseSystem.grabPoints) do
-            if HoseSystem:getIsConnected(grabPoint.state) and grabPoint.connectorVehicle == object then
+            if HoseSystem:getIsConnected(grabPoint.state) and grabPoint.connectorRefId == referenceId then -- and grabPoint.connectorVehicle == object then
                 return id
             end
         end

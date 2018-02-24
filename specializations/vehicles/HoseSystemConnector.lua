@@ -373,7 +373,7 @@ function HoseSystemConnector:setIsUsed(index, state, hoseSystem, noEventSend)
 
             reference.isUsed = state
             reference.hoseSystem = hoseSystem
-            reference.grabPointId = HoseSystemHoseCouplingStrategy.getGrabPointIdFromReference(hoseSystem, self)
+            reference.grabPointId = HoseSystemHoseCouplingStrategy.getGrabPointIdFromReference(hoseSystem, index)
 
             if not reference.parkable then
                 if reference.lockAnimationName == nil then
