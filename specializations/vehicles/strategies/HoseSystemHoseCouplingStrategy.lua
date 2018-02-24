@@ -80,6 +80,11 @@ function HoseSystemHoseCouplingStrategy:readUpdateStream(streamId, timestamp, co
             for referenceId, entry in pairs(self.object.attachedHoseSystemReferences) do
                 entry.showEffect = streamReadBool(streamId)
 
+                if streamReadBool(streamId) then
+                    entry.lastGrabPointId = streamReadUIntN(streamId, HoseSystemUtil.eventHelper.GRABPOINTS_NUM_SEND_BITS) + 1
+                    entry.lastHoseSystem = readNetworkNodeObject(streamId)
+                end
+
                 if HoseSystem.debugRendering then
                     HoseSystemUtil:log(HoseSystemUtil.DEBUG, 'Coupling readUpdateStream active references [referenceId] = ' .. tostring(referenceId) .. " [showEffect] = " .. tostring(entry.showEffect))
                 end
@@ -100,6 +105,16 @@ function HoseSystemHoseCouplingStrategy:writeUpdateStream(streamId, connection, 
         if streamWriteBool(streamId, bitAND(dirtyMask, self.object.fillLevelChangedDirtyFlag) ~= 0) then
             for _, entry in pairs(self.object.attachedHoseSystemReferences) do
                 streamWriteBool(streamId, entry.showEffect)
+
+                local writeAdditional = entry.lastGrabPointId ~= nil and entry.lastHoseSystem ~= nil
+
+                streamWriteBool(streamId, writeAdditional)
+
+                if writeAdditional then
+                    streamWriteUIntN(streamId, entry.lastGrabPointId - 1, HoseSystemUtil.eventHelper.GRABPOINTS_NUM_SEND_BITS)
+                    writeNetworkNodeObject(streamId, entry.lastHoseSystem)
+                end
+
                 entry.sendShowEffect = entry.showEffect
             end
         end
@@ -437,6 +452,10 @@ function HoseSystemHoseCouplingStrategy:findFillObject(dt)
         end
 
         if entry.sendShowEffect ~= entry.showEffect then
+            if not g_currentMission.missionDynamicInfo.isMultiplayer then
+                entry.sendShowEffect = entry.showEffect
+            end
+
             self.object:raiseDirtyFlags(self.object.fillLevelChangedDirtyFlag)
             self:updateQueuedReferencesGraphics(referenceId)
         end
@@ -456,6 +475,7 @@ function HoseSystemHoseCouplingStrategy:priorityQueueReferences()
 
                 entry.grabPointId = reference.grabPointId
                 entry.lastGrabPoint = lastGrabPoint
+                entry.lastGrabPointId = lastGrabPoint.id
                 entry.lastHoseSystem = lastHoseSystem
 
                 if self.object.isServer then
@@ -482,7 +502,9 @@ function HoseSystemHoseCouplingStrategy.getGrabPointIdFromReference(hoseSystem, 
     return nil
 end
 
-
+---
+-- @param referenceId
+--
 function HoseSystemHoseCouplingStrategy:updateQueuedReferencesGraphics(referenceId)
     if not self.object.isClient then
         return
@@ -494,21 +516,15 @@ function HoseSystemHoseCouplingStrategy:updateQueuedReferencesGraphics(reference
 
     local allow = true
 
-    if self.object.fillObjectHasPlane then
-        if self.object.fillObjectFound or self.object.fillFromFillVolume then
-            allow = true -- Todo: fix this later
-        end
-    else
-        if not self.object.fillObjectFound and self.object.pumpIsStarted then
-            allow = false
-        end
+    if not self.object.fillObjectFound and self.object.pumpIsStarted then
+        allow = false
     end
 
     local netInfo = self.object.attachedHoseSystemReferences[referenceId]
     local reference = self.object.hoseSystemReferences[referenceId]
 
     if reference ~= nil then
-        if netInfo.lastGrabPoint ~= nil and netInfo.lastHoseSystem ~= nil then
+        if netInfo.lastGrabPointId ~= nil and netInfo.lastHoseSystem ~= nil then
             local unitIndex = reference.fillUnitIndex
             local showEffect = allow and netInfo.showEffect
 
@@ -521,7 +537,7 @@ function HoseSystemHoseCouplingStrategy:updateQueuedReferencesGraphics(reference
             end
 
             local fillType = self.object:getUnitLastValidFillType(unitIndex)
-            netInfo.lastHoseSystem:toggleEmptyingEffect(showEffect, netInfo.lastGrabPoint.id, fillType)
+            netInfo.lastHoseSystem:toggleEmptyingEffect(showEffect, netInfo.lastGrabPointId, fillType)
         end
     end
 end
