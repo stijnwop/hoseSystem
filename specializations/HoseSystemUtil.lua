@@ -7,12 +7,13 @@
 -- Copyright (c) Wopster, 2017
 
 HoseSystemUtil = {
-    logLevels = { 'Error', 'Warning', 'Debug' },
+    logLevels = { 'Error', 'Warning', 'Notice', 'Debug' },
 }
 
 HoseSystemUtil.ERROR = 1
 HoseSystemUtil.WARNING = 2
-HoseSystemUtil.DEBUG = 3
+HoseSystemUtil.NOTICE = 3
+HoseSystemUtil.DEBUG = 4
 
 ---
 -- @param logLevel
@@ -20,7 +21,7 @@ HoseSystemUtil.DEBUG = 3
 -- @param logCallstack
 --
 function HoseSystemUtil:log(logLevel, logEntry, logCallstack)
-    if logLevel <= HoseSystem.logLevel then
+    if logLevel < HoseSystem.logLevel then
         if logLevel == HoseSystemUtil.DEBUG and not HoseSystem.debugRendering then -- avoid debug print lines when the debugRendering is disabled
             return
         end

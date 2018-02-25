@@ -8,7 +8,7 @@
 
 HoseSystem = {
     debugRendering = true,
-    logLevel = 3,
+    logLevel = 4,
     baseDirectory = g_currentModDirectory
 }
 

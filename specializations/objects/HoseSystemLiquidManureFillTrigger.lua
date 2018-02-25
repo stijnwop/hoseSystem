@@ -40,7 +40,10 @@ function HoseSystemLiquidManureFillTrigger:load(superFunc, nodeId, fillLevelObje
         local xmlFilename = getUserAttribute(nodeId, 'xmlFilename')
 
         if xmlFilename == nil then
-            HoseSystemUtil:log(HoseSystemUtil.WARNING, 'HoseSystem is trying to load the fillTrigger XML file, but the file could not be found! Loading default fillTriggers..')
+            if HoseSystem.debugRendering then
+                HoseSystemUtil:log(HoseSystemUtil.WARNING, 'HoseSystemFillTrigger is trying to load the xml file, but the file could not be found! Loading default triggers..')
+            end
+
             return true
         end
 
@@ -139,9 +142,13 @@ function HoseSystemLiquidManureFillTrigger:load(superFunc, nodeId, fillLevelObje
 
                     HoseSystemLiquidManureFillTrigger:loadHoseSystemReferences(self, nodeId, xmlFile, string.format('%s.hoseSystemReferences.', key), self.hoseSystemReferences)
                 else
-                    HoseSystemUtil:log(HoseSystemUtil.ERROR, 'HoseSystemFillTrigger identifier could not be found!')
+                    HoseSystemUtil:log(HoseSystemUtil.ERROR, 'HoseSystemFillTrigger - identifier could not be found the in the xml!')
                 end
+            else
+                HoseSystemUtil:log(HoseSystemUtil.ERROR, 'HoseSystemFillTrigger - please define an identifier in your user attributes.')
             end
+        else
+            HoseSystemUtil:log(HoseSystemUtil.ERROR, "HoseSystemFillTrigger - error loading xml file! Please check your filepath.")
         end
 
         delete(xmlFile)
