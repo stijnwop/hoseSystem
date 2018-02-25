@@ -299,14 +299,6 @@ end
 
 ---
 -- @param index
--- @param max
---
-function HoseSystemConnector:getFillableVehicle(index, max)
-    return index > 1 and 1 or max
-end
-
----
--- @param index
 -- @param state
 -- @param force
 -- @param noEventSend
@@ -373,7 +365,7 @@ function HoseSystemConnector:setIsUsed(index, state, hoseSystem, noEventSend)
 
             reference.isUsed = state
             reference.hoseSystem = hoseSystem
-            reference.grabPointId = HoseSystemHoseCouplingStrategy.getGrabPointIdFromReference(hoseSystem, index)
+            reference.grabPointId = HoseSystemHoseCouplingStrategy.getGrabPointIdFromReference(hoseSystem, self)
 
             if not reference.parkable then
                 if reference.lockAnimationName == nil then
