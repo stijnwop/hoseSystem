@@ -41,7 +41,8 @@
         </grabPoints>
 
         <effect fillTypes="liquidManure">
-            <effectNode effectNode="0>0|0|3|0" delay="0" materialType="hoseSystem" materialTypeId="1" fadeOutTime="0.1"
+            <effectNode effectNode="0>0|0|3|0" delay="0" materialType="hoseSystem"
+                        materialTypeId="1" fadeOutTime="0.1"
                         fadeInTime="1" startDelay="0.2" stopDelay="0"/>
         </effect>
     </hoseSystem>

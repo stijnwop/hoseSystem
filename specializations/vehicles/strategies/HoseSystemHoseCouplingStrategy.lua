@@ -248,7 +248,7 @@ function HoseSystemHoseCouplingStrategy:update(dt)
         return
     end
 
-    if HoseSystemPlayerInteractive:getIsPlayerValid(false) then
+    if HoseSystemPlayerInteractive:getIsPlayerValid(true) then
         local inRange, referenceId = self.object:getIsPlayerInReferenceRange()
 
         if inRange then
@@ -484,12 +484,12 @@ end
 
 ---
 -- @param hoseSystem
--- @param referenceId
+-- @param object
 --
-function HoseSystemHoseCouplingStrategy.getGrabPointIdFromReference(hoseSystem, referenceId)
+function HoseSystemHoseCouplingStrategy.getGrabPointIdFromReference(hoseSystem, object)
     if hoseSystem ~= nil and hoseSystem.grabPoints ~= nil then
         for id, grabPoint in pairs(hoseSystem.grabPoints) do
-            if HoseSystem:getIsConnected(grabPoint.state) and grabPoint.connectorRefId == referenceId then -- and grabPoint.connectorVehicle == object then
+            if HoseSystem:getIsConnected(grabPoint.state) and grabPoint.connectorVehicle == object then
                 return id
             end
         end

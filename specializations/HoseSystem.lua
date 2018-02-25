@@ -718,14 +718,12 @@ function HoseSystem:toggleEmptyingEffect(activate, index, fillType)
                 local grabPoint = self.grabPoints[index]
 
                 if grabPoint ~= nil then
-                    local trans = { getWorldTranslation(self.components[grabPoint.componentIndex].node) }
+                    local moveDir = grabPoint.id == self.grabPointData.firstIndex and 1 or -1
+                    local direction = { localDirectionToLocal(self.components[grabPoint.componentIndex].node, grabPoint.node, 0, 0, moveDir) }
+                    local upVector = { localDirectionToLocal(self.components[grabPoint.componentIndex].node, grabPoint.node, 0, 1, 0) }
 
                     for _, effect in pairs(self.hoseEffects.effects) do
-                        local x, _, z = getRotation(effect.node)
-                        local y = grabPoint.id == 1 and math.rad(0) or math.rad(180)
-
-                        setWorldTranslation(effect.node, unpack(trans))
-                        setRotation(effect.node, x, y, z)
+                        setDirection(effect.node, direction[1], direction[2], direction[3], upVector[1], upVector[2], upVector[3])
                     end
                 end
             end
@@ -745,14 +743,10 @@ function HoseSystem:setEmptyEffect(activate, dt)
             -- Set the direction of the effect always in toward the dection node
             if self.hoseEffects.effects ~= nil then
                 local grabPoint = self.grabPoints[self.hoseEffects.activeIndex]
-                local trans = { getWorldTranslation(self.components[grabPoint.componentIndex].node) }
-                local rot = { getRotation(grabPoint.node) }
-
-                rot[2] = grabPoint.id == 1 and math.rad(0) or math.rad(180)
+                local translation = { localToWorld(self.components[grabPoint.componentIndex].node, 0, 0, 0) }
 
                 for _, effect in pairs(self.hoseEffects.effects) do
-                    setWorldTranslation(effect.node, unpack(trans))
-                    setRotation(effect.node, unpack(rot))
+                    setWorldTranslation(effect.node, unpack(translation))
                 end
             end
         else
