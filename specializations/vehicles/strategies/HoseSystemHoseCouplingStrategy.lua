@@ -38,7 +38,10 @@ function HoseSystemHoseCouplingStrategy:new(object, mt)
         object.pumpMotorFillMode = HoseSystemPumpMotor.getInitialFillMode(HoseSystemConnectorFactory.TYPE_HOSE_COUPLING)
     end
 
-    object.fillLevelChangedDirtyFlag = object:getNextDirtyFlag()
+    if object.attachedReferencesDirtyFlag == nil then
+        object.attachedReferencesDirtyFlag = object:getNextDirtyFlag()
+    end
+
     self.fillLevelChanged = false
 
     object.attachedHoseSystemReferences = {}
@@ -56,6 +59,8 @@ function HoseSystemHoseCouplingStrategy:preDelete()
             if reference.isUsed and reference.hoseSystem ~= nil then
                 reference.hoseSystem.poly.interactiveHandling:detach(reference.grabPointId, self.object, referenceId, false)
             end
+
+            self.object.attachedHoseSystemReferences[referenceId] = nil
         end
     end
 end
@@ -98,7 +103,7 @@ end
 --
 function HoseSystemHoseCouplingStrategy:writeUpdateStream(streamId, connection, dirtyMask)
     if not connection:getIsServer() then
-        if streamWriteBool(streamId, bitAND(dirtyMask, self.object.fillLevelChangedDirtyFlag) ~= 0) then
+        if streamWriteBool(streamId, bitAND(dirtyMask, self.object.attachedReferencesDirtyFlag) ~= 0) then
             for _, entry in pairs(self.object.attachedHoseSystemReferences) do
                 streamWriteBool(streamId, entry.showEffect)
 
@@ -452,7 +457,7 @@ function HoseSystemHoseCouplingStrategy:findFillObject(dt)
                 entry.sendShowEffect = entry.showEffect
             end
 
-            self.object:raiseDirtyFlags(self.object.fillLevelChangedDirtyFlag)
+            self.object:raiseDirtyFlags(self.object.attachedReferencesDirtyFlag)
             self:updateQueuedReferencesGraphics(referenceId)
         end
     end
