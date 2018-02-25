@@ -52,15 +52,13 @@ end
 ---
 --
 function HoseSystemHoseCouplingStrategy:preDelete()
-    if self.object.isServer and self.object.attachedHoseSystemReferences ~= nil and g_currentMission.hoseSystemHoses ~= nil then
-        for referenceId, entry in pairs(self.object.attachedHoseSystemReferences) do
-            local reference = self.object.hoseSystemReferences[referenceId]
-
+    if self.object.hoseSystemReferences ~= nil and g_currentMission.hoseSystemHoses ~= nil then
+        for referenceId, reference in pairs(self.object.hoseSystemReferences) do
             if reference.isUsed and reference.hoseSystem ~= nil then
-                reference.hoseSystem.poly.interactiveHandling:detach(reference.grabPointId, self.object, referenceId, false)
+                reference.hoseSystem.poly.interactiveHandling:detach(reference.grabPointId, self.object, reference.id, false, true)
             end
 
-            self.object.attachedHoseSystemReferences[referenceId] = nil
+            self.object.attachedHoseSystemReferences[reference.id] = nil
         end
     end
 end
