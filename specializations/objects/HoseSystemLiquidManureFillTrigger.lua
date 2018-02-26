@@ -140,7 +140,7 @@ function HoseSystemLiquidManureFillTrigger:load(superFunc, nodeId, fillLevelObje
                         self.animatedObjectSaveId = getXMLString(xmlFile, pitKey .. '#animatedObjectSaveId')
                     end
 
-                    HoseSystemLiquidManureFillTrigger:loadHoseSystemReferences(self, nodeId, xmlFile, string.format('%s.hoseSystemReferences.', key), self.hoseSystemReferences)
+                    HoseSystemLiquidManureFillTrigger.loadHoseSystemReferences(self, nodeId, xmlFile, string.format('%s.hoseSystemReferences.', key), self.hoseSystemReferences)
                 else
                     HoseSystemUtil:log(HoseSystemUtil.ERROR, 'HoseSystemFillTrigger - identifier could not be found the in the xml!')
                 end
@@ -188,7 +188,7 @@ end
 -- @param base
 -- @param references
 --
-function HoseSystemLiquidManureFillTrigger:loadHoseSystemReferences(self, nodeId, xmlFile, base, references)
+function HoseSystemLiquidManureFillTrigger.loadHoseSystemReferences(self, nodeId, xmlFile, base, references)
     local i = 0
 
     while true do

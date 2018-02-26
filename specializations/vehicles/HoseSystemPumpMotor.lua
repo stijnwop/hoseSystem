@@ -566,6 +566,7 @@ end
 
 ---
 -- @param isStarted
+-- @param warningId
 -- @param noEventSend
 --
 function HoseSystemPumpMotor:setPumpStarted(isStarted, warningId, noEventSend)
@@ -919,6 +920,9 @@ function HoseSystemPumpMotor:getAllowedFillUnitIndex(object, sourceObject)
     return 0
 end
 
+---
+-- @param object
+--
 function HoseSystemPumpMotor.findAttachedTransferTank(object)
     if object.transferSystemReferences ~= nil and SpecializationUtil.hasSpecialization(Fillable, object.specializations) then
         local reference = next(object.transferSystemReferences)

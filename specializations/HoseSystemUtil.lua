@@ -470,7 +470,7 @@ end
 function HoseSystemUtil:print_r(t, name, indent)
     local tableList = {}
 
-    table_r = function(t, name, indent, full)
+    local function table_r(t, name, indent, full)
         local id = not full and name or type(name) ~= "number" and tostring(name) or '[' .. name .. ']'
         local tag = indent .. id .. ' : '
         local out = {}
