@@ -14,7 +14,7 @@ function HoseSystemArmStrategy:new(object, mt)
     setmetatable(armStrategy, mt == nil and HoseSystemArmStrategy_mt or mt)
 
     if object.hasHoseSystemPumpMotor then
-        object.pumpMotorFillArmMode = HoseSystemPumpMotor.getInitialFillMode(HoseSystemFillArmFactory.TYPE_ARM)
+        object.pumpMotorFillArmFillMode = HoseSystemPumpMotor.getInitialFillMode(HoseSystemFillArmFactory.TYPE_ARM)
     end
 
 
@@ -57,9 +57,9 @@ end
 function HoseSystemArmStrategy:updateTick(dt)
     if self.object.isServer and self.object.hasHoseSystemPumpMotor then
         if self.object.lastRaycastObject ~= nil then
-            self.object:addFillObject(self.object.lastRaycastObject, self.object.pumpMotorFillArmMode, true)
+            self.object:addFillObject(self.object.lastRaycastObject, self.object.pumpMotorFillArmFillMode, true)
         else
-            self.object:removeFillObject(self.object.lastRaycastObject, self.object.pumpMotorFillArmMode)
+            self.object:removeFillObject(self.object.lastRaycastObject, self.object.pumpMotorFillArmFillMode)
         end
 
         local fillDirection = self.object:getFillDirection()
@@ -77,6 +77,6 @@ function HoseSystemArmStrategy:updateTick(dt)
             end
         end
 
-        self.object:handlePump(self.object.pumpMotorFillArmMode, dt, isAbleToPump)
+        self.object:handlePump(self.object.pumpMotorFillArmFillMode, dt, isAbleToPump)
     end
 end

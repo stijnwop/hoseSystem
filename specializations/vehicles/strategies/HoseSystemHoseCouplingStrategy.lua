@@ -35,7 +35,7 @@ function HoseSystemHoseCouplingStrategy:new(object, mt)
     object.hasHoseSystem = true
 
     if object.hasHoseSystemPumpMotor then
-        object.pumpMotorFillMode = HoseSystemPumpMotor.getInitialFillMode(HoseSystemConnectorFactory.TYPE_HOSE_COUPLING)
+        object.pumpMotorCouplingFillMode = HoseSystemPumpMotor.getInitialFillMode(HoseSystemConnectorFactory.TYPE_HOSE_COUPLING)
     end
 
     if object.attachedReferencesDirtyFlag == nil then
@@ -331,7 +331,7 @@ function HoseSystemHoseCouplingStrategy:updateTick(dt)
                     end
                 end
 
-                self.object:handlePump(self.object.pumpMotorFillMode, dt, isAbleToPump)
+                self.object:handlePump(self.object.pumpMotorCouplingFillMode, dt, isAbleToPump)
             end
         end
 
@@ -440,11 +440,11 @@ function HoseSystemHoseCouplingStrategy:findFillObject(dt)
 
                 if entry.isActive then
                     if not self.object.fillObjectFound then
-                        self.object:addFillObject(fillObject, self.object.pumpMotorFillMode, isRayCasted)
+                        self.object:addFillObject(fillObject, self.object.pumpMotorCouplingFillMode, isRayCasted)
                     end
                 else
                     if self.object.fillObjectFound then
-                        self.object:removeFillObject(fillObject, self.object.pumpMotorFillMode)
+                        self.object:removeFillObject(fillObject, self.object.pumpMotorCouplingFillMode)
                     end
                 end
             end

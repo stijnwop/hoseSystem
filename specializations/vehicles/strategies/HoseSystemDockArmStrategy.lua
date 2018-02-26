@@ -14,7 +14,7 @@ function HoseSystemDockArmStrategy:new(object, mt)
     setmetatable(dockArmStrategy, mt == nil and HoseSystemDockArmStrategy_mt or mt)
 
     if object.hasHoseSystemPumpMotor then
-        object.pumpMotorDockArmMode = HoseSystemPumpMotor.getInitialFillMode(HoseSystemFillArmFactory.TYPE_DOCK)
+        object.pumpMotorDockArmFillMode = HoseSystemPumpMotor.getInitialFillMode(HoseSystemFillArmFactory.TYPE_DOCK)
     end
 
     return dockArmStrategy
@@ -36,6 +36,6 @@ end
 
 function HoseSystemDockArmStrategy:updateTick(dt)
     if self.object.isServer and self.object.hasHoseSystemPumpMotor then
-        self.object:handlePump(self.object.pumpMotorDockArmMode, dt)
+        self.object:handlePump(self.object.pumpMotorDockArmFillMode, dt)
     end
 end

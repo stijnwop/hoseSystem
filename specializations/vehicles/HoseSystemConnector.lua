@@ -449,7 +449,7 @@ function HoseSystemConnector:onConnectorDetach(referenceId)
         self:setIsUsed(referenceId, false)
 
         if self.hasHoseSystemPumpMotor then
-            self:removeFillObject(self.fillObject, self.pumpMotorFillMode)
+            self:removeFillObject(self.fillObject, self.pumpMotorCouplingFillMode)
         end
     end
 
