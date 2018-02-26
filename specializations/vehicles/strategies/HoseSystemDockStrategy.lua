@@ -9,7 +9,7 @@
 HoseSystemDockStrategy = {}
 
 HoseSystemDockStrategy.TYPE = 'dock'
-HoseSystemDockStrategy.DEFORMATION_ROTATION_LIMIT = math.rad(40) -- we have 40° limit on the deformation
+HoseSystemDockStrategy.DEFORMATION_ROTATION_LIMIT = math.rad(35) -- we have 35° limit on the deformation
 HoseSystemDockStrategy.DEFORMATION_ROTATION_OFFSET = 0.001
 HoseSystemDockStrategy.DEFORMATION_TRANSLATION_MULTIPLIER = 0.01
 HoseSystemDockStrategy.DEFORMATION_RESET_TIME = 2500 -- ms
@@ -147,11 +147,11 @@ function HoseSystemDockStrategy:update(dt)
             self:deformDockFunnel(dt, inrange, dockingArmObject, referenceId)
         end
 
-        if self.object.isServer and (referenceId ~= nil and not self.object.dockingSystemReferences[referenceId].parkable) or not inrange then
-            if inrange and dockingArmObject ~= nil and dockingArmObject ~= self.object and not dockingArmObject.fillObjectFound then
+        if self.object.isServer and dockingArmObject ~= nil and dockingArmObject ~= self.object and ((referenceId ~= nil and not self.object.dockingSystemReferences[referenceId].parkable) or not inrange) then
+            if inrange and not dockingArmObject.fillObjectFound then
                 dockingArmObject:addFillObject(self.object, dockingArmObject.pumpMotorDockArmFillMode, false)
                 self.object:setIsDockUsed(referenceId, inrange, dockingArmObject)
-            elseif not inrange and dockingArmObject ~= nil and dockingArmObject ~= self.object and dockingArmObject.fillObjectFound then
+            elseif not inrange and dockingArmObject.fillObjectFound then
                 dockingArmObject:removeFillObject(self.object, dockingArmObject.pumpMotorDockArmFillMode)
             end
         end
@@ -187,8 +187,8 @@ function HoseSystemDockStrategy:deformDockFunnel(dt, isActive, dockingArmObject,
 
         setTranslation(reference.deformationNode, unpack(reference.deformationNodeLastTrans))
 
-        rx = Utils.clamp(rx + z * 1 - HoseSystemDockStrategy.DEFORMATION_ROTATION_OFFSET, -HoseSystemDockStrategy.DEFORMATION_ROTATION_LIMIT, HoseSystemDockStrategy.DEFORMATION_ROTATION_LIMIT)
-        rz = Utils.clamp(rz - x * 1 - HoseSystemDockStrategy.DEFORMATION_ROTATION_OFFSET, -HoseSystemDockStrategy.DEFORMATION_ROTATION_LIMIT, HoseSystemDockStrategy.DEFORMATION_ROTATION_LIMIT)
+        rx = Utils.clamp(rx + z * 0.5 - HoseSystemDockStrategy.DEFORMATION_ROTATION_OFFSET, -HoseSystemDockStrategy.DEFORMATION_ROTATION_LIMIT, HoseSystemDockStrategy.DEFORMATION_ROTATION_LIMIT)
+        rz = Utils.clamp(rz - x * 0.5 - HoseSystemDockStrategy.DEFORMATION_ROTATION_OFFSET, -HoseSystemDockStrategy.DEFORMATION_ROTATION_LIMIT, HoseSystemDockStrategy.DEFORMATION_ROTATION_LIMIT)
         reference.deformationNodeLastRot = { rx, reference.deformationNodeOrgRot[2], rz }
 
         setRotation(reference.deformationNode, unpack(reference.deformationNodeLastRot))
