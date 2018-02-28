@@ -24,7 +24,11 @@ function HoseSystemWaterTrailerFillTrigger:new(superFunc, nodeId, trailer)
         return superFunc(self, nodeId, trailer)
     end
 
-    return HoseSystemFillTrigger:new(nil, nodeId, strategy)
+    local trigger = HoseSystemFillTrigger:new(nil, nodeId, strategy)
+
+    trigger:load(nodeId, FillUtil.FILLTYPE_WATER)
+
+    return trigger
 end
 
 WaterTrailerFillTrigger.new = Utils.overwrittenFunction(WaterTrailerFillTrigger.new, HoseSystemWaterTrailerFillTrigger.new)
