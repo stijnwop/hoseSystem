@@ -14,32 +14,9 @@ HoseSystemRegistrationHelper = {
 HoseSystemRegistrationHelper.HOSE_SYSTEM_SPEC_KEY = 'hoseSystemVehicle'
 HoseSystemRegistrationHelper.HOSE_SYSTEM_MATERIAL_TYPE = 'hoseSystem'
 
-local srcDirectory = HoseSystemRegistrationHelper.baseDirectory .. 'specializations'
-local eventDirectory = HoseSystemRegistrationHelper.baseDirectory .. 'specializations/events'
-
-local files = {
-    ('%s/%s'):format(srcDirectory, 'HoseSystemUtil'),
-    ('%s/utils/%s'):format(srcDirectory, 'HoseSystemXMLUtil'),
-    ('%s/%s'):format(eventDirectory, 'HoseSystemReferenceIsUsedEvent'),
-    ('%s/%s'):format(eventDirectory, 'HoseSystemReferenceLockEvent'),
-    ('%s/%s'):format(eventDirectory, 'HoseSystemReferenceManureFlowEvent'),
-}
-
-for _, directory in pairs(files) do
-    source(directory .. '.lua')
-end
-
-local specializations = {
-    ["hoseSystemConnector"] = 'specializations/vehicles/',
-    ["hoseSystemPumpMotor"] = 'specializations/vehicles/',
-    ["hoseSystemFillArm"] = 'specializations/vehicles/'
-}
-
-for name, directory in pairs(specializations) do
-    if SpecializationUtil.specializations[name] == nil then
-        local classname = HoseSystemUtil:firstToUpper(name)
-        SpecializationUtil.registerSpecialization(name, classname, HoseSystemRegistrationHelper.baseDirectory .. directory .. classname .. ".lua")
-    end
+---
+--
+function HoseSystemRegistrationHelper:preLoadHoseSystem()
 end
 
 ---
