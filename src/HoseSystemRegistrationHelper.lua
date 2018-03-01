@@ -24,7 +24,10 @@ function HoseSystemRegistrationHelper:preLoadHoseSystem()
         HoseSystemUtil:log(HoseSystemUtil.ERROR, "The HoseSystem has been loaded already! Remove one of the copy's!")
     end
 
-    getfenv(0)["g_hoseSystem"] = self
+    local env = getfenv(0)
+
+    env["g_hoseSystem"] = self
+    env["HoseSystemHolder"] = HoseSystemHolder
 
     self.debugRendering = true --<%=debug %>
     self.logLevel = 4 --<%=logLevel %>
