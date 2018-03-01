@@ -8,7 +8,7 @@ function HoseSystemObjectsUtil.getIsNodeValid(nodeId)
         return false
     end
 
-    local rigidType = getRigidBodyType(getParent(nodeId)):lower()
+    local rigidType = getRigidBodyType(nodeId):lower()
     if rigidType == "norigidbody" then
         HoseSystemUtil:log(HoseSystemUtil.ERROR, "HoseSystemFillTrigger must have a rigid body!")
         return false
