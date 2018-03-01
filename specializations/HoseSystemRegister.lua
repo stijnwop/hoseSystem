@@ -18,16 +18,30 @@ local srcDirectory = HoseSystemRegistrationHelper.baseDirectory .. 'specializati
 local eventDirectory = HoseSystemRegistrationHelper.baseDirectory .. 'specializations/events'
 
 local files = {
+    -- utils
     ('%s/%s'):format(srcDirectory, 'HoseSystemUtil'),
     ('%s/utils/%s'):format(srcDirectory, 'HoseSystemXMLUtil'),
+    ('%s/utils/%s'):format(srcDirectory, 'HoseSystemObjectsUtil'),
+    -- events
     ('%s/%s'):format(eventDirectory, 'HoseSystemReferenceIsUsedEvent'),
     ('%s/%s'):format(eventDirectory, 'HoseSystemReferenceLockEvent'),
     ('%s/%s'):format(eventDirectory, 'HoseSystemReferenceManureFlowEvent'),
+    -- objects
+    ('%s/objects/%s'):format(srcDirectory, 'AnimatedObjectExtension'),
+    ('%s/objects/%s'):format(srcDirectory, 'HoseSystemLiquidManureFillTrigger'),
+    ('%s/objects/%s'):format(srcDirectory, 'HoseSystemWaterTrailerFillTrigger'),
+    ('%s/objects/%s'):format(srcDirectory, 'HoseSystemFillTrigger'),
+    ('%s/objects/%s'):format(srcDirectory, 'HoseSystemHolder'),
+    -- objects strategies
+    ('%s/objects/strategies/%s'):format(srcDirectory, 'HoseSystemExpensesStrategy'),
 }
 
 for _, directory in pairs(files) do
     source(directory .. '.lua')
 end
+
+local env = getfenv(0)
+env["HoseSystemHolder"] = HoseSystemHolder
 
 local specializations = {
     ["hoseSystemConnector"] = 'specializations/vehicles/',

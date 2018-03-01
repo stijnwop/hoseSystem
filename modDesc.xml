@@ -29,8 +29,6 @@
     <multiplayer supported="true"/>
     <extraSourceFiles>
         <sourceFile filename="specializations/HoseSystemRegister.lua"/>
-        <sourceFile filename="specializations/objects/AnimatedObjectExtension.lua"/>
-        <sourceFile filename="specializations/objects/HoseSystemLiquidManureFillTrigger.lua"/>
     </extraSourceFiles>
     <specializations>
         <specialization name="hoseSystem" className="HoseSystem" filename="specializations/HoseSystem.lua"/>
