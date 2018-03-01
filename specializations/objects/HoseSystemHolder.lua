@@ -2,6 +2,7 @@
 --
 
 HoseSystemHolder = {}
+HoseSystemHolder.TRANS_OFFSET = 0.05
 
 local HoseSystemHolder_mt = Class(HoseSystemHolder, Object)
 ---
@@ -44,9 +45,7 @@ function HoseSystemHolder:new(isServer, isClient, nodeId)
             id = 1,
             node = node,
             isUsed = false,
-            flowOpened = false,
-            isLocked = false,
-            liquidManureHose = nil,
+            hoseSystem = nil,
             isObject = true,
             componentIndex = 1, -- we joint to the nodeId
             parkable = false,
@@ -54,6 +53,33 @@ function HoseSystemHolder:new(isServer, isClient, nodeId)
         })
 
         g_currentMission:addNodeObject(node, self)
+
+        local includeInvertedNode = Utils.getNoNil(getUserAttribute(nodeId, "invertedNode"), true)
+
+        if includeInvertedNode then
+            local invertedNode = clone(node, true, false, true)
+            local rotation = { getRotation(node) }
+            local translation = { getTranslation(node) }
+            local zOffset = translation[3] > 0 and -HoseSystemHolder.TRANS_OFFSET * 2 or HoseSystemHolder.TRANS_OFFSET * 2
+            local fixedYRotation = rotation[2] > 0 and math.rad(180) or 0
+
+            link(nodeId, invertedNode)
+            setRotation(invertedNode, rotation[1], fixedYRotation, rotation[3])
+            setTranslation(invertedNode, translation[1], translation[2], translation[3] + zOffset)
+
+            table.insert(holder.referenceNodes, invertedNode)
+            table.insert(holder.hoseSystemReferences, {
+                id = 2,
+                node = invertedNode,
+                isUsed = false,
+                hoseSystem = nil,
+                isObject = true,
+                componentIndex = 1, -- we joint to the nodeId
+                parkable = false,
+                inRangeDistance = 1.5
+            })
+            g_currentMission:addNodeObject(invertedNode, self)
+        end
 
         holder.supportsHoseSystem = true
 
@@ -65,7 +91,7 @@ function HoseSystemHolder:new(isServer, isClient, nodeId)
 
         holder.referenceType = HoseSystemConnectorFactory.getInitialType(HoseSystemConnectorFactory.TYPE_HOSE_COUPLING)
     else
-        -- Todo: log
+        HoseSystemUtil:log(HoseSystemUtil.ERROR, "HoseSystemHolder node index not found!")
         return nil
     end
 
