@@ -502,5 +502,3 @@ function HoseSystemUtil:print_r(t, name, indent)
 
     return table_r(t, name or '', indent or '')
 end
-
-addConsoleCommand("gsToggleHoseSystemDebugRendering", "Toggles the debug rendering of the HoseSystem", "consoleCommandToggleHoseSystemDebugRendering", HoseSystemUtil)

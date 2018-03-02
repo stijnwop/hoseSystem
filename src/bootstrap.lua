@@ -26,6 +26,9 @@ local files = {
     ('%s/events/%s'):format(srcDirectory, 'HoseSystemReferenceIsUsedEvent'),
     ('%s/events/%s'):format(srcDirectory, 'HoseSystemReferenceLockEvent'),
     ('%s/events/%s'):format(srcDirectory, 'HoseSystemReferenceManureFlowEvent'),
+    -- vehicle factories
+    ('%s/vehicles/%s'):format(srcDirectory, 'HoseSystemConnectorFactory'),
+    ('%s/vehicles/%s'):format(srcDirectory, 'HoseSystemFillArmFactory')
 }
 
 ---

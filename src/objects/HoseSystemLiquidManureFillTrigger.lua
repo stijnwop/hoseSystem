@@ -15,6 +15,13 @@ HoseSystemLiquidManureFillTrigger.LEVEL_CHANGE_TRESHOLD_TIME = 100 -- ms
 HoseSystemLiquidManureFillTrigger.RESET_CHANGE_TRESHOLD_TIME = 500 -- ms
 
 ---
+--
+function HoseSystemLiquidManureFillTrigger:preLoadHoseSystem()
+    LiquidManureFillTrigger.new = Utils.overwrittenFunction(LiquidManureFillTrigger.new, HoseSystemLiquidManureFillTrigger.new)
+    LiquidManureFillTrigger.load = Utils.overwrittenFunction(LiquidManureFillTrigger.load, HoseSystemLiquidManureFillTrigger.load)
+end
+
+---
 -- @param superFunc
 -- @param mt
 --
@@ -625,10 +632,6 @@ function HoseSystemLiquidManureFillTrigger:onConnectorDetach(referenceId)
         HoseSystemUtil:log(HoseSystemUtil.DEBUG, self.attachedHoseSystemReferences)
     end
 end
-
--- LiquidManureFillTrigger
-LiquidManureFillTrigger.new = Utils.overwrittenFunction(LiquidManureFillTrigger.new, HoseSystemLiquidManureFillTrigger.new)
-LiquidManureFillTrigger.load = Utils.overwrittenFunction(LiquidManureFillTrigger.load, HoseSystemLiquidManureFillTrigger.load)
 
 -- TipTrigger
 -- TipTrigger.load = Utils.overwrittenFunction(TipTrigger.load, HoseSystemLiquidManureFillTrigger.load) -- overwrite to be albe to pump water?

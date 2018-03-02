@@ -17,6 +17,17 @@ HoseSystemRegistrationHelper.HOSE_SYSTEM_MATERIAL_TYPE = 'hoseSystem'
 ---
 --
 function HoseSystemRegistrationHelper:preLoadHoseSystem()
+    if g_hoseSystem ~= nil then
+        -- loaded already
+    end
+
+    getfenv(0)["g_hoseSystem"] = self
+
+    self.log = HoseSystemUtil.log
+
+    self.baseDirectory = HoseSystemRegistrationHelper.baseDirectory
+    self.hoseSystemHoses = {}
+    self.hoseSystemReferences = {}
 end
 
 ---
@@ -36,16 +47,20 @@ function HoseSystemRegistrationHelper:loadMap(name)
         MaterialUtil.registerMaterialType(HoseSystemRegistrationHelper.HOSE_SYSTEM_MATERIAL_TYPE)
         loadI3DFile(HoseSystemRegistrationHelper.baseDirectory .. 'particleSystems/materialHolder.i3d')
 
+        -- Todo: delete
         g_currentMission.hoseSystemLog = HoseSystemUtil.log
         g_currentMission.hoseSystemRegistrationHelperIsLoaded = true
     else
         HoseSystemUtil:log(HoseSystemUtil.ERROR, "The HoseSystemRegistrationHelper has been loaded already! Remove one of the copy's!")
     end
+
+    addConsoleCommand("gsToggleHoseSystemDebugRendering", "Toggles the debug rendering of the HoseSystem", "consoleCommandToggleHoseSystemDebugRendering", HoseSystemUtil)
 end
 
 ---
 --
 function HoseSystemRegistrationHelper:deleteMap()
+    removeConsoleCommand("gsToggleHoseSystemDebugRendering")
     g_currentMission.hoseSystemRegistrationHelperIsLoaded = false
 end
 
