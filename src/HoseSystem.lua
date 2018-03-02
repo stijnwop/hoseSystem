@@ -12,21 +12,20 @@ HoseSystem = {
     baseDirectory = g_currentModDirectory
 }
 
-local srcDirectory = HoseSystem.baseDirectory .. 'specializations'
-local eventDirectory = HoseSystem.baseDirectory .. 'specializations/events'
+local srcDirectory = HoseSystem.baseDirectory .. 'src'
 
 local files = {
-    -- Events
-    ('%s/%s'):format(eventDirectory, 'HoseSystemGrabEvent'),
-    ('%s/%s'):format(eventDirectory, 'HoseSystemDropEvent'),
-    ('%s/%s'):format(eventDirectory, 'HoseSystemAttachEvent'),
-    ('%s/%s'):format(eventDirectory, 'HoseSystemDetachEvent'),
-    ('%s/%s'):format(eventDirectory, 'HoseSystemIsUsedEvent'),
-    ('%s/%s'):format(eventDirectory, 'HoseSystemSetOwnerEvent'),
-    ('%s/%s'):format(eventDirectory, 'HoseSystemToggleLockEvent'),
-    ('%s/%s'):format(eventDirectory, 'HoseSystemLoadFillableObjectAndReferenceEvent'),
+    -- multiplayer events
+    ('%s/events/%s'):format(srcDirectory, 'HoseSystemGrabEvent'),
+    ('%s/events/%s'):format(srcDirectory, 'HoseSystemDropEvent'),
+    ('%s/events/%s'):format(srcDirectory, 'HoseSystemAttachEvent'),
+    ('%s/events/%s'):format(srcDirectory, 'HoseSystemDetachEvent'),
+    ('%s/events/%s'):format(srcDirectory, 'HoseSystemIsUsedEvent'),
+    ('%s/events/%s'):format(srcDirectory, 'HoseSystemSetOwnerEvent'),
+    ('%s/events/%s'):format(srcDirectory, 'HoseSystemToggleLockEvent'),
+    ('%s/events/%s'):format(srcDirectory, 'HoseSystemLoadFillableObjectAndReferenceEvent'),
     --    ('%s/%s'):format(eventDirectory, 'HoseSystemChainCountEvent'),
-    -- Classes
+    -- classes
     ('%s/%s'):format(srcDirectory, 'HoseSystemPlayerInteractive'),
     ('%s/%s'):format(srcDirectory, 'HoseSystemPlayerInteractiveHandling'),
     ('%s/%s'):format(srcDirectory, 'HoseSystemPlayerInteractiveRestrictions'),

@@ -18,7 +18,7 @@ HoseSystemConnectorFactory.TYPE_DOCK = 'dock'
 HoseSystemConnectorFactory.TYPE_HOSE_COUPLING = 'hoseCoupling'
 HoseSystemConnectorFactory.TYPE_TRANSFER = 'transfer'
 
-local srcDirectory = HoseSystemConnectorFactory.baseDirectory .. 'specializations/vehicles/strategies'
+local srcDirectory = HoseSystemConnectorFactory.baseDirectory .. 'src/vehicles/strategies'
 
 local files = {
     ('%s/%s'):format(srcDirectory, 'HoseSystemHoseCouplingStrategy.lua'),

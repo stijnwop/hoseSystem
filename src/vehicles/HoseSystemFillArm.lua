@@ -12,7 +12,7 @@ HoseSystemFillArm = {
 
 HoseSystemFillArm.XML_KEY = 'vehicle.hoseSystemFillArm'
 
-source(HoseSystemFillArm.baseDirectory .. 'specializations/vehicles/HoseSystemFillArmFactory.lua')
+source(HoseSystemFillArm.baseDirectory .. 'src/vehicles/HoseSystemFillArmFactory.lua')
 
 ---
 -- @param specializations

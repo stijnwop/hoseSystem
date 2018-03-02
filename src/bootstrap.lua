@@ -6,7 +6,7 @@
 --
 -- Copyright (c) Wopster, 2018
 
-local srcDirectory = g_currentModDirectory .. "specializations"
+local srcDirectory = g_currentModDirectory .. "src"
 
 -- variables controlled by the farmsim tool
 local debugRendering = false --<%=debug %>

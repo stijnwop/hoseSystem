@@ -17,7 +17,7 @@ HoseSystemFillArmFactory.typesToInt = {}
 HoseSystemFillArmFactory.TYPE_DOCK = 'dock'
 HoseSystemFillArmFactory.TYPE_ARM = 'arm'
 
-local srcDirectory = HoseSystemFillArmFactory.baseDirectory .. 'specializations/vehicles/strategies'
+local srcDirectory = HoseSystemFillArmFactory.baseDirectory .. 'src/vehicles/strategies'
 
 local files = {
     ('%s/%s'):format(srcDirectory, 'HoseSystemDockArmStrategy.lua'),

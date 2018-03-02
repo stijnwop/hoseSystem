@@ -13,7 +13,7 @@ HoseSystemConnector = {
 HoseSystemConnector.PLAYER_DISTANCE = 1.3
 HoseSystemConnector.DEFAULT_INRANGE_DISTANCE = 1.3
 
-source(HoseSystemConnector.baseDirectory .. 'specializations/vehicles/HoseSystemConnectorFactory.lua')
+source(HoseSystemConnector.baseDirectory .. 'src/vehicles/HoseSystemConnectorFactory.lua')
 
 ---
 -- @param specializations
