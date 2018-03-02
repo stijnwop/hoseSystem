@@ -372,10 +372,9 @@ function HoseSystemPumpMotor:updateTick(dt)
         end
     end
 
-    if self.attacherMotor.check then
+    if self.attacherMotor.check or self.getIsMotorStarted ~= nil then
         local vehicle = self:getRootAttacherVehicle()
         self.attacherMotor.isStarted = vehicle.getIsMotorStarted ~= nil and vehicle:getIsMotorStarted()
-        self.attacherMotor.vehicle = vehicle
     end
 
     if self.attacherMotor.isStarted then
