@@ -23,8 +23,8 @@ function HoseSystemVehicle:preLoadHoseSystem(savegame)
     self.hasHoseSystemPumpMotor = Utils.getNoNil(getXMLBool(self.xmlFile, 'vehicle.hoseSystem#hasPumpMotor'), false)
     self.hasHoseSystemFillArm = Utils.getNoNil(getXMLBool(self.xmlFile, 'vehicle.hoseSystem#hasFillArm'), false)
 
-    if g_currentMission.hoseSystemLog ~= nil then
-        g_currentMission.hoseSystemLog(self, 3, {
+    if g_hoseSystem.log ~= nil then
+        g_hoseSystem.log(self, 3, {
             hasHoseSystemConnectors = self.hasHoseSystemConnectors,
             hasHoseSystemPumpMotor = self.hasHoseSystemPumpMotor,
             hasHoseSystemFillArm = self.hasHoseSystemFillArm
@@ -32,20 +32,11 @@ function HoseSystemVehicle:preLoadHoseSystem(savegame)
     end
 end
 
-function HoseSystemVehicle:load(savegame)
-end
+local function noopFunction() end
 
-function HoseSystemVehicle:delete()
-end
-
-function HoseSystemVehicle:mouseEvent(...)
-end
-
-function HoseSystemVehicle:keyEvent(...)
-end
-
-function HoseSystemVehicle:update(dt)
-end
-
-function HoseSystemVehicle:draw()
-end
+HoseSystemVehicle.load = noopFunction
+HoseSystemVehicle.delete = noopFunction
+HoseSystemVehicle.mouseEvent = noopFunction
+HoseSystemVehicle.keyEvent = noopFunction
+HoseSystemVehicle.update = noopFunction
+HoseSystemVehicle.draw = noopFunction
