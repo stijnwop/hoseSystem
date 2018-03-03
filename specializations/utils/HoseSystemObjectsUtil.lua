@@ -14,6 +14,11 @@ function HoseSystemObjectsUtil.getIsNodeValid(nodeId)
         return false
     end
 
+    if not getHasClassId(nodeId, ClassIds.SHAPE) then
+        HoseSystemUtil:log(HoseSystemUtil.ERROR, "HoseSystemFillTrigger must be shape object and can´t be a transformgroup!")
+        return false
+    end
+
     return true
 end
 
