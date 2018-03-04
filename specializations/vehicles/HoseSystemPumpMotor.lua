@@ -761,11 +761,15 @@ end
 -- @param superFunc
 --
 function HoseSystemPumpMotor:getIsTurnedOn(superFunc)
-    if superFunc ~= nil and not superFunc(self) then
-        return false
+    if self.pumpIsStarted then
+        return true
     end
 
-    return self.pumpIsStarted
+    if superFunc ~= nil then
+        return superFunc(self)
+    end
+
+    return false
 end
 
 ---
