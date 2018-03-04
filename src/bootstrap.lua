@@ -27,9 +27,13 @@ local files = {
     ('%s/events/%s'):format(srcDirectory, 'HoseSystemReferenceLockEvent'),
     ('%s/events/%s'):format(srcDirectory, 'HoseSystemReferenceManureFlowEvent'),
     -- vehicle factories
+    ('%s/vehicles/%s'):format(srcDirectory, 'HoseSystemPumpMotorFactory'),
     ('%s/vehicles/%s'):format(srcDirectory, 'HoseSystemConnectorFactory'),
     ('%s/vehicles/%s'):format(srcDirectory, 'HoseSystemFillArmFactory')
 }
+
+-- Todo: use the debugRendering variable in our advantage for inserting debug utilities
+-- ('%s/utils/%s'):format(srcDirectory, 'HoseSystemDebugUtil'),
 
 ---
 -- Compatibility: Lua-5.1
