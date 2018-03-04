@@ -7,6 +7,7 @@
 -- Copyright (c) Wopster, 2017
 
 HoseSystemVehicle = {}
+HoseSystemVehicle.version = 1.1
 
 ---
 -- @param specializations
@@ -16,36 +17,17 @@ function HoseSystemVehicle.prerequisitesPresent(specializations)
 end
 
 ---
--- @param savegame
 --
-function HoseSystemVehicle:preLoadHoseSystem(savegame)
-    self.hasHoseSystemConnectors = Utils.getNoNil(getXMLBool(self.xmlFile, 'vehicle.hoseSystem#hasConnectors'), true) -- since i implement this spec i assume you want to add the references
+function HoseSystemVehicle:preLoadHoseSystem()
+    self.hasHoseSystemConnectors = Utils.getNoNil(getXMLBool(self.xmlFile, 'vehicle.hoseSystem#hasConnectors'), true)
     self.hasHoseSystemPumpMotor = Utils.getNoNil(getXMLBool(self.xmlFile, 'vehicle.hoseSystem#hasPumpMotor'), false)
     self.hasHoseSystemFillArm = Utils.getNoNil(getXMLBool(self.xmlFile, 'vehicle.hoseSystem#hasFillArm'), false)
 
-    if g_currentMission.hoseSystemLog ~= nil then
-        g_currentMission.hoseSystemLog(self, 3, {
+    if g_hoseSystem.log ~= nil then
+        g_hoseSystem.log(g_hoseSystem, 4, {
             hasHoseSystemConnectors = self.hasHoseSystemConnectors,
             hasHoseSystemPumpMotor = self.hasHoseSystemPumpMotor,
             hasHoseSystemFillArm = self.hasHoseSystemFillArm
         })
     end
-end
-
-function HoseSystemVehicle:load(savegame)
-end
-
-function HoseSystemVehicle:delete()
-end
-
-function HoseSystemVehicle:mouseEvent(...)
-end
-
-function HoseSystemVehicle:keyEvent(...)
-end
-
-function HoseSystemVehicle:update(dt)
-end
-
-function HoseSystemVehicle:draw()
 end

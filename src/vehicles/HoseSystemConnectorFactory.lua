@@ -18,19 +18,26 @@ HoseSystemConnectorFactory.TYPE_DOCK = 'dock'
 HoseSystemConnectorFactory.TYPE_HOSE_COUPLING = 'hoseCoupling'
 HoseSystemConnectorFactory.TYPE_TRANSFER = 'transfer'
 
-local srcDirectory = HoseSystemConnectorFactory.baseDirectory .. 'specializations/vehicles/strategies'
-
-local files = {
-    ('%s/%s'):format(srcDirectory, 'HoseSystemHoseCouplingStrategy.lua'),
-    ('%s/%s'):format(srcDirectory, 'HoseSystemDockStrategy.lua'),
-    ('%s/%s'):format(srcDirectory, 'HoseSystemHoseTransferStrategy.lua'),
-}
-
-for _, path in pairs(files) do
-    source(path)
-end
-
 local HoseSystemConnectorFactory_mt = Class(HoseSystemConnectorFactory)
+
+---
+--
+function HoseSystemConnectorFactory:preLoadHoseSystem()
+    local srcDirectory = g_hoseSystem.baseDirectory .. 'src/vehicles/strategies'
+    local files = {
+        ('%s/%s'):format(srcDirectory, 'HoseSystemHoseCouplingStrategy.lua'),
+        ('%s/%s'):format(srcDirectory, 'HoseSystemDockStrategy.lua'),
+        ('%s/%s'):format(srcDirectory, 'HoseSystemHoseTransferStrategy.lua'),
+    }
+
+    for _, path in pairs(files) do
+        source(path)
+    end
+
+    HoseSystemConnectorFactory.registerType(HoseSystemConnectorFactory.TYPE_DOCK)
+    HoseSystemConnectorFactory.registerType(HoseSystemConnectorFactory.TYPE_HOSE_COUPLING)
+    HoseSystemConnectorFactory.registerType(HoseSystemConnectorFactory.TYPE_TRANSFER)
+end
 
 ---
 -- @param name
@@ -67,16 +74,12 @@ end
 ---
 --
 function HoseSystemConnectorFactory.getInstance()
-    if g_currentMission.hoseSystemConnectorFactory == nil then
-        g_currentMission.hoseSystemConnectorFactory = HoseSystemConnectorFactory:new()
+    if g_hoseSystem.hoseSystemConnectorFactory == nil then
+        g_hoseSystem.hoseSystemConnectorFactory = HoseSystemConnectorFactory:new()
     end
 
-    return g_currentMission.hoseSystemConnectorFactory
+    return g_hoseSystem.hoseSystemConnectorFactory
 end
-
-HoseSystemConnectorFactory.registerType(HoseSystemConnectorFactory.TYPE_DOCK)
-HoseSystemConnectorFactory.registerType(HoseSystemConnectorFactory.TYPE_HOSE_COUPLING)
-HoseSystemConnectorFactory.registerType(HoseSystemConnectorFactory.TYPE_TRANSFER)
 
 ---
 --

@@ -28,12 +28,10 @@
     <iconFilename>store.dds</iconFilename>
     <multiplayer supported="true"/>
     <extraSourceFiles>
-        <sourceFile filename="specializations/HoseSystemRegister.lua"/>
-        <sourceFile filename="specializations/objects/AnimatedObjectExtension.lua"/>
-        <sourceFile filename="specializations/objects/HoseSystemLiquidManureFillTrigger.lua"/>
+        <sourceFile filename="src/bootstrap.lua"/>
     </extraSourceFiles>
     <specializations>
-        <specialization name="hoseSystem" className="HoseSystem" filename="specializations/HoseSystem.lua"/>
+        <specialization name="hoseSystem" className="HoseSystem" filename="src/HoseSystem.lua"/>
     </specializations>
     <vehicleTypes>
         <type name="liquidManureHose" className="Vehicle" filename="$dataS/scripts/vehicles/Vehicle.lua">

@@ -21,8 +21,8 @@ HoseSystemUtil.DEBUG = 4
 -- @param logCallstack
 --
 function HoseSystemUtil:log(logLevel, logEntry, logCallstack)
-    if logLevel < HoseSystem.logLevel then
-        if logLevel == HoseSystemUtil.DEBUG and not HoseSystem.debugRendering then -- avoid debug print lines when the debugRendering is disabled
+    if logLevel <= g_hoseSystem.logLevel then
+        if logLevel == HoseSystemUtil.DEBUG and not g_hoseSystem.debugRendering then -- avoid debug print lines when the debugRendering is disabled
             return
         end
 
@@ -39,7 +39,7 @@ end
 -- @param logLevel
 --
 function HoseSystemUtil:consoleCommandToggleHoseSystemDebugRendering(logLevel)
-    HoseSystem.debugRendering = not HoseSystem.debugRendering
+    g_hoseSystem.debugRendering = not g_hoseSystem.debugRendering
 
     logLevel = tonumber(logLevel)
 
@@ -48,10 +48,10 @@ function HoseSystemUtil:consoleCommandToggleHoseSystemDebugRendering(logLevel)
             return ("HoseSystem log level must be lower then %i!"):format(#HoseSystemUtil.logLevels)
         end
 
-        HoseSystem.logLevel = logLevel
+        g_hoseSystem.logLevel = logLevel
     end
 
-    return "HoseSystemDebugRendering = " .. tostring(HoseSystem.debugRendering)
+    return "HoseSystemDebugRendering = " .. tostring(g_hoseSystem.debugRendering)
 end
 
 HoseSystemUtil.eventHelper = {
@@ -502,5 +502,3 @@ function HoseSystemUtil:print_r(t, name, indent)
 
     return table_r(t, name or '', indent or '')
 end
-
-addConsoleCommand("gsToggleHoseSystemDebugRendering", "Toggles the debug rendering of the HoseSystem", "consoleCommandToggleHoseSystemDebugRendering", HoseSystemUtil)

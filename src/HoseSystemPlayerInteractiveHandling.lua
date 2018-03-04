@@ -1023,7 +1023,7 @@ function HoseSystemPlayerInteractiveHandling:addToPhysicsParts(grabPoint, connec
                 -- we only add components that are not related to the grabpoint we want to connect
                 if gp.componentIndex ~= grabPoint.componentIndex and componentIndex == gp.componentIndex and not connectedComponentIndexes[componentIndex] then
                     -- it also does not exists in the connected table
-                    if HoseSystem.debugRendering then
+                    if g_hoseSystem.debugRendering then
                         HoseSystemUtil:log(HoseSystemUtil.DEBUG, 'We only add component ' .. componentIndex .. ' to physics')
                     end
 
@@ -1074,7 +1074,7 @@ function HoseSystemPlayerInteractiveHandling:createCustomComponentJoint(grabPoin
     for i, jointDesc in pairs(self.object.componentJoints) do
         -- Only create on the grabPoint index
         if grabPoint.componentJointIndex == i then
-            if HoseSystem.debugRendering then
+            if g_hoseSystem.debugRendering then
                 HoseSystemUtil:log(HoseSystemUtil.DEBUG, 'We only add the component joint between the last and first component ' .. i)
             end
 

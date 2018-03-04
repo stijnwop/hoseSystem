@@ -24,18 +24,14 @@ function HoseSystemHoseCouplingStrategy:new(object, mt)
 
     setmetatable(hoseCouplingStrategy, mt == nil and HoseSystemHoseCouplingStrategy_mt or mt)
 
-    if g_currentMission.hoseSystemReferences == nil then
-        g_currentMission.hoseSystemReferences = {}
-    end
-
-    if not HoseSystemUtil.getHasListElement(g_currentMission.hoseSystemReferences, object) then
-        table.insert(g_currentMission.hoseSystemReferences, object)
+    if not HoseSystemUtil.getHasListElement(g_hoseSystem.hoseSystemReferences, object) then
+        table.insert(g_hoseSystem.hoseSystemReferences, object)
     end
 
     object.hasHoseSystem = true
 
     if object.hasHoseSystemPumpMotor then
-        object.pumpMotorCouplingFillMode = HoseSystemPumpMotor.getInitialFillMode(HoseSystemConnectorFactory.TYPE_HOSE_COUPLING)
+        object.pumpMotorCouplingFillMode = HoseSystemPumpMotorFactory.getInitialFillMode(HoseSystemConnectorFactory.TYPE_HOSE_COUPLING)
     end
 
     if object.attachedReferencesDirtyFlag == nil then
@@ -52,7 +48,7 @@ end
 ---
 --
 function HoseSystemHoseCouplingStrategy:preDelete()
-    if self.object.hoseSystemReferences ~= nil and g_currentMission.hoseSystemHoses ~= nil then
+    if self.object.hoseSystemReferences ~= nil and g_hoseSystem.hoseSystemHoses ~= nil then
         for referenceId, reference in pairs(self.object.hoseSystemReferences) do
             if reference.isUsed and reference.hoseSystem ~= nil then
                 reference.hoseSystem.poly.interactiveHandling:detach(reference.grabPointId, self.object, reference.id, false, true)
@@ -84,7 +80,7 @@ function HoseSystemHoseCouplingStrategy:readUpdateStream(streamId, timestamp, co
                     entry.lastHoseSystem = readNetworkNodeObject(streamId)
                 end
 
-                if HoseSystem.debugRendering then
+                if g_hoseSystem.debugRendering then
                     HoseSystemUtil:log(HoseSystemUtil.DEBUG, 'Coupling readUpdateStream active references [referenceId] = ' .. tostring(referenceId) .. " [showEffect] = " .. tostring(entry.showEffect))
                 end
 

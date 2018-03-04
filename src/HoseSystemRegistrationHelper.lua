@@ -11,35 +11,36 @@ HoseSystemRegistrationHelper = {
     runAtFirstFrame = true
 }
 
-HoseSystemRegistrationHelper.HOSE_SYSTEM_SPEC_KEY = 'hoseSystemVehicle'
+local function noopFunction() end
+
+HoseSystemRegistrationHelper.HOSE_SYSTEM_VEHICLE_SPECIALIZATION = 'hoseSystemVehicle'
 HoseSystemRegistrationHelper.HOSE_SYSTEM_MATERIAL_TYPE = 'hoseSystem'
 
-local srcDirectory = HoseSystemRegistrationHelper.baseDirectory .. 'specializations'
-local eventDirectory = HoseSystemRegistrationHelper.baseDirectory .. 'specializations/events'
-
-local files = {
-    ('%s/%s'):format(srcDirectory, 'HoseSystemUtil'),
-    ('%s/utils/%s'):format(srcDirectory, 'HoseSystemXMLUtil'),
-    ('%s/%s'):format(eventDirectory, 'HoseSystemReferenceIsUsedEvent'),
-    ('%s/%s'):format(eventDirectory, 'HoseSystemReferenceLockEvent'),
-    ('%s/%s'):format(eventDirectory, 'HoseSystemReferenceManureFlowEvent'),
-}
-
-for _, directory in pairs(files) do
-    source(directory .. '.lua')
-end
-
-local specializations = {
-    ["hoseSystemConnector"] = 'specializations/vehicles/',
-    ["hoseSystemPumpMotor"] = 'specializations/vehicles/',
-    ["hoseSystemFillArm"] = 'specializations/vehicles/'
-}
-
-for name, directory in pairs(specializations) do
-    if SpecializationUtil.specializations[name] == nil then
-        local classname = HoseSystemUtil:firstToUpper(name)
-        SpecializationUtil.registerSpecialization(name, classname, HoseSystemRegistrationHelper.baseDirectory .. directory .. classname .. ".lua")
+---
+--
+function HoseSystemRegistrationHelper:preLoadHoseSystem()
+    if g_hoseSystem ~= nil then
+        -- loaded already
+        HoseSystemUtil:log(HoseSystemUtil.ERROR, "The HoseSystem has been loaded already! Remove one of the copy's!")
     end
+
+    getfenv(0)["g_hoseSystem"] = self
+
+    self.debugRendering = true --<%=debug %>
+    self.logLevel = 4 --<%=logLevel %>
+    self.log = HoseSystemUtil.log
+
+    self.baseDirectory = HoseSystemRegistrationHelper.baseDirectory
+
+    -- Spec version to force modders to use the latest hoseSystemVehicle script
+    self.currentVehicleSpecVersion = 1.1
+
+    self.hoseSystemHoses = {}
+    self.hoseSystemReferences = {}
+    self.dockingSystemReferences = {}
+
+    -- Register the hoseSystemConnector and PumpMotor to vehicles
+    Vehicle.load = Utils.prependedFunction(Vehicle.load, HoseSystemRegistrationHelper.loadVehicle)
 end
 
 ---
@@ -49,46 +50,37 @@ function HoseSystemRegistrationHelper:loadMap(name)
     self.loadHoseSystemReferenceIds = {}
     self.minDistance = 2
 
-    if not g_currentMission.hoseSystemRegistrationHelperIsLoaded then
-        -- Register the fill mode for the hose system
-        HoseSystemPumpMotor.registerFillMode(HoseSystemConnectorFactory.TYPE_HOSE_COUPLING)
-        HoseSystemPumpMotor.registerFillMode(HoseSystemFillArmFactory.TYPE_DOCK)
-        HoseSystemPumpMotor.registerFillMode(HoseSystemFillArmFactory.TYPE_ARM)
-
+    if not g_hoseSystem.hoseSystemRegistrationHelperIsLoaded then
         -- Register the material for the hose system
         MaterialUtil.registerMaterialType(HoseSystemRegistrationHelper.HOSE_SYSTEM_MATERIAL_TYPE)
         loadI3DFile(HoseSystemRegistrationHelper.baseDirectory .. 'particleSystems/materialHolder.i3d')
-
-        g_currentMission.hoseSystemLog = HoseSystemUtil.log
-        g_currentMission.hoseSystemRegistrationHelperIsLoaded = true
+        g_hoseSystem.hoseSystemRegistrationHelperIsLoaded = true
     else
         HoseSystemUtil:log(HoseSystemUtil.ERROR, "The HoseSystemRegistrationHelper has been loaded already! Remove one of the copy's!")
     end
+
+    addConsoleCommand("gsToggleHoseSystemDebugRendering", "Toggles the debug rendering of the HoseSystem", "consoleCommandToggleHoseSystemDebugRendering", HoseSystemUtil)
 end
 
 ---
 --
 function HoseSystemRegistrationHelper:deleteMap()
-    g_currentMission.hoseSystemRegistrationHelperIsLoaded = false
+    removeConsoleCommand("gsToggleHoseSystemDebugRendering")
+    g_hoseSystem.hoseSystemRegistrationHelperIsLoaded = false
+
+    getfenv(0)["g_hoseSystem"] = nil
 end
 
 ---
--- @param unicode
--- @param sym
--- @param modifier
--- @param isDown
+-- @param ...
 --
-function HoseSystemRegistrationHelper:keyEvent(unicode, sym, modifier, isDown)
+function HoseSystemRegistrationHelper:keyEvent(...)
 end
 
 ---
--- @param posX
--- @param posY
--- @param isDown
--- @param isUp
--- @param button
+-- @param ...
 --
-function HoseSystemRegistrationHelper:mouseEvent(posX, posY, isDown, isUp, button)
+function HoseSystemRegistrationHelper:mouseEvent(...)
 end
 
 ---
@@ -101,7 +93,7 @@ function HoseSystemRegistrationHelper:update(dt)
         return
     end
 
-    if g_currentMission.hoseSystemRegistrationHelperIsLoaded and HoseSystemRegistrationHelper.runAtFirstFrame then
+    if g_hoseSystem.hoseSystemRegistrationHelperIsLoaded and HoseSystemRegistrationHelper.runAtFirstFrame then
         if g_currentMission.missionInfo.vehiclesXMLLoad ~= nil then
             local xmlFile = loadXMLFile('VehiclesXML', g_currentMission.missionInfo.vehiclesXMLLoad)
 
@@ -127,8 +119,8 @@ function HoseSystemRegistrationHelper:update(dt)
                             local isExtendable = getXMLBool(xmlFile, key .. '#extenable')
 
                             if connectorVehicleId ~= nil and grabPointId ~= nil and referenceId ~= nil and isExtendable ~= nil then
-                                if g_currentMission.hoseSystemReferences ~= nil then
-                                    local connectorVehicle = g_currentMission.hoseSystemReferences[connectorVehicleId]
+                                if g_hoseSystem.hoseSystemReferences ~= nil then
+                                    local connectorVehicle = g_hoseSystem.hoseSystemReferences[connectorVehicleId]
 
                                     if connectorVehicle ~= nil then
                                         if vehicle.poly ~= nil then
@@ -137,7 +129,7 @@ function HoseSystemRegistrationHelper:update(dt)
                                             HoseSystemUtil:log(HoseSystemUtil.ERROR, 'Something went wrong in your savegame, the vehicle that should be connecting is gone!')
                                         end
                                     else
-                                        if HoseSystem.debugRendering then
+                                        if g_hoseSystem.debugRendering then
                                             HoseSystemUtil:log(HoseSystemUtil.ERROR, 'Invalid connectorVehicle on gameload!')
                                         end
                                     end
@@ -179,8 +171,8 @@ function HoseSystemRegistrationHelper:getIsPlayerInGrabPointRange()
         local playerDistance = self.minDistance
         local playerTrans = { getWorldTranslation(g_currentMission.player.rootNode) }
 
-        if HoseSystemPlayerInteractive:getIsPlayerValid(true) and g_currentMission.hoseSystemHoses ~= nil then
-            for _, hoseSystem in pairs(g_currentMission.hoseSystemHoses) do
+        if HoseSystemPlayerInteractive:getIsPlayerValid(true) and g_hoseSystem.hoseSystemHoses ~= nil then
+            for _, hoseSystem in pairs(g_hoseSystem.hoseSystemHoses) do
                 for index, grabPoint in pairs(hoseSystem.grabPoints) do
                     if grabPoint.node ~= nil then
                         local trans = { getWorldTranslation(grabPoint.node) }
@@ -221,40 +213,45 @@ function HoseSystemRegistrationHelper.loadVehicle(super, vehicleData, asyncCallb
     local customEnvironment, _ = Utils.getModNameAndBaseDirectory(vehicleData.filename)
 
     if customEnvironment ~= nil then
-        local typeDef = VehicleTypeUtil.vehicleTypes[vehicleData.typeName]
-        local specializations = typeDef.specializations
-        local specializationNames = typeDef.specializationNames
+        local class = _G[customEnvironment].SpecializationUtil.getSpecialization(HoseSystemRegistrationHelper.HOSE_SYSTEM_VEHICLE_SPECIALIZATION)
 
-        if specializations ~= nil and specializationNames ~= nil then
-            for i = 1, #specializations do
-                local specializationName = specializationNames[i]
+        if class ~= nil then
+            HoseSystemUtil:log(HoseSystemUtil.DEBUG, "Found hoseSystemVehicle specialization in: " .. customEnvironment)
 
-                if specializationName ~= nil and specializationName:lower() == string.format('%s.%s', customEnvironment, HoseSystemRegistrationHelper.HOSE_SYSTEM_SPEC_KEY):lower() then
-                    local specialization = specializations[i]
+            if class.version == nil or class.version ~= nil and class.version < g_hoseSystem.currentVehicleSpecVersion then
+                HoseSystemUtil:log(HoseSystemUtil.WARNING, "The hoseSystemVehicle specialization in: " .. customEnvironment .. " is outdated! Latest version is v" .. g_hoseSystem.currentVehicleSpecVersion)
+            end
 
-                    if specialization.preLoadHoseSystem ~= nil then
-                        super.xmlFile = loadXMLFile('TempConfig', vehicleData.filename)
-
-                        local vehicleLoadState = specializations[i].preLoadHoseSystem(super, vehicleData.savegame)
-
-                        if vehicleLoadState ~= nil and vehicleLoadState ~= BaseMission.VEHICLE_LOAD_OK then
-                            HoseSystemUtil:log(HoseSystemUtil.ERROR, specializationName .. "-specialization 'preLoadHoseSystem' failed!")
-
-                            if asyncCallbackFunction ~= nil then
-                                asyncCallbackFunction(asyncCallbackObject, nil, vehicleLoadState, asyncCallbackArguments)
-                            end
-
-                            return vehicleLoadState
-                        end
-
-                        if not super.hoseSystemLoaded then
-                            HoseSystemRegistrationHelper:register(super, typeDef.specializations, customEnvironment)
-                        end
-
-                        delete(super.xmlFile)
-                        super.xmlFile = nil
-                    end
+            -- prefill methods
+            for _, method in pairs({ "load", "delete", "mouseEvent", "keyEvent", "update", "draw" }) do
+                if class[method] == nil then
+                    class[method] = noopFunction
                 end
+            end
+
+            if class.preLoadHoseSystem ~= nil then
+                local typeDef = VehicleTypeUtil.vehicleTypes[vehicleData.typeName]
+
+                super.xmlFile = loadXMLFile('TempConfig', vehicleData.filename)
+
+                local vehicleLoadState = class.preLoadHoseSystem(super, vehicleData.savegame)
+
+                if vehicleLoadState ~= nil and vehicleLoadState ~= BaseMission.VEHICLE_LOAD_OK then
+                    HoseSystemUtil:log(HoseSystemUtil.ERROR, customEnvironment .. ".hoseSystemVehicle-specialization 'preLoadHoseSystem' failed!")
+
+                    if asyncCallbackFunction ~= nil then
+                        asyncCallbackFunction(asyncCallbackObject, nil, vehicleLoadState, asyncCallbackArguments)
+                    end
+
+                    return vehicleLoadState
+                end
+
+                if not super.hoseSystemLoaded then
+                    HoseSystemRegistrationHelper:register(super, typeDef.specializations, customEnvironment)
+                end
+
+                delete(super.xmlFile)
+                super.xmlFile = nil
             end
         end
     end
@@ -272,7 +269,7 @@ function HoseSystemRegistrationHelper:register(vehicle, specializations, name)
         if not SpecializationUtil.hasSpecialization(specialization, specializations) then
             table.insert(specializations, specialization)
 
-            if HoseSystem.debugRendering then
+            if g_hoseSystem.debugRendering then
                 HoseSystemUtil:log(HoseSystemUtil.DEBUG, 'Connector specialization added to: ' .. name)
             end
         end
@@ -284,7 +281,7 @@ function HoseSystemRegistrationHelper:register(vehicle, specializations, name)
         if not SpecializationUtil.hasSpecialization(specialization, specializations) then
             table.insert(specializations, specialization)
 
-            if HoseSystem.debugRendering then
+            if g_hoseSystem.debugRendering then
                 HoseSystemUtil:log(HoseSystemUtil.DEBUG, 'PumpMotor specialization added to: ' .. name)
             end
         end
@@ -296,7 +293,7 @@ function HoseSystemRegistrationHelper:register(vehicle, specializations, name)
         if not SpecializationUtil.hasSpecialization(specialization, specializations) then
             table.insert(specializations, specialization)
 
-            if HoseSystem.debugRendering then
+            if g_hoseSystem.debugRendering then
                 HoseSystemUtil:log(HoseSystemUtil.DEBUG, 'FillArm specialization added to: ' .. name)
             end
         end
@@ -329,6 +326,3 @@ function HoseSystemRegistrationHelper:loadVehicles(xmlFile, referenceIds)
 end
 
 addModEventListener(HoseSystemRegistrationHelper)
-
--- Register the hoseSystemConnector and PumpMotor to vehicles
-Vehicle.load = Utils.prependedFunction(Vehicle.load, HoseSystemRegistrationHelper.loadVehicle)

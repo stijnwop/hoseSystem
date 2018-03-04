@@ -98,7 +98,7 @@ function HoseSystemFillTriggerInteractive:update(dt)
                         --                                end
                         --                            end
 
-                        if HoseSystem.debugRendering then
+                        if g_hoseSystem.debugRendering then
                             HoseSystemFillTriggerInteractive.debugRendering(self, gp.raycastNode, x, y, z)
                         end
                     end
@@ -116,7 +116,7 @@ function HoseSystemFillTriggerInteractive:update(dt)
             local isUnderFillplane, _ = self.object.lastRaycastObject:checkPlaneY(y + self.object.fillArm.planeOffset, { x, y, z })
 
             if isUnderFillplane and HoseSystemFillTriggerInteractive:allowFillTypeAffectDirtMask(self.object.lastRaycastObject.fillType) then
-                if HoseSystem.debugRendering then
+                if g_hoseSystem.debugRendering then
                     HoseSystemFillTriggerInteractive.debugRendering(self, self.object.fillArm.node, x, y, z)
                 end
             end
@@ -132,7 +132,7 @@ end
 ---
 --
 function HoseSystemFillTriggerInteractive.debugRendering(self, raycastNode, x, y, z)
-    if HoseSystem.debugRendering then
+    if g_hoseSystem.debugRendering then
         local xyz = { worldToLocal(raycastNode, x, y, z) }
         local color = { 1, 0 }
 

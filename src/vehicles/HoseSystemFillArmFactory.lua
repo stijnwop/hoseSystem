@@ -17,18 +17,26 @@ HoseSystemFillArmFactory.typesToInt = {}
 HoseSystemFillArmFactory.TYPE_DOCK = 'dock'
 HoseSystemFillArmFactory.TYPE_ARM = 'arm'
 
-local srcDirectory = HoseSystemFillArmFactory.baseDirectory .. 'specializations/vehicles/strategies'
-
-local files = {
-    ('%s/%s'):format(srcDirectory, 'HoseSystemDockArmStrategy.lua'),
-    ('%s/%s'):format(srcDirectory, 'HoseSystemArmStrategy.lua')
-}
-
-for _, path in pairs(files) do
-    source(path)
-end
 
 local HoseSystemFillArmFactory_mt = Class(HoseSystemFillArmFactory)
+
+---
+--
+function HoseSystemFillArmFactory:preLoadHoseSystem()
+    local srcDirectory = g_hoseSystem.baseDirectory .. 'src/vehicles/strategies'
+
+    local files = {
+        ('%s/%s'):format(srcDirectory, 'HoseSystemDockArmStrategy.lua'),
+        ('%s/%s'):format(srcDirectory, 'HoseSystemArmStrategy.lua')
+    }
+
+    for _, path in pairs(files) do
+        source(path)
+    end
+
+    HoseSystemFillArmFactory.registerType(HoseSystemFillArmFactory.TYPE_DOCK)
+    HoseSystemFillArmFactory.registerType(HoseSystemFillArmFactory.TYPE_ARM)
+end
 
 ---
 -- @param name
@@ -65,15 +73,12 @@ end
 ---
 --
 function HoseSystemFillArmFactory.getInstance()
-    if g_currentMission.hoseSystemFillArmFactory == nil then
-        g_currentMission.hoseSystemFillArmFactory = HoseSystemFillArmFactory:new()
+    if g_hoseSystem.hoseSystemFillArmFactory == nil then
+        g_hoseSystem.hoseSystemFillArmFactory = HoseSystemFillArmFactory:new()
     end
 
-    return g_currentMission.hoseSystemFillArmFactory
+    return g_hoseSystem.hoseSystemFillArmFactory
 end
-
-HoseSystemFillArmFactory.registerType(HoseSystemFillArmFactory.TYPE_DOCK)
-HoseSystemFillArmFactory.registerType(HoseSystemFillArmFactory.TYPE_ARM)
 
 ---
 --

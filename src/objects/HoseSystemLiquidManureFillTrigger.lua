@@ -15,6 +15,13 @@ HoseSystemLiquidManureFillTrigger.LEVEL_CHANGE_TRESHOLD_TIME = 100 -- ms
 HoseSystemLiquidManureFillTrigger.RESET_CHANGE_TRESHOLD_TIME = 500 -- ms
 
 ---
+--
+function HoseSystemLiquidManureFillTrigger:preLoadHoseSystem()
+    LiquidManureFillTrigger.new = Utils.overwrittenFunction(LiquidManureFillTrigger.new, HoseSystemLiquidManureFillTrigger.new)
+    LiquidManureFillTrigger.load = Utils.overwrittenFunction(LiquidManureFillTrigger.load, HoseSystemLiquidManureFillTrigger.load)
+end
+
+---
 -- @param superFunc
 -- @param mt
 --
@@ -40,7 +47,7 @@ function HoseSystemLiquidManureFillTrigger:load(superFunc, nodeId, fillLevelObje
         local xmlFilename = getUserAttribute(nodeId, 'xmlFilename')
 
         if xmlFilename == nil then
-            if HoseSystem.debugRendering then
+            if g_hoseSystem.debugRendering then
                 HoseSystemUtil:log(HoseSystemUtil.WARNING, 'HoseSystemFillTrigger is trying to load the xml file, but the file could not be found! Loading default triggers..')
             end
 
@@ -156,11 +163,7 @@ function HoseSystemLiquidManureFillTrigger:load(superFunc, nodeId, fillLevelObje
         local referencesCount = #self.hoseSystemReferences
 
         if referencesCount > 0 then
-            if g_currentMission.hoseSystemReferences == nil then
-                g_currentMission.hoseSystemReferences = {}
-            end
-
-            table.insert(g_currentMission.hoseSystemReferences, self)
+            table.insert(g_hoseSystem.hoseSystemReferences, self)
         end
 
         -- well this should hold the supported fillModes
@@ -258,7 +261,7 @@ function HoseSystemLiquidManureFillTrigger:delete(superFunc)
         end
     end
 
-    HoseSystemUtil:removeElementFromList(g_currentMission.hoseSystemReferences, self)
+    HoseSystemUtil:removeElementFromList(g_hoseSystem.hoseSystemReferences, self)
 end
 
 ---
@@ -625,10 +628,6 @@ function HoseSystemLiquidManureFillTrigger:onConnectorDetach(referenceId)
         HoseSystemUtil:log(HoseSystemUtil.DEBUG, self.attachedHoseSystemReferences)
     end
 end
-
--- LiquidManureFillTrigger
-LiquidManureFillTrigger.new = Utils.overwrittenFunction(LiquidManureFillTrigger.new, HoseSystemLiquidManureFillTrigger.new)
-LiquidManureFillTrigger.load = Utils.overwrittenFunction(LiquidManureFillTrigger.load, HoseSystemLiquidManureFillTrigger.load)
 
 -- TipTrigger
 -- TipTrigger.load = Utils.overwrittenFunction(TipTrigger.load, HoseSystemLiquidManureFillTrigger.load) -- overwrite to be albe to pump water?

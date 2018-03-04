@@ -1,0 +1,45 @@
+name: HoseSystem
+author: Wopster Modding
+contributors:
+  - Wopster
+zip_name: FS17_hoseSystem
+version: 1.1.0.0
+type: script
+
+code: src/
+main: src/bootstrap.lua
+
+resources:
+  - liquidManureHoses/
+  - particleSystems/
+  - shaders/
+  - shared/
+
+base_translation: en
+translations:
+  - de
+  - en
+  - es
+  - fr
+  - it
+  - nl
+  - pl
+  - ru
+  - hu
+
+iconFilename: store.dds
+
+templates:
+  debug: true
+  logLevel: 4
+  verbose: true
+  norestart: false
+  simpleVersion: 4
+
+release:
+  clean_translations: true
+  templates:
+    debug: false
+    logLevel: 3
+    verbose: false
+    norestart: false

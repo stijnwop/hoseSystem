@@ -7,26 +7,23 @@
 -- Copyright (c) Wopster, 2017
 
 HoseSystem = {
-    debugRendering = true,
-    logLevel = 4,
     baseDirectory = g_currentModDirectory
 }
 
-local srcDirectory = HoseSystem.baseDirectory .. 'specializations'
-local eventDirectory = HoseSystem.baseDirectory .. 'specializations/events'
+local srcDirectory = HoseSystem.baseDirectory .. 'src'
 
 local files = {
-    -- Events
-    ('%s/%s'):format(eventDirectory, 'HoseSystemGrabEvent'),
-    ('%s/%s'):format(eventDirectory, 'HoseSystemDropEvent'),
-    ('%s/%s'):format(eventDirectory, 'HoseSystemAttachEvent'),
-    ('%s/%s'):format(eventDirectory, 'HoseSystemDetachEvent'),
-    ('%s/%s'):format(eventDirectory, 'HoseSystemIsUsedEvent'),
-    ('%s/%s'):format(eventDirectory, 'HoseSystemSetOwnerEvent'),
-    ('%s/%s'):format(eventDirectory, 'HoseSystemToggleLockEvent'),
-    ('%s/%s'):format(eventDirectory, 'HoseSystemLoadFillableObjectAndReferenceEvent'),
+    -- multiplayer events
+    ('%s/events/%s'):format(srcDirectory, 'HoseSystemGrabEvent'),
+    ('%s/events/%s'):format(srcDirectory, 'HoseSystemDropEvent'),
+    ('%s/events/%s'):format(srcDirectory, 'HoseSystemAttachEvent'),
+    ('%s/events/%s'):format(srcDirectory, 'HoseSystemDetachEvent'),
+    ('%s/events/%s'):format(srcDirectory, 'HoseSystemIsUsedEvent'),
+    ('%s/events/%s'):format(srcDirectory, 'HoseSystemSetOwnerEvent'),
+    ('%s/events/%s'):format(srcDirectory, 'HoseSystemToggleLockEvent'),
+    ('%s/events/%s'):format(srcDirectory, 'HoseSystemLoadFillableObjectAndReferenceEvent'),
     --    ('%s/%s'):format(eventDirectory, 'HoseSystemChainCountEvent'),
-    -- Classes
+    -- classes
     ('%s/%s'):format(srcDirectory, 'HoseSystemPlayerInteractive'),
     ('%s/%s'):format(srcDirectory, 'HoseSystemPlayerInteractiveHandling'),
     ('%s/%s'):format(srcDirectory, 'HoseSystemPlayerInteractiveRestrictions'),
@@ -175,11 +172,7 @@ function HoseSystem:loadHoseJoints(xmlFile, baseString)
 
     if entry.numJoints > 0 then -- we should confirm that 1 or 2 attacherJoints are in place too.
         -- store "hose" in an global table for faster distance check later on
-        if g_currentMission.hoseSystemHoses == nil then
-            g_currentMission.hoseSystemHoses = {}
-        end
-
-        table.insert(g_currentMission.hoseSystemHoses, self)
+        table.insert(g_hoseSystem.hoseSystemHoses, self)
     end
 
     self.jointSpline = entry
@@ -303,7 +296,7 @@ end
 ---
 --
 function HoseSystem:delete()
-    HoseSystemUtil:removeElementFromList(g_currentMission.hoseSystemHoses, self)
+    HoseSystemUtil:removeElementFromList(g_hoseSystem.hoseSystemHoses, self)
 
     if self.isClient then
         if self.hoseEffects ~= nil and self.hoseEffects.effect ~= nil then
@@ -423,10 +416,15 @@ function HoseSystem:getSaveAttributesAndNodes(nodeIdent)
                     local vehicleId = 0
                     local reference = HoseSystemReferences:getReference(grabPoint.connectorVehicle, grabPoint.connectorRefId, grabPoint)
 
-                    for i, vehicle in pairs(g_currentMission.hoseSystemReferences) do
+                    for i, vehicle in pairs(g_hoseSystem.hoseSystemReferences) do
                         if vehicle == grabPoint.connectorVehicle then
                             vehicleId = i
                             break
+                        end
+
+                        -- todo: this can be deleted with the new setup
+                        if reference.isObject and vehicle.fillLevelObject == grabPoint.connectorVehicle then
+                            vehicleId = i
                         end
                     end
 
@@ -557,7 +555,7 @@ function HoseSystem:updateSpline(force)
         end
     end
 
-    if HoseSystem.debugRendering then
+    if g_hoseSystem.debugRendering then
         -- debug curve line
         local tableNum = 150 -- more = closer between dots
 
