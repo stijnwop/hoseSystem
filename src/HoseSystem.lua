@@ -174,11 +174,7 @@ function HoseSystem:loadHoseJoints(xmlFile, baseString)
 
     if entry.numJoints > 0 then -- we should confirm that 1 or 2 attacherJoints are in place too.
         -- store "hose" in an global table for faster distance check later on
-        if g_currentMission.hoseSystemHoses == nil then
-            g_currentMission.hoseSystemHoses = {}
-        end
-
-        table.insert(g_currentMission.hoseSystemHoses, self)
+        table.insert(g_hoseSystem.hoseSystemHoses, self)
     end
 
     self.jointSpline = entry
@@ -302,7 +298,7 @@ end
 ---
 --
 function HoseSystem:delete()
-    HoseSystemUtil:removeElementFromList(g_currentMission.hoseSystemHoses, self)
+    HoseSystemUtil:removeElementFromList(g_hoseSystem.hoseSystemHoses, self)
 
     if self.isClient then
         if self.hoseEffects ~= nil and self.hoseEffects.effect ~= nil then
@@ -422,7 +418,7 @@ function HoseSystem:getSaveAttributesAndNodes(nodeIdent)
                     local vehicleId = 0
                     local reference = HoseSystemReferences:getReference(grabPoint.connectorVehicle, grabPoint.connectorRefId, grabPoint)
 
-                    for i, vehicle in pairs(g_currentMission.hoseSystemReferences) do
+                    for i, vehicle in pairs(g_hoseSystem.hoseSystemReferences) do
                         if vehicle == grabPoint.connectorVehicle then
                             vehicleId = i
                             break

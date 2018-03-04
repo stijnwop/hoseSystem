@@ -163,11 +163,7 @@ function HoseSystemLiquidManureFillTrigger:load(superFunc, nodeId, fillLevelObje
         local referencesCount = #self.hoseSystemReferences
 
         if referencesCount > 0 then
-            if g_currentMission.hoseSystemReferences == nil then
-                g_currentMission.hoseSystemReferences = {}
-            end
-
-            table.insert(g_currentMission.hoseSystemReferences, self)
+            table.insert(g_hoseSystem.hoseSystemReferences, self)
         end
 
         -- well this should hold the supported fillModes
@@ -265,7 +261,7 @@ function HoseSystemLiquidManureFillTrigger:delete(superFunc)
         end
     end
 
-    HoseSystemUtil:removeElementFromList(g_currentMission.hoseSystemReferences, self)
+    HoseSystemUtil:removeElementFromList(g_hoseSystem.hoseSystemReferences, self)
 end
 
 ---

@@ -30,12 +30,8 @@ function HoseSystemDockStrategy:new(object, mt)
 
     setmetatable(dockStrategy, mt == nil and HoseSystemDockStrategy_mt or mt)
 
-    if g_currentMission.dockingSystemReferences == nil then
-        g_currentMission.dockingSystemReferences = {}
-    end
-
-    if not HoseSystemUtil.getHasListElement(g_currentMission.dockingSystemReferences, object) then
-        table.insert(g_currentMission.dockingSystemReferences, object)
+    if not HoseSystemUtil.getHasListElement(g_hoseSystem.dockingSystemReferences, object) then
+        table.insert(g_hoseSystem.dockingSystemReferences, object)
     end
 
     dockStrategy.dockingArmObjects = {}

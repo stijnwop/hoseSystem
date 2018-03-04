@@ -19,6 +19,7 @@ HoseSystemRegistrationHelper.HOSE_SYSTEM_MATERIAL_TYPE = 'hoseSystem'
 function HoseSystemRegistrationHelper:preLoadHoseSystem()
     if g_hoseSystem ~= nil then
         -- loaded already
+        HoseSystemUtil:log(HoseSystemUtil.ERROR, "The HoseSystem has been loaded already! Remove one of the copy's!")
     end
 
     getfenv(0)["g_hoseSystem"] = self
@@ -28,6 +29,7 @@ function HoseSystemRegistrationHelper:preLoadHoseSystem()
     self.baseDirectory = HoseSystemRegistrationHelper.baseDirectory
     self.hoseSystemHoses = {}
     self.hoseSystemReferences = {}
+    self.dockingSystemReferences = {}
 end
 
 ---
@@ -37,7 +39,7 @@ function HoseSystemRegistrationHelper:loadMap(name)
     self.loadHoseSystemReferenceIds = {}
     self.minDistance = 2
 
-    if not g_currentMission.hoseSystemRegistrationHelperIsLoaded then
+    if not g_hoseSystem.hoseSystemRegistrationHelperIsLoaded then
         -- Register the fill mode for the hose system
         HoseSystemPumpMotor.registerFillMode(HoseSystemConnectorFactory.TYPE_HOSE_COUPLING)
         HoseSystemPumpMotor.registerFillMode(HoseSystemFillArmFactory.TYPE_DOCK)
@@ -48,8 +50,8 @@ function HoseSystemRegistrationHelper:loadMap(name)
         loadI3DFile(HoseSystemRegistrationHelper.baseDirectory .. 'particleSystems/materialHolder.i3d')
 
         -- Todo: delete
-        g_currentMission.hoseSystemLog = HoseSystemUtil.log
-        g_currentMission.hoseSystemRegistrationHelperIsLoaded = true
+--        g_currentMission.hoseSystemLog = HoseSystemUtil.log
+        g_hoseSystem.hoseSystemRegistrationHelperIsLoaded = true
     else
         HoseSystemUtil:log(HoseSystemUtil.ERROR, "The HoseSystemRegistrationHelper has been loaded already! Remove one of the copy's!")
     end
@@ -61,7 +63,9 @@ end
 --
 function HoseSystemRegistrationHelper:deleteMap()
     removeConsoleCommand("gsToggleHoseSystemDebugRendering")
-    g_currentMission.hoseSystemRegistrationHelperIsLoaded = false
+    g_hoseSystem.hoseSystemRegistrationHelperIsLoaded = false
+
+    getfenv(0)["g_hoseSystem"] = nil
 end
 
 ---
@@ -93,7 +97,7 @@ function HoseSystemRegistrationHelper:update(dt)
         return
     end
 
-    if g_currentMission.hoseSystemRegistrationHelperIsLoaded and HoseSystemRegistrationHelper.runAtFirstFrame then
+    if g_hoseSystem.hoseSystemRegistrationHelperIsLoaded and HoseSystemRegistrationHelper.runAtFirstFrame then
         if g_currentMission.missionInfo.vehiclesXMLLoad ~= nil then
             local xmlFile = loadXMLFile('VehiclesXML', g_currentMission.missionInfo.vehiclesXMLLoad)
 
@@ -119,8 +123,8 @@ function HoseSystemRegistrationHelper:update(dt)
                             local isExtendable = getXMLBool(xmlFile, key .. '#extenable')
 
                             if connectorVehicleId ~= nil and grabPointId ~= nil and referenceId ~= nil and isExtendable ~= nil then
-                                if g_currentMission.hoseSystemReferences ~= nil then
-                                    local connectorVehicle = g_currentMission.hoseSystemReferences[connectorVehicleId]
+                                if g_hoseSystem.hoseSystemReferences ~= nil then
+                                    local connectorVehicle = g_hoseSystem.hoseSystemReferences[connectorVehicleId]
 
                                     if connectorVehicle ~= nil then
                                         if vehicle.poly ~= nil then
@@ -171,8 +175,8 @@ function HoseSystemRegistrationHelper:getIsPlayerInGrabPointRange()
         local playerDistance = self.minDistance
         local playerTrans = { getWorldTranslation(g_currentMission.player.rootNode) }
 
-        if HoseSystemPlayerInteractive:getIsPlayerValid(true) and g_currentMission.hoseSystemHoses ~= nil then
-            for _, hoseSystem in pairs(g_currentMission.hoseSystemHoses) do
+        if HoseSystemPlayerInteractive:getIsPlayerValid(true) and g_hoseSystem.hoseSystemHoses ~= nil then
+            for _, hoseSystem in pairs(g_hoseSystem.hoseSystemHoses) do
                 for index, grabPoint in pairs(hoseSystem.grabPoints) do
                     if grabPoint.node ~= nil then
                         local trans = { getWorldTranslation(grabPoint.node) }

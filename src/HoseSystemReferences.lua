@@ -139,8 +139,8 @@ function HoseSystemReferences:searchReferences(grabPoint)
     local sequence = HoseSystemReferences.SEQUENCE
     local reset = true
 
-    if g_currentMission.hoseSystemReferences ~= nil and #g_currentMission.hoseSystemReferences > 0 then
-        for _, hoseSystemReference in pairs(g_currentMission.hoseSystemReferences) do
+    if g_hoseSystem.hoseSystemReferences ~= nil and #g_hoseSystem.hoseSystemReferences > 0 then
+        for _, hoseSystemReference in pairs(g_hoseSystem.hoseSystemReferences) do
             -- Hose references
             if hoseSystemReference ~= nil then
                 for i, reference in pairs(hoseSystemReference.hoseSystemReferences) do
@@ -158,8 +158,8 @@ function HoseSystemReferences:searchReferences(grabPoint)
     end
 
     if grabPoint.connectable then
-        if g_currentMission.hoseSystemHoses ~= nil and #g_currentMission.hoseSystemHoses > 0 then
-            for _, hoseSystemHose in pairs(g_currentMission.hoseSystemHoses) do
+        if g_hoseSystem.hoseSystemHoses ~= nil and #g_hoseSystem.hoseSystemHoses > 0 then
+            for _, hoseSystemHose in pairs(g_hoseSystem.hoseSystemHoses) do
                 if hoseSystemHose ~= self and hoseSystemHose.grabPoints ~= nil then
                     for i, reference in pairs(hoseSystemHose.grabPoints) do
                         if grabPoint.connectable or reference.connectable then
