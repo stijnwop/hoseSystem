@@ -80,7 +80,7 @@ function HoseSystemHoseCouplingStrategy:readUpdateStream(streamId, timestamp, co
                     entry.lastHoseSystem = readNetworkNodeObject(streamId)
                 end
 
-                if HoseSystem.debugRendering then
+                if g_hoseSystem.debugRendering then
                     HoseSystemUtil:log(HoseSystemUtil.DEBUG, 'Coupling readUpdateStream active references [referenceId] = ' .. tostring(referenceId) .. " [showEffect] = " .. tostring(entry.showEffect))
                 end
 

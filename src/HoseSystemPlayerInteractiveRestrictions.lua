@@ -172,7 +172,7 @@ function HoseSystemPlayerInteractiveRestrictions:restrictReferenceDistance(grabP
                     local allowedDistance = self.object.data.length * HoseSystemPlayerInteractiveRestrictions.STRETCH_PERCENTAGE -- give it a bit more space to move
 
                     if distance > allowedDistance or distance < (allowedDistance - 1) then
-                        if HoseSystem.debugRendering then
+                        if g_hoseSystem.debugRendering then
                             HoseSystemUtil:log(HoseSystemUtil.DEBUG, 'Restriction detach distance: ' .. distance)
                         end
 

@@ -7,8 +7,6 @@
 -- Copyright (c) Wopster, 2017
 
 HoseSystem = {
-    debugRendering = true,
-    logLevel = 4,
     baseDirectory = g_currentModDirectory
 }
 
@@ -557,7 +555,7 @@ function HoseSystem:updateSpline(force)
         end
     end
 
-    if HoseSystem.debugRendering then
+    if g_hoseSystem.debugRendering then
         -- debug curve line
         local tableNum = 150 -- more = closer between dots
 

@@ -24,6 +24,8 @@ function HoseSystemRegistrationHelper:preLoadHoseSystem()
 
     getfenv(0)["g_hoseSystem"] = self
 
+    self.debugRendering = true --<%=debug %>
+    self.logLevel = 4 --<%=logLevel %>
     self.log = HoseSystemUtil.log
 
     self.baseDirectory = HoseSystemRegistrationHelper.baseDirectory
@@ -48,9 +50,6 @@ function HoseSystemRegistrationHelper:loadMap(name)
         -- Register the material for the hose system
         MaterialUtil.registerMaterialType(HoseSystemRegistrationHelper.HOSE_SYSTEM_MATERIAL_TYPE)
         loadI3DFile(HoseSystemRegistrationHelper.baseDirectory .. 'particleSystems/materialHolder.i3d')
-
-        -- Todo: delete
---        g_currentMission.hoseSystemLog = HoseSystemUtil.log
         g_hoseSystem.hoseSystemRegistrationHelperIsLoaded = true
     else
         HoseSystemUtil:log(HoseSystemUtil.ERROR, "The HoseSystemRegistrationHelper has been loaded already! Remove one of the copy's!")
@@ -69,22 +68,15 @@ function HoseSystemRegistrationHelper:deleteMap()
 end
 
 ---
--- @param unicode
--- @param sym
--- @param modifier
--- @param isDown
+-- @param ...
 --
-function HoseSystemRegistrationHelper:keyEvent(unicode, sym, modifier, isDown)
+function HoseSystemRegistrationHelper:keyEvent(...)
 end
 
 ---
--- @param posX
--- @param posY
--- @param isDown
--- @param isUp
--- @param button
+-- @param ...
 --
-function HoseSystemRegistrationHelper:mouseEvent(posX, posY, isDown, isUp, button)
+function HoseSystemRegistrationHelper:mouseEvent(...)
 end
 
 ---
@@ -133,7 +125,7 @@ function HoseSystemRegistrationHelper:update(dt)
                                             HoseSystemUtil:log(HoseSystemUtil.ERROR, 'Something went wrong in your savegame, the vehicle that should be connecting is gone!')
                                         end
                                     else
-                                        if HoseSystem.debugRendering then
+                                        if g_hoseSystem.debugRendering then
                                             HoseSystemUtil:log(HoseSystemUtil.ERROR, 'Invalid connectorVehicle on gameload!')
                                         end
                                     end
@@ -268,7 +260,7 @@ function HoseSystemRegistrationHelper:register(vehicle, specializations, name)
         if not SpecializationUtil.hasSpecialization(specialization, specializations) then
             table.insert(specializations, specialization)
 
-            if HoseSystem.debugRendering then
+            if g_hoseSystem.debugRendering then
                 HoseSystemUtil:log(HoseSystemUtil.DEBUG, 'Connector specialization added to: ' .. name)
             end
         end
@@ -280,7 +272,7 @@ function HoseSystemRegistrationHelper:register(vehicle, specializations, name)
         if not SpecializationUtil.hasSpecialization(specialization, specializations) then
             table.insert(specializations, specialization)
 
-            if HoseSystem.debugRendering then
+            if g_hoseSystem.debugRendering then
                 HoseSystemUtil:log(HoseSystemUtil.DEBUG, 'PumpMotor specialization added to: ' .. name)
             end
         end
@@ -292,7 +284,7 @@ function HoseSystemRegistrationHelper:register(vehicle, specializations, name)
         if not SpecializationUtil.hasSpecialization(specialization, specializations) then
             table.insert(specializations, specialization)
 
-            if HoseSystem.debugRendering then
+            if g_hoseSystem.debugRendering then
                 HoseSystemUtil:log(HoseSystemUtil.DEBUG, 'FillArm specialization added to: ' .. name)
             end
         end

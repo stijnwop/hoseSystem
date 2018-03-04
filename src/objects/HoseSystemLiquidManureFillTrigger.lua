@@ -47,7 +47,7 @@ function HoseSystemLiquidManureFillTrigger:load(superFunc, nodeId, fillLevelObje
         local xmlFilename = getUserAttribute(nodeId, 'xmlFilename')
 
         if xmlFilename == nil then
-            if HoseSystem.debugRendering then
+            if g_hoseSystem.debugRendering then
                 HoseSystemUtil:log(HoseSystemUtil.WARNING, 'HoseSystemFillTrigger is trying to load the xml file, but the file could not be found! Loading default triggers..')
             end
 
