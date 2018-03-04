@@ -21,7 +21,7 @@ HoseSystemUtil.DEBUG = 4
 -- @param logCallstack
 --
 function HoseSystemUtil:log(logLevel, logEntry, logCallstack)
-    if logLevel < g_hoseSystem.logLevel then
+    if logLevel <= g_hoseSystem.logLevel then
         if logLevel == HoseSystemUtil.DEBUG and not g_hoseSystem.debugRendering then -- avoid debug print lines when the debugRendering is disabled
             return
         end
