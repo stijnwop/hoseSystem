@@ -1,3 +1,11 @@
+--
+-- HoseSystemObjectsUtil
+--
+-- Authors: Wopster
+-- Description: Utility for map objects
+--
+-- Copyright (c) Wopster, 2018
+
 HoseSystemObjectsUtil = {}
 
 function HoseSystemObjectsUtil.getIsNodeValid(nodeId)

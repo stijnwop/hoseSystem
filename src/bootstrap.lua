@@ -19,9 +19,14 @@ local files = {
     -- utilities
     ('%s/utils/%s'):format(srcDirectory, 'HoseSystemUtil'),
     ('%s/utils/%s'):format(srcDirectory, 'HoseSystemXMLUtil'),
+    ('%s/utils/%s'):format(srcDirectory, 'HoseSystemObjectsUtil'),
     -- map objects
     ('%s/objects/%s'):format(srcDirectory, 'AnimatedObjectExtension'),
+    ('%s/objects/%s'):format(srcDirectory, 'HoseSystemFillTrigger'),
     ('%s/objects/%s'):format(srcDirectory, 'HoseSystemLiquidManureFillTrigger'),
+    ('%s/objects/%s'):format(srcDirectory, 'HoseSystemWaterTrailerFillTrigger'),
+    ('%s/objects/%s'):format(srcDirectory, 'HoseSystemHolder'),
+    ('%s/objects/strategies/%s'):format(srcDirectory, 'HoseSystemExpensesStrategy'),
     -- multiplayer events
     ('%s/events/%s'):format(srcDirectory, 'HoseSystemReferenceIsUsedEvent'),
     ('%s/events/%s'):format(srcDirectory, 'HoseSystemReferenceLockEvent'),

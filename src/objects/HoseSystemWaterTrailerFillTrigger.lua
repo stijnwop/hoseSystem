@@ -8,8 +8,11 @@
 
 HoseSystemWaterTrailerFillTrigger = {}
 
+---
+--
 function HoseSystemWaterTrailerFillTrigger:preLoadHoseSystem()
-    -- call the preLoad to do clean overwrites with a loader eg.
+    WaterTrailerFillTrigger.onCreate = Utils.overwrittenFunction(WaterTrailerFillTrigger.onCreate, HoseSystemWaterTrailerFillTrigger.onCreate)
+    WaterTrailerFillTrigger.new = Utils.overwrittenFunction(WaterTrailerFillTrigger.new, HoseSystemWaterTrailerFillTrigger.new)
 end
 
 ---
@@ -39,6 +42,7 @@ function HoseSystemWaterTrailerFillTrigger:new(superFunc, nodeId, trailer)
     end
 
     local trigger = HoseSystemFillTrigger:new(g_server ~= nil, g_client ~= nil, nil, nodeId, strategy)
+
     print("Object id = " .. trigger.id)
 
     if trigger:load(nodeId, FillUtil.FILLTYPE_WATER) then
@@ -47,6 +51,3 @@ function HoseSystemWaterTrailerFillTrigger:new(superFunc, nodeId, trailer)
 
     return trigger
 end
-
-WaterTrailerFillTrigger.onCreate = Utils.overwrittenFunction(WaterTrailerFillTrigger.onCreate, HoseSystemWaterTrailerFillTrigger.onCreate)
-WaterTrailerFillTrigger.new = Utils.overwrittenFunction(WaterTrailerFillTrigger.new, HoseSystemWaterTrailerFillTrigger.new)

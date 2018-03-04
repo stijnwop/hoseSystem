@@ -83,11 +83,7 @@ function HoseSystemHolder:new(isServer, isClient, nodeId)
 
         holder.supportsHoseSystem = true
 
-        if g_currentMission.hoseSystemReferences == nil then
-            g_currentMission.hoseSystemReferences = {}
-        end
-
-        table.insert(g_currentMission.hoseSystemReferences, holder)
+        table.insert(g_hoseSystem.hoseSystemReferences, holder)
 
         holder.referenceType = HoseSystemConnectorFactory.getInitialType(HoseSystemConnectorFactory.TYPE_HOSE_COUPLING)
     else
@@ -107,7 +103,7 @@ function HoseSystemHolder:delete()
         end
     end
 
-    HoseSystemUtil:removeElementFromList(g_currentMission.hoseSystemReferences, self)
+    HoseSystemUtil:removeElementFromList(g_hoseSystem.hoseSystemReferences, self)
 end
 
 ---

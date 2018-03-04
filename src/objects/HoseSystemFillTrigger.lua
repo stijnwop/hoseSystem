@@ -107,11 +107,7 @@ function HoseSystemFillTrigger:load(nodeId, fillType)
     self.fillLevelObject = self
 
     if hasReferences then
-        if g_currentMission.hoseSystemReferences == nil then
-            g_currentMission.hoseSystemReferences = {}
-        end
-
-        table.insert(g_currentMission.hoseSystemReferences, self)
+        table.insert(g_hoseSystem.hoseSystemReferences, self)
     end
 
     self.isEnabled = true
@@ -132,7 +128,7 @@ function HoseSystemFillTrigger:delete()
         end
     end
 
-    HoseSystemUtil:removeElementFromList(g_currentMission.hoseSystemReferences, self)
+    HoseSystemUtil:removeElementFromList(g_hoseSystem.hoseSystemReferences, self)
 end
 
 function HoseSystemFillTrigger:onConnectorAttach(referenceId, hoseSystem)
