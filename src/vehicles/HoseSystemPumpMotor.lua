@@ -8,8 +8,6 @@
 
 HoseSystemPumpMotor = {
     sendNumBits = 3, -- max 8 fill modes.. 2^8
-    fillModesNum = 0,
-    fillModes = {}
 }
 
 HoseSystemPumpMotor.IN = 0
@@ -33,55 +31,6 @@ HoseSystemPumpMotor.WARNING_TIME = 1500
 HoseSystemPumpMotor.STARTUP_TIME = 1500
 HoseSystemPumpMotor.MAX_EFFICIENCY_TIME = 1500
 HoseSystemPumpMotor.RPM_INCREASE = 5
-
----
--- @param name
---
-function HoseSystemPumpMotor.formatFillModeKey(name)
-    return ('mode_%s'):format(name:lower())
-end
-
----
--- @param name
---
-function HoseSystemPumpMotor.registerFillMode(name)
-    if HoseSystemPumpMotor.fillModesNum >= 2 ^ HoseSystemPumpMotor.sendNumBits then
-        HoseSystemUtil:log(HoseSystemUtil.ERROR, ('Max number of fill modes is %s!'):format(2 ^ HoseSystemPumpMotor.sendNumBits))
-        return
-    end
-
-    local key = HoseSystemPumpMotor.formatFillModeKey(name)
-    if HoseSystemPumpMotor.fillModes[key] == nil then
-        HoseSystemPumpMotor.fillModesNum = HoseSystemPumpMotor.fillModesNum + 1
-        HoseSystemPumpMotor.fillModes[key] = HoseSystemPumpMotor.fillModesNum
-    end
-end
-
----
--- @param fillMode
---
-function HoseSystemPumpMotor.allowFillMode(fillMode)
-    for key, value in pairs(HoseSystemPumpMotor.fillModes) do
-        if value == fillMode then
-            return true
-        end
-    end
-
-    return false
-end
-
----
--- @param name
---
-function HoseSystemPumpMotor.getInitialFillMode(name)
-    local key = HoseSystemPumpMotor.formatFillModeKey(name)
-
-    if HoseSystemPumpMotor.fillModes[key] ~= nil then
-        return HoseSystemPumpMotor.fillModes[key]
-    end
-
-    return nil
-end
 
 ---
 -- @param specializations
@@ -589,7 +538,7 @@ end
 function HoseSystemPumpMotor:allowPumpStarted()
     local fillMode = self:getFillMode()
 
-    if not HoseSystemPumpMotor.allowFillMode(fillMode) and not fillMode == 0 then
+    if not HoseSystemPumpMotorFactory.allowFillMode(fillMode) and not fillMode == 0 then
         return false
     end
 
@@ -815,7 +764,7 @@ function HoseSystemPumpMotor:addFillObject(object, fillMode, rayCasted)
         return
     end
 
-    if not HoseSystemPumpMotor.allowFillMode(fillMode) then
+    if not HoseSystemPumpMotorFactory.allowFillMode(fillMode) then
         return
     end
 
