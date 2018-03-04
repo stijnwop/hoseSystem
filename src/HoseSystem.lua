@@ -423,6 +423,11 @@ function HoseSystem:getSaveAttributesAndNodes(nodeIdent)
                             vehicleId = i
                             break
                         end
+
+                        -- todo: this can be deleted with the new setup
+                        if reference.isObject and vehicle.fillLevelObject == grabPoint.connectorVehicle then
+                            vehicleId = i
+                        end
                     end
 
                     if not reference.connectable then -- check if we don't have an extendable hose on the reference
