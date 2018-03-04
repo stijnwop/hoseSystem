@@ -321,10 +321,9 @@ function HoseSystemPumpMotor:updateTick(dt)
         end
     end
 
-    if self.attacherMotor.check then
+    if self.attacherMotor.check or self.getIsMotorStarted ~= nil then
         local vehicle = self:getRootAttacherVehicle()
         self.attacherMotor.isStarted = vehicle.getIsMotorStarted ~= nil and vehicle:getIsMotorStarted()
-        self.attacherMotor.vehicle = vehicle
     end
 
     if self.attacherMotor.isStarted then
@@ -711,7 +710,15 @@ end
 -- @param superFunc
 --
 function HoseSystemPumpMotor:getIsTurnedOn(superFunc)
-    return self.pumpIsStarted and true or superFunc(self)
+    if self.pumpIsStarted then
+        return true
+    end
+
+    if superFunc ~= nil then
+        return superFunc(self)
+    end
+
+    return false
 end
 
 ---
