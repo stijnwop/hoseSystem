@@ -31,7 +31,7 @@ function HoseSystemHoseCouplingStrategy:new(object, mt)
     object.hasHoseSystem = true
 
     if object.hasHoseSystemPumpMotor then
-        object.pumpMotorCouplingFillMode = HoseSystemPumpMotor.getInitialFillMode(HoseSystemConnectorFactory.TYPE_HOSE_COUPLING)
+        object.pumpMotorCouplingFillMode = HoseSystemPumpMotorFactory.getInitialFillMode(HoseSystemConnectorFactory.TYPE_HOSE_COUPLING)
     end
 
     if object.attachedReferencesDirtyFlag == nil then

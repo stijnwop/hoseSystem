@@ -14,7 +14,7 @@ function HoseSystemDockArmStrategy:new(object, mt)
     setmetatable(dockArmStrategy, mt == nil and HoseSystemDockArmStrategy_mt or mt)
 
     if object.hasHoseSystemPumpMotor then
-        object.pumpMotorDockArmFillMode = HoseSystemPumpMotor.getInitialFillMode(HoseSystemFillArmFactory.TYPE_DOCK)
+        object.pumpMotorDockArmFillMode = HoseSystemPumpMotorFactory.getInitialFillMode(HoseSystemFillArmFactory.TYPE_DOCK)
     end
 
     return dockArmStrategy
