@@ -24,10 +24,8 @@ function HoseSystemRegistrationHelper:preLoadHoseSystem()
         HoseSystemUtil:log(HoseSystemUtil.ERROR, "The HoseSystem has been loaded already! Remove one of the copy's!")
     end
 
-    local env = getfenv(0)
-
-    env["g_hoseSystem"] = self
-    env["HoseSystemHolder"] = HoseSystemHolder
+    getfenv(0)["g_hoseSystem"] = self
+    getfenv(0)["HoseSystemHolder"] = HoseSystemHolder
 
     self.debugRendering = true --<%=debug %>
     self.logLevel = 4 --<%=logLevel %>
@@ -72,6 +70,7 @@ function HoseSystemRegistrationHelper:deleteMap()
     g_hoseSystem.hoseSystemRegistrationHelperIsLoaded = false
 
     getfenv(0)["g_hoseSystem"] = nil
+    getfenv(0)["HoseSystemHolder"] = nil
 end
 
 ---
