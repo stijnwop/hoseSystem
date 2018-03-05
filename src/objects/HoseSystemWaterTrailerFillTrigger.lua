@@ -43,10 +43,9 @@ function HoseSystemWaterTrailerFillTrigger:new(superFunc, nodeId, trailer)
 
     local trigger = HoseSystemFillTrigger:new(g_server ~= nil, g_client ~= nil, nil, nodeId, strategy)
 
-    print("Object id = " .. trigger.id)
-
-    if trigger:load(nodeId, FillUtil.FILLTYPE_WATER) then
-        --        g_currentMission:addOnCreateLoadedObject(trigger)
+    if not trigger:load(nodeId, FillUtil.FILLTYPE_WATER) then
+        -- if we fail we fallback on the default trigger
+        return superFunc(self, nodeId, trailer)
     end
 
     return trigger

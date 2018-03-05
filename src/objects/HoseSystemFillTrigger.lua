@@ -28,7 +28,7 @@ function HoseSystemFillTrigger:new(isServer, isClient, mt, nodeId, strategyType)
     trigger.triggerId = nil
     trigger.nodeId = nodeId
 
-    local strategy = HoseSystemExpensesStrategy:new(trigger, mt)
+    local strategy = HoseSystemExpensesStrategy:new(trigger)
 
     trigger.strategy = strategy
 
@@ -47,7 +47,7 @@ function HoseSystemFillTrigger:load(nodeId, fillType)
             HoseSystemUtil:log(HoseSystemUtil.WARNING, 'HoseSystemFillTrigger is trying to load the xml file, but the file could not be found! Loading default triggers..')
         end
 
-        return true
+        return false
     end
 
     if not HoseSystemObjectsUtil.getIsNodeValid(nodeId) then
@@ -97,6 +97,8 @@ function HoseSystemFillTrigger:load(nodeId, fillType)
             HoseSystemFillTrigger.loadHoseSystemPit(self, nodeId, xmlFile, xmlKey)
             HoseSystemFillTrigger.loadHoseSystemReferences(self, nodeId, xmlFile, string.format('%s.hoseSystemReferences.', xmlKey), self.hoseSystemReferences)
         end
+    else
+        HoseSystemUtil:log(HoseSystemUtil.ERROR, "Could not find XML file at path: " .. self.xmlFilename)
     end
 
     delete(xmlFile)
@@ -149,7 +151,7 @@ function HoseSystemFillTrigger:onConnectorAttach(referenceId, hoseSystem)
     end
 
     if self.isServer then
-        --        self:setIsUsed(referenceId, true, hoseSystem)
+        self:setIsUsed(referenceId, true, hoseSystem)
     end
 end
 
@@ -157,7 +159,7 @@ function HoseSystemFillTrigger:onConnectorDetach(referenceId)
     local reference = self.hoseSystemReferences[referenceId]
 
     if self.isServer then
-        --        self:setIsUsed(referenceId, false)
+        self:setIsUsed(referenceId, false)
     end
 
     if reference ~= nil and self.attachedHoseSystemReferences[referenceId] then
@@ -165,6 +167,35 @@ function HoseSystemFillTrigger:onConnectorDetach(referenceId)
         HoseSystemUtil:log(HoseSystemUtil.DEBUG, "unregister attached hose by object")
         HoseSystemUtil:log(HoseSystemUtil.DEBUG, self.attachedHoseSystemReferences)
     end
+end
+
+function HoseSystemFillTrigger:allowFillType(fillType)
+    print("are we called?")
+    return fillType == FillUtil.FILLTYPE_UNKNOWN or fillType == self.fillType
+end
+
+function HoseSystemFillTrigger:getFillLevel(fillType)
+    return self.strategy:getFillLevel(fillType)
+end
+
+function HoseSystemFillTrigger:getCurrentFillTypes()
+    return { self.fillType }
+end
+---
+-- @param fillType
+--
+function HoseSystemFillTrigger:getCapacity(fillType)
+    return self.strategy:getCapacity(fillType)
+end
+
+---
+-- @param fillType
+--
+function HoseSystemFillTrigger:getFreeCapacity(fillType)
+    return self.strategy:getFreeCapacity(fillType)
+end
+
+function HoseSystemFillTrigger:setFillLevel(fillLevel, noEventSend)
 end
 
 function HoseSystemFillTrigger:getIsActivatable(fillable)
@@ -297,4 +328,74 @@ function HoseSystemFillTrigger.getTriggerXmlKey(nodeId, xmlFile)
     return nil
 end
 
+---
+-- @param index
+-- @param state
+-- @param force
+-- @param noEventSend
+--
+function HoseSystemFillTrigger:toggleLock(index, state, force, noEventSend)
+    local reference = self.hoseSystemReferences[index]
 
+    if reference ~= nil and reference.isLocked ~= state or force then
+        HoseSystemReferenceLockEvent.sendEvent(self, index, state, force, noEventSend)
+
+        if g_currentMission.animatedObjects ~= nil then
+            local animatedObject = g_currentMission.animatedObjects[reference.lockAnimatedObjectSaveId]
+
+            if animatedObject ~= nil then
+                -- Todo: implement animation
+            end
+        end
+
+        reference.isLocked = state
+    end
+end
+
+---
+-- @param index
+-- @param state
+-- @param force
+-- @param noEventSend
+--
+function HoseSystemFillTrigger:toggleManureFlow(index, state, force, noEventSend)
+    local reference = self.hoseSystemReferences[index]
+
+    if reference ~= nil and reference.flowOpened ~= state or force then
+        HoseSystemReferenceManureFlowEvent.sendEvent(self, index, state, force, noEventSend)
+
+        if g_currentMission.animatedObjects ~= nil then
+            local animatedObject = g_currentMission.animatedObjects[reference.manureFlowAnimatedObjectSaveId]
+
+            if animatedObject ~= nil then
+                -- Todo: implement animation
+            end
+        end
+
+        reference.flowOpened = state
+    end
+end
+
+---
+-- @param index
+-- @param state
+-- @param noEventSend
+--
+function HoseSystemFillTrigger:setIsUsed(index, state, hoseSystem, noEventSend)
+    local reference = self.hoseSystemReferences[index]
+
+    if reference ~= nil and reference.isUsed ~= state then
+        HoseSystemReferenceIsUsedEvent.sendEvent(self.referenceType, self, index, state, hoseSystem, noEventSend)
+
+        reference.isUsed = state
+        reference.hoseSystem = hoseSystem
+
+        if reference.lockAnimatedObjectSaveId == nil then
+            self:toggleLock(index, state, true)
+        end
+
+        if reference.manureFlowAnimatedObjectSaveId == nil then
+            self:toggleManureFlow(index, state, true)
+        end
+    end
+end
