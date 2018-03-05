@@ -64,6 +64,10 @@ function HoseSystemFillTrigger:load(nodeId, fillType)
         self.triggerId = nodeId
     end
 
+    if not HoseSystemObjectsUtil.getIsValidTrigger(self.triggerId) then
+        return false
+    end
+
     addTrigger(self.triggerId, HoseSystemFillTrigger.TRIGGER_CALLBACK, self.strategy)
 
     self.fillType = fillType ~= nil and fillType or HoseSystemFillTrigger.getFillTypeFromUserAttribute(nodeId)
