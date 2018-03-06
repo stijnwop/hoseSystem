@@ -42,11 +42,23 @@ local function isShapeObject(node)
 end
 
 ---
+-- @param node
+-- @param clipThreshold
+--
+local function hasValidClipDistance(node, clipThreshold)
+    if getVisibility(node) then
+        return getClipDistance(node) >= Utils.getNoNil(clipThreshold, 150)
+    end
+
+    return true
+end
+
+---
 -- @param triggerId
 --
 function HoseSystemObjectsUtil.getIsValidTrigger(triggerId)
     if not hasValidScale(triggerId) then
-        HoseSystemUtil:log(HoseSystemUtil.ERROR, ("Invalid scale on trigger node: %s. Scale on axis xyz must be 1:1! Please freeze transformations."):format(getName(triggerId)))
+        HoseSystemUtil:log(HoseSystemUtil.ERROR, ("Invalid scale on trigger node '%s'. Scale on axis xyz must be 1:1! Please freeze transformations."):format(getName(triggerId)))
 
         return false
     end
@@ -60,20 +72,27 @@ end
 function HoseSystemObjectsUtil.getIsNodeValid(nodeId)
     -- validate nodeId
     if not hasValidScale(nodeId) then
-        HoseSystemUtil:log(HoseSystemUtil.ERROR, ("Invalid scale on node: %s. Scale on axis xyz must be 1:1! Please freeze transformations."):format(getName(nodeId)))
+        HoseSystemUtil:log(HoseSystemUtil.ERROR, ("Invalid scale on node '%s'. Scale on axis xyz must be 1:1! Please freeze transformations."):format(getName(nodeId)))
 
         return false
     end
 
     if not hasRigidBody(nodeId) then
-        HoseSystemUtil:log(HoseSystemUtil.ERROR, ("Node %s must have a rigid body!"):format(getName(nodeId)))
+        HoseSystemUtil:log(HoseSystemUtil.ERROR, ("Node '%s' must have a rigid body!"):format(getName(nodeId)))
 
         return false
     end
 
     if not isShapeObject(nodeId) then
-        HoseSystemUtil:log(HoseSystemUtil.ERROR, ("Node %s must be a shape object and can´t be a transformgroup!"):format(getName(nodeId)))
+        HoseSystemUtil:log(HoseSystemUtil.ERROR, ("Node '%s' must be a shape object and can´t be a transformgroup!"):format(getName(nodeId)))
         return false
+    end
+
+    if not hasValidClipDistance(nodeId) then
+        local defaultClipDistance = 150
+        HoseSystemUtil:log(HoseSystemUtil.NOTICE, ("Node '%s' has an invalid clip distance set, please set a minimum clip distance of %s. Setting default clip distance of %s by script."):format(getName(nodeId), defaultClipDistance, defaultClipDistance))
+
+        setClipDistance(nodeId, defaultClipDistance)
     end
 
     return true
