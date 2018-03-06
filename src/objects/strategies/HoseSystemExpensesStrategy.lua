@@ -34,6 +34,8 @@ function HoseSystemExpensesStrategy:new(trigger, mt)
     return strategy
 end
 
+---
+--
 function HoseSystemExpensesStrategy:load()
     self.priceScale = Utils.getNoNil(getUserAttribute(self.trigger.nodeId, "priceScale"), 1)
 
@@ -41,6 +43,9 @@ function HoseSystemExpensesStrategy:load()
     self.financeCategory = financeCategory ~= nil and financeCategory or "other"
 end
 
+---
+-- @param fillType
+--
 function HoseSystemExpensesStrategy:getFillLevel(fillType)
     local objectLevel = self.object:getFillLevel(fillType)
 
@@ -52,6 +57,11 @@ function HoseSystemExpensesStrategy:getFillLevel(fillType)
     return objectLevel
 end
 
+---
+-- @param fillLevel
+-- @param delta
+-- @param noEventSend
+--
 function HoseSystemExpensesStrategy:setFillLevel(fillLevel, delta, noEventSend)
     if delta ~= 0 and self.priceScale > 0 then
         local isAllowedExpense = true
@@ -69,18 +79,35 @@ function HoseSystemExpensesStrategy:setFillLevel(fillLevel, delta, noEventSend)
     end
 end
 
+---
+-- @param fillType
+--
 function HoseSystemExpensesStrategy:getCapacity(fillType)
     return unlimitedCapacity
 end
 
+---
+-- @param fillType
+--
 function HoseSystemExpensesStrategy:getFreeCapacity(fillType)
     return freeCapacity
 end
 
+---
+-- @param fillable
+--
 function HoseSystemExpensesStrategy:getIsActivatable(fillable)
     return true
 end
 
+---
+-- @param triggerId
+-- @param otherActorId
+-- @param onEnter
+-- @param onLeave
+-- @param onStay
+-- @param otherShapeId
+--
 function HoseSystemExpensesStrategy:triggerCallback(triggerId, otherActorId, onEnter, onLeave, onStay, otherShapeId)
     if self.trigger.isEnabled and (onEnter or onLeave) then
         if otherActorId ~= 0 then
