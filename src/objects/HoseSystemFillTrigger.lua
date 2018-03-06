@@ -72,6 +72,9 @@ function HoseSystemFillTrigger:load(nodeId, fillType)
 
     self.fillType = fillType ~= nil and fillType or HoseSystemFillTrigger.getFillTypeFromUserAttribute(nodeId)
 
+    -- Load the strategy
+    self.strategy:load()
+
     local baseDirectory = g_currentMission.loadingMapBaseDirectory
 
     if baseDirectory == "" then
@@ -169,8 +172,18 @@ function HoseSystemFillTrigger:onConnectorDetach(referenceId)
     end
 end
 
+function HoseSystemFillTrigger:resetFillLevelIfNeeded(fillType)
+--    if self.lastFillLevelChangeTime + HoseSystemLiquidManureFillTrigger.RESET_CHANGE_TRESHOLD_TIME > g_currentMission.time then
+--        return false
+--    end
+--
+--    self:setFillLevel(0)
+--
+--    return true
+    return false
+end
+
 function HoseSystemFillTrigger:allowFillType(fillType)
-    print("are we called?")
     return fillType == FillUtil.FILLTYPE_UNKNOWN or fillType == self.fillType
 end
 
@@ -195,7 +208,8 @@ function HoseSystemFillTrigger:getFreeCapacity(fillType)
     return self.strategy:getFreeCapacity(fillType)
 end
 
-function HoseSystemFillTrigger:setFillLevel(fillLevel, noEventSend)
+function HoseSystemFillTrigger:setFillLevel(fillLevel, delta, noEventSend)
+    return self.strategy:setFillLevel(fillLevel, delta, noEventSend)
 end
 
 function HoseSystemFillTrigger:getIsActivatable(fillable)

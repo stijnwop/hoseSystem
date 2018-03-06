@@ -8,7 +8,13 @@
 
 HoseSystemExpensesStrategy = {}
 
-local unlimitedCapacity = math.huge
+HoseSystemExpensesStrategy.fillTypeToFinanceCategories = {
+    [FillUtil.FILLTYPE_WATER] = "purchaseWater",
+    [FillUtil.FILLTYPE_FERTILIZER] = "purchaseFertilizer"
+}
+
+local unlimitedCapacity = math.huge -- inf
+local freeCapacity = 1000 ^ 2
 
 local HoseSystemExpensesStrategy_mt = Class(HoseSystemExpensesStrategy)
 
@@ -23,14 +29,35 @@ function HoseSystemExpensesStrategy:new(trigger, mt)
 
     setmetatable(strategy, mt == nil and HoseSystemExpensesStrategy_mt or mt)
 
+    strategy.delta = 0
+
     return strategy
+end
+
+function HoseSystemExpensesStrategy:load()
+    self.priceScale = Utils.getNoNil(getUserAttribute(self.trigger.nodeId, "priceScale"), 1)
+
+    local financeCategory = HoseSystemExpensesStrategy.fillTypeToFinanceCategories[self.trigger.fillType]
+    self.financeCategory = financeCategory ~= nil and financeCategory or "other"
 end
 
 function HoseSystemExpensesStrategy:getFillLevel(fillType)
     local objectLevel = self.object:getFillLevel(fillType)
-    print(objectLevel)
+
+    if objectLevel == 0 then
+        -- when empty we mimic a fillLevel to set delta
+        objectLevel = self.object.pumpFillEfficiency.litersPerSecond
+    end
 
     return objectLevel
+end
+
+function HoseSystemExpensesStrategy:setFillLevel(fillLevel, delta, noEventSend)
+    if delta ~= 0 and self.priceScale > 0 then
+        local price = delta * g_currentMission.economyManager:getPricePerLiter(self.trigger.fillType) * self.priceScale;
+        g_currentMission.missionStats:updateStats("expenses", price)
+        g_currentMission:addSharedMoney(-price, self.financeCategory)
+    end
 end
 
 function HoseSystemExpensesStrategy:getCapacity(fillType)
@@ -38,7 +65,7 @@ function HoseSystemExpensesStrategy:getCapacity(fillType)
 end
 
 function HoseSystemExpensesStrategy:getFreeCapacity(fillType)
-    return 1000
+    return freeCapacity
 end
 
 function HoseSystemExpensesStrategy:getIsActivatable(fillable)
@@ -46,7 +73,7 @@ function HoseSystemExpensesStrategy:getIsActivatable(fillable)
 end
 
 function HoseSystemExpensesStrategy:triggerCallback(triggerId, otherActorId, onEnter, onLeave, onStay, otherShapeId)
-    if (onEnter or onLeave) then
+    if self.trigger.isEnabled and (onEnter or onLeave) then
         if otherActorId ~= 0 then
             local object = g_currentMission.nodeToVehicle[otherActorId]
 

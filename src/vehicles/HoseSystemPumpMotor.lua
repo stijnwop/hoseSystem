@@ -674,6 +674,9 @@ function HoseSystemPumpMotor:doPump(sourceObject, targetObject, fillType, deltaF
         targetObject:resetFillLevelIfNeeded(fillType)
     end
 
+    local deltaFillLevel = fillDirection == HoseSystemPumpMotor.IN and targetObjectFillLevel - deltaFill or targetObjectFillLevel + deltaFill
+    local delta = sourceObject:getUnitFillLevel(self.fillUnitIndex) - fillLevel
+
     if self.fillFromFillVolume then -- Todo: Lookup new fill volume changes
         local fillVolumeInfo = fillDirection == HoseSystemPumpMotor.IN and self.fillVolumeLoadInfo or self.fillVolumeDischargeInfo
         local x, y, z = getWorldTranslation(fillVolumeInfo.node)
@@ -681,12 +684,12 @@ function HoseSystemPumpMotor:doPump(sourceObject, targetObject, fillType, deltaF
         local d2x, d2y, d2z = localDirectionToWorld(fillVolumeInfo.node, 0, 0, fillVolumeInfo.length)
         local fillSourceStruct = { x = x, y = y, z = z, d1x = d1x, d1y = d1y, d1z = d1z, d2x = d2x, d2y = d2y, d2z = d2z }
 
-        targetObject:setFillLevel(fillDirection == HoseSystemPumpMotor.IN and targetObjectFillLevel - deltaFill or targetObjectFillLevel + deltaFill, fillType, false, fillSourceStruct)
+        targetObject:setFillLevel(deltaFillLevel, fillType, false, fillSourceStruct)
     else
         if isTrigger then
-            targetObject:setFillLevel(fillDirection == HoseSystemPumpMotor.IN and targetObjectFillLevel - deltaFill or targetObjectFillLevel + deltaFill)
+            targetObject:setFillLevel(deltaFillLevel, delta)
         else
-            targetObject:setFillLevel(fillDirection == HoseSystemPumpMotor.IN and targetObjectFillLevel - deltaFill or targetObjectFillLevel + deltaFill, fillType)
+            targetObject:setFillLevel(deltaFillLevel, fillType)
         end
     end
 
@@ -796,7 +799,7 @@ function HoseSystemPumpMotor:addFillObject(object, fillMode, rayCasted)
         self.fillObject = object
         self.fillObjectFound = true
         self.fillFromFillVolume = false -- not implemented
-        self.fillObjectIsObject = object:isa(FillTrigger) -- or Object.. but we are actually pumping from a map trigger
+        self.fillObjectIsObject = object:isa(FillTrigger) or object:isa(HoseSystemFillTrigger) -- or Object.. but we are actually pumping from a map trigger
 
         if object.checkPlaneY ~= nil and rayCasted then
             self.fillObjectHasPlane = true

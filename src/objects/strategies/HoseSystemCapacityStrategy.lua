@@ -16,6 +16,8 @@ function HoseSystemCapacityStrategy:new(trigger, mt)
     return strategy
 end
 
+function HoseSystemCapacityStrategy:load() end
+
 function HoseSystemCapacityStrategy:getIsActivatable(fillable)
     return true
 end
