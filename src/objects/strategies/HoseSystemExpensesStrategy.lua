@@ -86,8 +86,8 @@ function HoseSystemExpensesStrategy:triggerCallback(triggerId, otherActorId, onE
         if otherActorId ~= 0 then
             local object = g_currentMission.nodeToVehicle[otherActorId]
 
-            if object ~= nil and object.hasHoseSystem then
-                self.object = object
+            if object ~= nil and object ~= self.object and object.hasHoseSystem then
+                self.object = onEnter and object or nil
             end
         end
     end
