@@ -675,7 +675,6 @@ function HoseSystemPumpMotor:doPump(sourceObject, targetObject, fillType, deltaF
     end
 
     local deltaFillLevel = fillDirection == HoseSystemPumpMotor.IN and targetObjectFillLevel - deltaFill or targetObjectFillLevel + deltaFill
-    local delta = sourceObject:getUnitFillLevel(self.fillUnitIndex) - fillLevel
 
     if self.fillFromFillVolume then -- Todo: Lookup new fill volume changes
         local fillVolumeInfo = fillDirection == HoseSystemPumpMotor.IN and self.fillVolumeLoadInfo or self.fillVolumeDischargeInfo
@@ -687,6 +686,7 @@ function HoseSystemPumpMotor:doPump(sourceObject, targetObject, fillType, deltaF
         targetObject:setFillLevel(deltaFillLevel, fillType, false, fillSourceStruct)
     else
         if isTrigger then
+            local delta = sourceObject:getUnitFillLevel(self.fillUnitIndex) - fillLevel
             targetObject:setFillLevel(deltaFillLevel, delta)
         else
             targetObject:setFillLevel(deltaFillLevel, fillType)

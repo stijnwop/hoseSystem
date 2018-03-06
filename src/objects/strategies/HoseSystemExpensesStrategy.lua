@@ -54,9 +54,18 @@ end
 
 function HoseSystemExpensesStrategy:setFillLevel(fillLevel, delta, noEventSend)
     if delta ~= 0 and self.priceScale > 0 then
-        local price = delta * g_currentMission.economyManager:getPricePerLiter(self.trigger.fillType) * self.priceScale;
-        g_currentMission.missionStats:updateStats("expenses", price)
-        g_currentMission:addSharedMoney(-price, self.financeCategory)
+        local isAllowedExpense = true
+
+        -- restrict to get profit from water
+        if delta < 0 then
+            isAllowedExpense = self.trigger.fillType ~= FillUtil.FILLTYPE_WATER
+        end
+
+        if isAllowedExpense then
+            local price = delta * g_currentMission.economyManager:getPricePerLiter(self.trigger.fillType) * self.priceScale
+            g_currentMission.missionStats:updateStats("expenses", price)
+            g_currentMission:addSharedMoney(-price, self.financeCategory)
+        end
     end
 end
 
