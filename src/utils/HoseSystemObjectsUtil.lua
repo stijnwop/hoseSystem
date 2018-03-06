@@ -46,7 +46,7 @@ end
 --
 function HoseSystemObjectsUtil.getIsValidTrigger(triggerId)
     if not hasValidScale(triggerId) then
-        HoseSystemUtil:log(HoseSystemUtil.ERROR, ("Invalid scale on trigger node: %s. Scale on axis xyz must be 1:1!"):format(getName(triggerId)))
+        HoseSystemUtil:log(HoseSystemUtil.ERROR, ("Invalid scale on trigger node: %s. Scale on axis xyz must be 1:1! Please freeze transformations."):format(getName(triggerId)))
 
         return false
     end
@@ -60,7 +60,7 @@ end
 function HoseSystemObjectsUtil.getIsNodeValid(nodeId)
     -- validate nodeId
     if not hasValidScale(nodeId) then
-        HoseSystemUtil:log(HoseSystemUtil.ERROR, ("Invalid scale on node: %s. Scale on axis xyz must be 1:1!"):format(getName(nodeId)))
+        HoseSystemUtil:log(HoseSystemUtil.ERROR, ("Invalid scale on node: %s. Scale on axis xyz must be 1:1! Please freeze transformations."):format(getName(nodeId)))
 
         return false
     end
