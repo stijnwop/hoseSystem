@@ -215,7 +215,7 @@ function HoseSystemRegistrationHelper.loadVehicle(super, vehicleData, asyncCallb
     if customEnvironment ~= nil then
         local globalMod = _G[customEnvironment]
 
-        if globalMod ~= nil and globalMode.SpecializationUtil ~= nil then
+        if globalMod ~= nil and globalMod.SpecializationUtil ~= nil then
             local class = globalMod.SpecializationUtil.getSpecialization(HoseSystemRegistrationHelper.HOSE_SYSTEM_VEHICLE_SPECIALIZATION)
 
             if class ~= nil then
