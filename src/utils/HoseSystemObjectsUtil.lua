@@ -46,11 +46,7 @@ end
 -- @param clipThreshold
 --
 local function hasValidClipDistance(node, clipThreshold)
-    if getVisibility(node) then
-        return getClipDistance(node) >= Utils.getNoNil(clipThreshold, 150)
-    end
-
-    return true
+    return getClipDistance(node) >= Utils.getNoNil(clipThreshold, 150)
 end
 
 ---
