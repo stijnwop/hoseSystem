@@ -213,45 +213,49 @@ function HoseSystemRegistrationHelper.loadVehicle(super, vehicleData, asyncCallb
     local customEnvironment, _ = Utils.getModNameAndBaseDirectory(vehicleData.filename)
 
     if customEnvironment ~= nil then
-        local class = _G[customEnvironment].SpecializationUtil.getSpecialization(HoseSystemRegistrationHelper.HOSE_SYSTEM_VEHICLE_SPECIALIZATION)
+        local globalMod = _G[customEnvironment]
 
-        if class ~= nil then
-            HoseSystemUtil:log(HoseSystemUtil.DEBUG, "Found hoseSystemVehicle specialization in: " .. customEnvironment)
+        if globalMod ~= nil and globalMode.SpecializationUtil ~= nil then
+            local class = globalMod.SpecializationUtil.getSpecialization(HoseSystemRegistrationHelper.HOSE_SYSTEM_VEHICLE_SPECIALIZATION)
 
-            if class.version == nil or class.version ~= nil and class.version < g_hoseSystem.currentVehicleSpecVersion then
-                HoseSystemUtil:log(HoseSystemUtil.WARNING, "The hoseSystemVehicle specialization in: " .. customEnvironment .. " is outdated! Latest version is v" .. g_hoseSystem.currentVehicleSpecVersion)
-            end
+            if class ~= nil then
+                HoseSystemUtil:log(HoseSystemUtil.DEBUG, "Found hoseSystemVehicle specialization in: " .. customEnvironment)
 
-            -- prefill methods
-            for _, method in pairs({ "load", "delete", "mouseEvent", "keyEvent", "update", "draw" }) do
-                if class[method] == nil then
-                    class[method] = noopFunction
+                if class.version == nil or class.version ~= nil and class.version < g_hoseSystem.currentVehicleSpecVersion then
+                    HoseSystemUtil:log(HoseSystemUtil.WARNING, "The hoseSystemVehicle specialization in: " .. customEnvironment .. " is outdated! Latest version is v" .. g_hoseSystem.currentVehicleSpecVersion)
                 end
-            end
 
-            if class.preLoadHoseSystem ~= nil then
-                local typeDef = VehicleTypeUtil.vehicleTypes[vehicleData.typeName]
+                -- prefill methods
+                for _, method in pairs({ "load", "delete", "mouseEvent", "keyEvent", "update", "draw" }) do
+                    if class[method] == nil then
+                        class[method] = noopFunction
+                    end
+                end
 
-                super.xmlFile = loadXMLFile('TempConfig', vehicleData.filename)
+                if class.preLoadHoseSystem ~= nil then
+                    local typeDef = VehicleTypeUtil.vehicleTypes[vehicleData.typeName]
 
-                local vehicleLoadState = class.preLoadHoseSystem(super, vehicleData.savegame)
+                    super.xmlFile = loadXMLFile('TempConfig', vehicleData.filename)
 
-                if vehicleLoadState ~= nil and vehicleLoadState ~= BaseMission.VEHICLE_LOAD_OK then
-                    HoseSystemUtil:log(HoseSystemUtil.ERROR, customEnvironment .. ".hoseSystemVehicle-specialization 'preLoadHoseSystem' failed!")
+                    local vehicleLoadState = class.preLoadHoseSystem(super, vehicleData.savegame)
 
-                    if asyncCallbackFunction ~= nil then
-                        asyncCallbackFunction(asyncCallbackObject, nil, vehicleLoadState, asyncCallbackArguments)
+                    if vehicleLoadState ~= nil and vehicleLoadState ~= BaseMission.VEHICLE_LOAD_OK then
+                        HoseSystemUtil:log(HoseSystemUtil.ERROR, customEnvironment .. ".hoseSystemVehicle-specialization 'preLoadHoseSystem' failed!")
+
+                        if asyncCallbackFunction ~= nil then
+                            asyncCallbackFunction(asyncCallbackObject, nil, vehicleLoadState, asyncCallbackArguments)
+                        end
+
+                        return vehicleLoadState
                     end
 
-                    return vehicleLoadState
-                end
+                    if not super.hoseSystemLoaded then
+                        HoseSystemRegistrationHelper:register(super, typeDef.specializations, customEnvironment)
+                    end
 
-                if not super.hoseSystemLoaded then
-                    HoseSystemRegistrationHelper:register(super, typeDef.specializations, customEnvironment)
+                    delete(super.xmlFile)
+                    super.xmlFile = nil
                 end
-
-                delete(super.xmlFile)
-                super.xmlFile = nil
             end
         end
     end
