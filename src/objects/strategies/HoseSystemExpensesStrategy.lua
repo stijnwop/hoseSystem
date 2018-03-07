@@ -109,6 +109,7 @@ end
 -- @param otherShapeId
 --
 function HoseSystemExpensesStrategy:triggerCallback(triggerId, otherActorId, onEnter, onLeave, onStay, otherShapeId)
+    -- Todo: merge this with the super class trigger callback.
     if self.trigger.isEnabled and (onEnter or onLeave) then
         if otherActorId ~= 0 then
             local object = g_currentMission.nodeToVehicle[otherActorId]

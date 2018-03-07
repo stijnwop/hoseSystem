@@ -10,6 +10,14 @@ HoseSystemFillTrigger = {}
 
 HoseSystemFillTrigger.TRIGGER_CALLBACK = "triggerCallback"
 
+HoseSystemFillTrigger.TYPE_EXPENSES = 1
+HoseSystemFillTrigger.TYPE_CAPACITY = 2
+
+HoseSystemFillTrigger.stringToTypes = {
+    ["expenses"] = HoseSystemFillTrigger.TYPE_EXPENSES,
+    ["capacity"] = HoseSystemFillTrigger.TYPE_CAPACITY
+}
+
 local HoseSystemFillTrigger_mt = Class(HoseSystemFillTrigger, Object)
 
 function HoseSystemFillTrigger:preLoadHoseSystem()
@@ -19,7 +27,14 @@ end
 -- @param mt
 -- @param nodeId
 --
-function HoseSystemFillTrigger:new(isServer, isClient, mt, nodeId, strategyType)
+function HoseSystemFillTrigger:new(isServer, isClient, mt, nodeId, strategyStr)
+    local strategyType = HoseSystemFillTrigger.stringToTypes[strategyStr:lower()]
+
+    if strategyType == nil then
+        HoseSystemUtil:log(HoseSystemUtil.ERROR, "No strategy type specified!")
+        return
+    end
+
     local mt = mt == nil and HoseSystemFillTrigger_mt or mt
 
     local trigger = Object:new(isServer, isClient, mt)
@@ -28,9 +43,16 @@ function HoseSystemFillTrigger:new(isServer, isClient, mt, nodeId, strategyType)
     trigger.triggerId = nil
     trigger.nodeId = nodeId
 
-    local strategy = HoseSystemExpensesStrategy:new(trigger)
+    local strategy
+    if strategyType == HoseSystemFillTrigger.TYPE_EXPENSES then
+        strategy = HoseSystemExpensesStrategy:new(trigger)
+    elseif strategyType == HoseSystemFillTrigger.TYPE_CAPACITY then
+        strategy = HoseSystemCapacityStrategy:new(trigger)
+    end
 
     trigger.strategy = strategy
+    trigger.vehiclesInRange = {}
+    trigger.playerInRange = false
 
     return trigger
 end
@@ -68,7 +90,7 @@ function HoseSystemFillTrigger:load(nodeId, fillType)
         return false
     end
 
-    addTrigger(self.triggerId, HoseSystemFillTrigger.TRIGGER_CALLBACK, self.strategy)
+    addTrigger(self.triggerId, HoseSystemFillTrigger.TRIGGER_CALLBACK, self)
 
     self.fillType = fillType ~= nil and fillType or HoseSystemFillTrigger.getFillTypeFromUserAttribute(nodeId)
 
@@ -134,17 +156,22 @@ end
 function HoseSystemFillTrigger:readUpdateStream(streamId, timestamp, connection)
     if connection:getIsServer() then
         local isDirty = streamReadBool(streamId)
-        -- update shader
+        if isDirty then
+            -- update shader and call fillLevel change
+        end
     end
 end
 
 function HoseSystemFillTrigger:writeUpdateStream(streamId, connection, dirtyMask)
     if not connection:getIsServer() then
         if streamWriteBool(streamId, bitAND(dirtyMask, self.fillDirtyFlag) ~= 0) then
+            -- write shader plane and write fillLevel (compressed?)
         end
     end
 end
 
+---
+--
 function HoseSystemFillTrigger:delete()
     removeTrigger(self.triggerId)
 
@@ -161,12 +188,32 @@ function HoseSystemFillTrigger:delete()
     HoseSystemUtil:removeElementFromList(g_hoseSystem.hoseSystemReferences, self)
 end
 
+---
+-- @param dt
+--
+function HoseSystemFillTrigger:update(dt)
+    if self.strategy.update ~= nil then
+        self.strategy:update(dt)
+    end
+end
+
+---
+-- @param dt
+--
 function HoseSystemFillTrigger:updateTick(dt)
     if self.isServer then
         -- handle dirty flag
     end
+
+    if self.strategy.updateTick ~= nil then
+        self.strategy:updateTick(dt)
+    end
 end
 
+---
+-- @param referenceId
+-- @param hoseSystem
+--
 function HoseSystemFillTrigger:onConnectorAttach(referenceId, hoseSystem)
     -- register attached hoses this way
     local reference = self.hoseSystemReferences[referenceId]
@@ -180,11 +227,15 @@ function HoseSystemFillTrigger:onConnectorAttach(referenceId, hoseSystem)
         HoseSystemUtil:log(HoseSystemUtil.DEBUG, self.attachedHoseSystemReferences)
     end
 
+    -- Todo: test if really needed to sync with our own events
     if self.isServer then
         self:setIsUsed(referenceId, true, hoseSystem)
     end
 end
 
+---
+-- @param referenceId
+--
 function HoseSystemFillTrigger:onConnectorDetach(referenceId)
     local reference = self.hoseSystemReferences[referenceId]
 
@@ -199,6 +250,9 @@ function HoseSystemFillTrigger:onConnectorDetach(referenceId)
     end
 end
 
+---
+-- @param fillType
+--
 function HoseSystemFillTrigger:resetFillLevelIfNeeded(fillType)
     --    if self.lastFillLevelChangeTime + HoseSystemLiquidManureFillTrigger.RESET_CHANGE_TRESHOLD_TIME > g_currentMission.time then
     --        return false
@@ -210,14 +264,22 @@ function HoseSystemFillTrigger:resetFillLevelIfNeeded(fillType)
     return false
 end
 
+---
+-- @param fillType
+--
 function HoseSystemFillTrigger:allowFillType(fillType)
     return fillType == FillUtil.FILLTYPE_UNKNOWN or fillType == self.fillType
 end
 
+---
+-- @param fillType
+--
 function HoseSystemFillTrigger:getFillLevel(fillType)
     return self.strategy:getFillLevel(fillType)
 end
 
+---
+--
 function HoseSystemFillTrigger:getCurrentFillTypes()
     return { self.fillType }
 end
@@ -236,6 +298,11 @@ function HoseSystemFillTrigger:getFreeCapacity(fillType)
     return self.strategy:getFreeCapacity(fillType)
 end
 
+---
+-- @param fillLevel
+-- @param delta
+-- @param noEventSend
+--
 function HoseSystemFillTrigger:setFillLevel(fillLevel, delta, noEventSend)
     self.strategy:setFillLevel(fillLevel, delta, noEventSend)
 
@@ -246,6 +313,9 @@ function HoseSystemFillTrigger:setFillLevel(fillLevel, delta, noEventSend)
     end
 end
 
+---
+-- @param fillable
+--
 function HoseSystemFillTrigger:getIsActivatable(fillable)
     if not self.strategy:getIsActivatable(fillable) then
         return false
@@ -258,6 +328,33 @@ function HoseSystemFillTrigger:getIsActivatable(fillable)
     return true
 end
 
+---
+-- @param triggerId
+-- @param otherActorId
+-- @param onEnter
+-- @param onLeave
+-- @param onStay
+-- @param otherShapeId
+--
+function HoseSystemFillTrigger:triggerCallback(triggerId, otherActorId, onEnter, onLeave, onStay, otherShapeId)
+    if self.isEnabled and (onEnter or onLeave) then
+        if g_currentMission.player ~= nil and otherActorId == g_currentMission.player.rootNode then
+            self.playerInRange = onEnter
+        else
+            local vehicle = g_currentMission.nodeToVehicle[otherActorId]
+
+            if vehicle ~= nil then
+                self.vehiclesInRange[vehicle] = onEnter and true or nil
+            end
+        end
+    end
+
+    self.strategy:triggerCallback(triggerId, otherActorId, onEnter, onLeave, onStay, otherShapeId)
+end
+
+---
+-- @param nodeId
+--
 function HoseSystemFillTrigger.getFillTypeFromUserAttribute(nodeId)
     local fillTypeStr = getUserAttribute(nodeId, "fillType")
 
@@ -272,6 +369,12 @@ function HoseSystemFillTrigger.getFillTypeFromUserAttribute(nodeId)
     return FillUtil.FILLTYPE_UNKNOWN
 end
 
+---
+-- @param self
+-- @param nodeId
+-- @param xmlFile
+-- @param baseKey
+--
 function HoseSystemFillTrigger.loadHoseSystemPit(self, nodeId, xmlFile, baseKey)
     local pitKey = ("%s.pit"):format(baseKey)
 
@@ -303,6 +406,13 @@ function HoseSystemFillTrigger.loadHoseSystemPit(self, nodeId, xmlFile, baseKey)
     end
 end
 
+---
+-- @param self
+-- @param nodeId
+-- @param xmlFile
+-- @param baseKey
+-- @param references
+--
 function HoseSystemFillTrigger.loadHoseSystemReferences(self, nodeId, xmlFile, baseKey, references)
     local i = 0
 
@@ -350,6 +460,10 @@ function HoseSystemFillTrigger.loadHoseSystemReferences(self, nodeId, xmlFile, b
     end
 end
 
+---
+-- @param nodeId
+-- @param xmlFile
+--
 function HoseSystemFillTrigger.getTriggerXmlKey(nodeId, xmlFile)
     local objectIdentifier = getUserAttribute(nodeId, 'identifier')
 
