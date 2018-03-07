@@ -120,8 +120,29 @@ function HoseSystemFillTrigger:load(nodeId, fillType)
     end
 
     self.isEnabled = true
+    self.planeDirtyFlag = self:getNextDirtyFlag()
 
     return true
+end
+
+function HoseSystemFillTrigger:readStream(streamId)
+end
+
+function HoseSystemFillTrigger:writeStream(streamId)
+end
+
+function HoseSystemFillTrigger:readUpdateStream(streamId, timestamp, connection)
+    if connection:getIsServer() then
+        local isDirty = streamReadBool(streamId)
+        -- update shader
+    end
+end
+
+function HoseSystemFillTrigger:writeUpdateStream(streamId, connection, dirtyMask)
+    if not connection:getIsServer() then
+        if streamWriteBool(streamId, bitAND(dirtyMask, self.planeDirtyFlag) ~= 0) then
+        end
+    end
 end
 
 function HoseSystemFillTrigger:delete()
