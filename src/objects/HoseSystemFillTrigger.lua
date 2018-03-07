@@ -120,7 +120,7 @@ function HoseSystemFillTrigger:load(nodeId, fillType)
     end
 
     self.isEnabled = true
-    self.planeDirtyFlag = self:getNextDirtyFlag()
+    self.fillDirtyFlag = self:getNextDirtyFlag()
 
     return true
 end
@@ -140,7 +140,7 @@ end
 
 function HoseSystemFillTrigger:writeUpdateStream(streamId, connection, dirtyMask)
     if not connection:getIsServer() then
-        if streamWriteBool(streamId, bitAND(dirtyMask, self.planeDirtyFlag) ~= 0) then
+        if streamWriteBool(streamId, bitAND(dirtyMask, self.fillDirtyFlag) ~= 0) then
         end
     end
 end
@@ -159,6 +159,12 @@ function HoseSystemFillTrigger:delete()
     end
 
     HoseSystemUtil:removeElementFromList(g_hoseSystem.hoseSystemReferences, self)
+end
+
+function HoseSystemFillTrigger:updateTick(dt)
+    if self.isServer then
+        -- handle dirty flag
+    end
 end
 
 function HoseSystemFillTrigger:onConnectorAttach(referenceId, hoseSystem)
@@ -194,13 +200,13 @@ function HoseSystemFillTrigger:onConnectorDetach(referenceId)
 end
 
 function HoseSystemFillTrigger:resetFillLevelIfNeeded(fillType)
---    if self.lastFillLevelChangeTime + HoseSystemLiquidManureFillTrigger.RESET_CHANGE_TRESHOLD_TIME > g_currentMission.time then
---        return false
---    end
---
---    self:setFillLevel(0)
---
---    return true
+    --    if self.lastFillLevelChangeTime + HoseSystemLiquidManureFillTrigger.RESET_CHANGE_TRESHOLD_TIME > g_currentMission.time then
+    --        return false
+    --    end
+    --
+    --    self:setFillLevel(0)
+    --
+    --    return true
     return false
 end
 
@@ -215,6 +221,7 @@ end
 function HoseSystemFillTrigger:getCurrentFillTypes()
     return { self.fillType }
 end
+
 ---
 -- @param fillType
 --
@@ -230,7 +237,13 @@ function HoseSystemFillTrigger:getFreeCapacity(fillType)
 end
 
 function HoseSystemFillTrigger:setFillLevel(fillLevel, delta, noEventSend)
-    return self.strategy:setFillLevel(fillLevel, delta, noEventSend)
+    self.strategy:setFillLevel(fillLevel, delta, noEventSend)
+
+    if noEventSend == nil or not noEventSend then
+        if self.isServer then
+            self:raiseDirtyFlags(self.fillDirtyFlag)
+        end
+    end
 end
 
 function HoseSystemFillTrigger:getIsActivatable(fillable)
