@@ -49,7 +49,7 @@ end
 function HoseSystemCapacityStrategy:update(dt)
     if HoseSystemCapacityStrategy.getShowInfo(self) then
         local fillTypeName = FillUtil.fillTypeIndexToDesc[self.trigger.fillType].nameI18N
-        local infoText = ("%s %s %d %d"):format(fillTypeName, g_i18n:getText("info_fillLevel"), math.floor(self.fillLevel), math.floor(100 * self.fillLevel / self.capacity))
+        local infoText = ("%s %s %d (%d%%)"):format(fillTypeName, g_i18n:getText("info_fillLevel"), math.floor(self.fillLevel), math.floor(100 * self.fillLevel / self.capacity))
         g_currentMission:addExtraPrintText(infoText)
     end
 end
