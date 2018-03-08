@@ -23,8 +23,8 @@ function HoseSystemCapacityStrategy:new(trigger, mt)
 
     setmetatable(strategy, mt == nil and HoseSystemCapacityStrategy_mt or mt)
 
-    strategy.fillLevel = 0
-    strategy.capacity = defaultCapacity
+    trigger.fillLevel = 0
+    trigger.capacity = defaultCapacity
 
     return strategy
 end
@@ -35,7 +35,7 @@ function HoseSystemCapacityStrategy:load()
     local capacity = getUserAttribute(self.trigger.nodeId, "capacity")
 
     if capacity ~= nil then
-        self.capacity = Utils.getNoNil(tonumber(capacity), self.capacity)
+        self.trigger.capacity = Utils.getNoNil(tonumber(capacity), self.capacity)
     end
 
     -- Todo: only load moving plane on capacity?
@@ -49,7 +49,7 @@ end
 function HoseSystemCapacityStrategy:update(dt)
     if HoseSystemCapacityStrategy.getShowInfo(self) then
         local fillTypeName = FillUtil.fillTypeIndexToDesc[self.trigger.fillType].nameI18N
-        local infoText = ("%s %s %d (%d%%)"):format(fillTypeName, g_i18n:getText("info_fillLevel"), math.floor(self.fillLevel), math.floor(100 * self.fillLevel / self.capacity))
+        local infoText = ("%s %s %d (%d%%)"):format(fillTypeName, g_i18n:getText("info_fillLevel"), math.floor(self.trigger.fillLevel), math.floor(100 * self.trigger.fillLevel / self.trigger.capacity))
         g_currentMission:addExtraPrintText(infoText)
     end
 end
@@ -82,10 +82,10 @@ end
 --
 function HoseSystemCapacityStrategy:getFillLevel(fillType)
     if fillType == nil then
-        return self.fillLevel
+        return self.trigger.fillLevel
     end
 
-    return fillType == self.trigger.fillType and self.fillLevel or 0
+    return fillType == self.trigger.fillType and self.trigger.fillLevel or 0
 end
 
 ---
@@ -94,13 +94,17 @@ end
 -- @param noEventSend
 --
 function HoseSystemCapacityStrategy:setFillLevel(fillLevel, delta, noEventSend)
-    fillLevel = Utils.clamp(fillLevel, 0, self.capacity)
+    fillLevel = Utils.clamp(fillLevel, 0, self.trigger.capacity)
 
-    if self.fillLevel ~= fillLevel then
-        self.fillLevel = fillLevel
+    if self.trigger.fillLevel ~= fillLevel then
+        self.trigger.fillLevel = fillLevel
 
         if self.trigger.isClient then
-            -- Todo: handle plane y trans
+            if self.trigger.movingId ~= nil then
+                local x, _, z = getTranslation(self.trigger.movingId)
+                local y = self.trigger.moveMinY + (self.trigger.moveMaxY - self.trigger.moveMinY) * self.fillLevel / self.capacity
+                setTranslation(self.trigger.movingId, x, y, z)
+            end
         end
     end
 end
@@ -110,10 +114,10 @@ end
 --
 function HoseSystemCapacityStrategy:getCapacity(fillType)
     if fillType == nil then
-        return self.capacity
+        return self.trigger.capacity
     end
 
-    return fillType == self.trigger.fillType and self.capacity or 0
+    return fillType == self.trigger.fillType and self.trigger.capacity or 0
 end
 
 ---
@@ -127,7 +131,7 @@ end
 -- @param fillable
 --
 function HoseSystemCapacityStrategy:getIsActivatable(fillable)
-    if self.fillLevel <= 0 then
+    if self.trigger.fillLevel <= 0 then
         return false
     end
 

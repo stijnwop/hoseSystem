@@ -41,9 +41,9 @@ function HoseSystemWaterTrailerFillTrigger:new(superFunc, nodeId, trailer)
         return superFunc(self, nodeId, trailer)
     end
 
-    local trigger = HoseSystemFillTrigger:new(g_server ~= nil, g_client ~= nil, nil, nodeId, strategy)
+    local trigger = HoseSystemFillTrigger:new(g_server ~= nil, g_client ~= nil, nil, nodeId, strategy, false)
 
-    if not trigger:load(nodeId, FillUtil.FILLTYPE_WATER) then
+    if not trigger:load(nodeId, nil, FillUtil.FILLTYPE_WATER) then
         -- if we fail we fallback on the default trigger
         return superFunc(self, nodeId, trailer)
     end

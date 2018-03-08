@@ -146,8 +146,15 @@ function HoseSystemReferences:searchReferences(grabPoint)
                 for i, reference in pairs(hoseSystemReference.hoseSystemReferences) do
                     if not reference.isUsed then
                         if HoseSystemReferences:getCanConnect(x, y, z, sequence, grabPoint, reference) then
-                            local object = reference.isObject and hoseSystemReference.fillLevelObject or hoseSystemReference
+                            local object = hoseSystemReference
+
+                            -- Network shared object
+                            if reference.isObject and hoseSystemReference.fillLevelObject ~= nil then
+                                object = hoseSystemReference.fillLevelObject
+                            end
+
                             self:loadFillableObjectAndReference(networkGetObjectId(object), i, false)
+
                             reset = false
                             break
                         end

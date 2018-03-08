@@ -422,7 +422,7 @@ function HoseSystem:getSaveAttributesAndNodes(nodeIdent)
                             break
                         end
 
-                        -- todo: this can be deleted with the new setup
+                        -- If we have a shared network object we compare it with the fillLevelObject
                         if reference.isObject and vehicle.fillLevelObject == grabPoint.connectorVehicle then
                             vehicleId = i
                         end

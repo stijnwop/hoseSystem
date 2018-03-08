@@ -27,7 +27,7 @@ end
 -- @param mt
 -- @param nodeId
 --
-function HoseSystemFillTrigger:new(isServer, isClient, mt, nodeId, strategyStr)
+function HoseSystemFillTrigger:new(isServer, isClient, mt, nodeId, strategyStr, hasNetworkParent)
     local strategyType = HoseSystemFillTrigger.stringToTypes[strategyStr:lower()]
 
     if strategyType == nil then
@@ -37,9 +37,18 @@ function HoseSystemFillTrigger:new(isServer, isClient, mt, nodeId, strategyStr)
 
     local mt = mt == nil and HoseSystemFillTrigger_mt or mt
 
-    local trigger = Object:new(isServer, isClient, mt)
+    local trigger = {}
 
-    trigger:register()
+    if not hasNetworkParent then
+        print("Register network object")
+        trigger = Object:new(isServer, isClient, mt)
+        trigger:register()
+
+        trigger.fillDirtyFlag = trigger:getNextDirtyFlag()
+    else
+        setmetatable(trigger, mt)
+    end
+
     trigger.triggerId = nil
     trigger.nodeId = nodeId
 
@@ -62,7 +71,7 @@ end
 -- @param fillType
 -- @param fillLevelObject
 --
-function HoseSystemFillTrigger:load(nodeId, fillType, fillLevelObject)
+function HoseSystemFillTrigger:load(nodeId, fillLevelObject, fillType)
     local xmlFilename = getUserAttribute(nodeId, 'xmlFilename')
 
     if xmlFilename == nil then
@@ -74,7 +83,7 @@ function HoseSystemFillTrigger:load(nodeId, fillType, fillLevelObject)
     end
 
     if not HoseSystemObjectsUtil.getIsNodeValid(nodeId) then
-        return false
+        --        return false
     end
 
     if self.nodeId == nil then
@@ -87,12 +96,19 @@ function HoseSystemFillTrigger:load(nodeId, fillType, fillLevelObject)
     end
 
     if not HoseSystemObjectsUtil.getIsValidTrigger(self.triggerId) then
-        return false
+        --        return false
     end
 
     addTrigger(self.triggerId, HoseSystemFillTrigger.TRIGGER_CALLBACK, self)
 
-    self.fillType = fillType ~= nil and fillType or HoseSystemFillTrigger.getFillTypeFromUserAttribute(nodeId)
+    if self.fillType == nil then
+        self.fillType = fillType ~= nil and fillType or HoseSystemFillTrigger.getFillTypeFromUserAttribute(nodeId)
+    end
+
+    if fillLevelObject ~= nil then
+        fillLevelObject.hoseSystemParent = self
+    end
+
     self.fillLevelObject = fillLevelObject
 
     -- Load the strategy
@@ -134,15 +150,11 @@ function HoseSystemFillTrigger:load(nodeId, fillType, fillLevelObject)
 
     g_currentMission:addNodeObject(self.nodeId, self)
 
-    -- Todo: Fix and delete this later
-    self.hoseSystemParent = self
-
     if hasReferences then
         table.insert(g_hoseSystem.hoseSystemReferences, self)
     end
 
     self.isEnabled = true
-    self.fillDirtyFlag = self:getNextDirtyFlag()
 
     return true
 end
@@ -192,6 +204,18 @@ end
 -- @param dt
 --
 function HoseSystemFillTrigger:update(dt)
+    if self.isClient then
+        if not self.playerInRange then
+            if g_currentMission.animatedObjects ~= nil then -- Note: this is only possible with the extension
+                local object = g_currentMission.animatedObjects[self.animatedObjectSaveId]
+
+                if object ~= nil then
+                    self.isEnabled = object.animation.time == 1
+                end
+            end
+        end
+    end
+
     if self.strategy.update ~= nil then
         self.strategy:update(dt)
     end
@@ -248,6 +272,23 @@ function HoseSystemFillTrigger:onConnectorDetach(referenceId)
         HoseSystemUtil:log(HoseSystemUtil.DEBUG, "unregister attached hose by object")
         HoseSystemUtil:log(HoseSystemUtil.DEBUG, self.attachedHoseSystemReferences)
     end
+end
+
+---
+-- @param nodeId
+--
+function HoseSystemFillTrigger:checkNode(nodeId)
+    return self.isEnabled and self.detectionNode == nodeId or false
+end
+
+---
+-- @param y
+--
+function HoseSystemFillTrigger:checkPlaneY(y)
+    local _, py, _ = getWorldTranslation(self.movingId)
+    py = py + self.offsetY
+
+    return py >= y, py
 end
 
 ---
@@ -321,6 +362,13 @@ end
 -- @param fillable
 --
 function HoseSystemFillTrigger:getIsActivatable(fillable)
+    -- Todo: this will be for the fill triggers from giants..
+    if self.supportsHoseSystem then
+        if fillable.hasHoseSystem ~= nil and fillable.hasHoseSystem then
+            return false
+        end
+    end
+
     if not self.strategy:getIsActivatable(fillable) then
         return false
     end
@@ -405,7 +453,6 @@ function HoseSystemFillTrigger.loadHoseSystemPit(self, nodeId, xmlFile, baseKey)
         self.moveMinY = getXMLFloat(xmlFile, pitKey .. '#planeMinY')
         self.moveMaxY = getXMLFloat(xmlFile, pitKey .. '#planeMaxY')
         self.movingId = Utils.indexToObject(nodeId, getXMLString(xmlFile, pitKey .. '#planeNode'))
-
         self.animatedObjectSaveId = getXMLString(xmlFile, pitKey .. '#animatedObjectSaveId')
     end
 end
