@@ -60,8 +60,9 @@ end
 ---
 -- @param nodeId
 -- @param fillType
+-- @param fillLevelObject
 --
-function HoseSystemFillTrigger:load(nodeId, fillType)
+function HoseSystemFillTrigger:load(nodeId, fillType, fillLevelObject)
     local xmlFilename = getUserAttribute(nodeId, 'xmlFilename')
 
     if xmlFilename == nil then
@@ -81,7 +82,6 @@ function HoseSystemFillTrigger:load(nodeId, fillType)
     end
 
     self.triggerId = Utils.indexToObject(nodeId, getUserAttribute(nodeId, "triggerIndex"))
-
     if self.triggerId == nil then
         self.triggerId = nodeId
     end
@@ -93,6 +93,7 @@ function HoseSystemFillTrigger:load(nodeId, fillType)
     addTrigger(self.triggerId, HoseSystemFillTrigger.TRIGGER_CALLBACK, self)
 
     self.fillType = fillType ~= nil and fillType or HoseSystemFillTrigger.getFillTypeFromUserAttribute(nodeId)
+    self.fillLevelObject = fillLevelObject
 
     -- Load the strategy
     self.strategy:load()
@@ -135,7 +136,6 @@ function HoseSystemFillTrigger:load(nodeId, fillType)
 
     -- Todo: Fix and delete this later
     self.hoseSystemParent = self
-    self.fillLevelObject = self
 
     if hasReferences then
         table.insert(g_hoseSystem.hoseSystemReferences, self)
@@ -308,7 +308,11 @@ function HoseSystemFillTrigger:setFillLevel(fillLevel, delta, noEventSend)
 
     if noEventSend == nil or not noEventSend then
         if self.isServer then
-            self:raiseDirtyFlags(self.fillDirtyFlag)
+            if self.fillLevelObject ~= nil then
+                self.fillLevelObject:liquidManureFillLevelChanged(fillLevel, self.fillType, self)
+            else
+                self:raiseDirtyFlags(self.fillDirtyFlag)
+            end
         end
     end
 end
