@@ -90,10 +90,10 @@ end
 
 ---
 -- @param fillLevel
--- @param delta
 -- @param noEventSend
+-- @param delta
 --
-function HoseSystemCapacityStrategy:setFillLevel(fillLevel, delta, noEventSend)
+function HoseSystemCapacityStrategy:setFillLevel(fillLevel, noEventSend, delta)
     fillLevel = Utils.clamp(fillLevel, 0, self.trigger.capacity)
 
     if self.trigger.fillLevel ~= fillLevel then

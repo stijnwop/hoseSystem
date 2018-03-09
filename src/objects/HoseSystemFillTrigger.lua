@@ -341,11 +341,11 @@ end
 
 ---
 -- @param fillLevel
--- @param delta
 -- @param noEventSend
+-- @param delta
 --
-function HoseSystemFillTrigger:setFillLevel(fillLevel, delta, noEventSend)
-    self.strategy:setFillLevel(fillLevel, delta, noEventSend)
+function HoseSystemFillTrigger:setFillLevel(fillLevel, noEventSend, delta)
+    self.strategy:setFillLevel(fillLevel, noEventSend, delta)
 
     if noEventSend == nil or not noEventSend then
         if self.isServer then
@@ -494,8 +494,7 @@ function HoseSystemFillTrigger.loadHoseSystemReferences(self, nodeId, xmlFile, b
                 isUsed = false,
                 flowOpened = false,
                 isLocked = false,
-                liquidManureHose = nil,
-                grabPoints = nil,
+                hoseSystem = nil,
                 isObject = true,
                 componentIndex = 1, -- we joint to the nodeId
                 parkable = false,

@@ -59,10 +59,10 @@ end
 
 ---
 -- @param fillLevel
--- @param delta
 -- @param noEventSend
+-- @param delta
 --
-function HoseSystemExpensesStrategy:setFillLevel(fillLevel, delta, noEventSend)
+function HoseSystemExpensesStrategy:setFillLevel(fillLevel, noEventSend, delta)
     if delta ~= 0 and self.priceScale > 0 then
         local isAllowedExpense = true
 
