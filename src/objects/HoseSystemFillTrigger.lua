@@ -167,17 +167,28 @@ end
 
 function HoseSystemFillTrigger:readUpdateStream(streamId, timestamp, connection)
     if connection:getIsServer() then
-        local isDirty = streamReadBool(streamId)
-        if isDirty then
-            -- update shader and call fillLevel change
+        local hasNetWorkParent = streamReadBool(streamId)
+        if not hasNetWorkParent then
+            local fillLevelDirty = streamReadBool(streamId)
+
+            if fillLevelDirty then
+                -- update shader and call fillLevel change
+                self:setFillLevel(streamReadUInt16(streamId) / 65535.0 * self.capacity, true)
+            end
         end
     end
 end
 
 function HoseSystemFillTrigger:writeUpdateStream(streamId, connection, dirtyMask)
     if not connection:getIsServer() then
-        if streamWriteBool(streamId, bitAND(dirtyMask, self.fillDirtyFlag) ~= 0) then
+        local hasNetWorkParent = self.fillLevelObject ~= nil
+
+        streamWriteBool(streamId, hasNetWorkParent)
+
+        if not hasNetWorkParent and streamWriteBool(streamId, bitAND(dirtyMask, self.fillDirtyFlag) ~= 0) then
             -- write shader plane and write fillLevel (compressed?)
+            local trivialFillLevel = math.floor(self.fillLevel * 65535.0 / self.capacity)
+            streamWriteUInt16(streamId, trivialFillLevel)
         end
     end
 end
