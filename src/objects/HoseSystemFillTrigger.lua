@@ -110,8 +110,10 @@ function HoseSystemFillTrigger:load(nodeId, fillLevelObject, fillType)
 
     addTrigger(self.triggerId, HoseSystemFillTrigger.TRIGGER_CALLBACK, self)
 
+    self.fillType = Utils.getNoNil(fillType, self.fillType)
+
     if self.fillType == nil then
-        self.fillType = fillType ~= nil and fillType or HoseSystemFillTrigger.getFillTypeFromUserAttribute(nodeId)
+        self.fillType = HoseSystemFillTrigger.getFillTypeFromUserAttribute(nodeId)
     end
 
     -- Load the strategy
