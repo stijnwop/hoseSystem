@@ -85,7 +85,7 @@ function HoseSystemFillTrigger:load(nodeId, fillLevelObject, fillType)
 
     if xmlFilename == nil then
         if HoseSystem.debugRendering then
-            HoseSystemUtil:log(HoseSystemUtil.WARNING, 'HoseSystemFillTrigger is trying to load the xml file, but the file could not be found! Loading default triggers..')
+            HoseSystemUtil:log(HoseSystemUtil.WARNING, ("HoseSystemFillTrigger is trying to load the trigger '%s', but it's not prepared for it! Loading default triggers.."):format(getName(nodeId)))
         end
 
         return false
