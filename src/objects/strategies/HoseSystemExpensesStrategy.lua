@@ -44,6 +44,11 @@ function HoseSystemExpensesStrategy:load()
 end
 
 ---
+--
+function HoseSystemExpensesStrategy:delete()
+end
+
+---
 -- @param fillType
 --
 function HoseSystemExpensesStrategy:getFillLevel(fillType)

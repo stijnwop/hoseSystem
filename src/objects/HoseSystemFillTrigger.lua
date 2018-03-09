@@ -72,6 +72,15 @@ end
 -- @param fillLevelObject
 --
 function HoseSystemFillTrigger:load(nodeId, fillLevelObject, fillType)
+    if fillLevelObject ~= nil then
+        fillLevelObject.hoseSystemParent = self
+
+        self.isClient = fillLevelObject.isClient
+        self.isServer = fillLevelObject.isServer
+    end
+
+    self.fillLevelObject = fillLevelObject
+
     local xmlFilename = getUserAttribute(nodeId, 'xmlFilename')
 
     if xmlFilename == nil then
@@ -104,12 +113,6 @@ function HoseSystemFillTrigger:load(nodeId, fillLevelObject, fillType)
     if self.fillType == nil then
         self.fillType = fillType ~= nil and fillType or HoseSystemFillTrigger.getFillTypeFromUserAttribute(nodeId)
     end
-
-    if fillLevelObject ~= nil then
-        fillLevelObject.hoseSystemParent = self
-    end
-
-    self.fillLevelObject = fillLevelObject
 
     -- Load the strategy
     self.strategy:load()
@@ -148,7 +151,7 @@ function HoseSystemFillTrigger:load(nodeId, fillLevelObject, fillType)
     local hasReferences = next(self.hoseSystemReferences) ~= nil
     self.supportsHoseSystem = self.detectionNode ~= nil or hasReferences
 
-    g_currentMission:addNodeObject(self.nodeId, self)
+    --    g_currentMission:addNodeObject(self.nodeId, self)
 
     if hasReferences then
         table.insert(g_hoseSystem.hoseSystemReferences, self)
@@ -160,19 +163,28 @@ function HoseSystemFillTrigger:load(nodeId, fillLevelObject, fillType)
 end
 
 function HoseSystemFillTrigger:readStream(streamId)
+    if connection:getIsServer() then
+        if self.fillLevelObject == nil then
+            self:setFillLevel(streamReadUInt16(streamId) / 65535.0 * self.capacity, true)
+        end
+    end
 end
 
 function HoseSystemFillTrigger:writeStream(streamId)
+    if not connection:getIsServer() then
+        if self.fillLevelObject == nil then
+            local trivialFillLevel = math.floor(self.fillLevel * 65535.0 / self.capacity)
+            streamWriteUInt16(streamId, trivialFillLevel)
+        end
+    end
 end
 
 function HoseSystemFillTrigger:readUpdateStream(streamId, timestamp, connection)
     if connection:getIsServer() then
-        local hasNetWorkParent = streamReadBool(streamId)
-        if not hasNetWorkParent then
+        if self.fillLevelObject == nil then
             local fillLevelDirty = streamReadBool(streamId)
 
             if fillLevelDirty then
-                -- update shader and call fillLevel change
                 self:setFillLevel(streamReadUInt16(streamId) / 65535.0 * self.capacity, true)
             end
         end
@@ -181,14 +193,12 @@ end
 
 function HoseSystemFillTrigger:writeUpdateStream(streamId, connection, dirtyMask)
     if not connection:getIsServer() then
-        local hasNetWorkParent = self.fillLevelObject ~= nil
-
-        streamWriteBool(streamId, hasNetWorkParent)
-
-        if not hasNetWorkParent and streamWriteBool(streamId, bitAND(dirtyMask, self.fillDirtyFlag) ~= 0) then
-            -- write shader plane and write fillLevel (compressed?)
-            local trivialFillLevel = math.floor(self.fillLevel * 65535.0 / self.capacity)
-            streamWriteUInt16(streamId, trivialFillLevel)
+        if self.fillLevelObject == nil then
+            if streamWriteBool(streamId, bitAND(dirtyMask, self.fillDirtyFlag) ~= 0) then
+                -- write shader plane and write fillLevel (compressed?)
+                local trivialFillLevel = math.floor(self.fillLevel * 65535.0 / self.capacity)
+                streamWriteUInt16(streamId, trivialFillLevel)
+            end
         end
     end
 end
@@ -196,6 +206,8 @@ end
 ---
 --
 function HoseSystemFillTrigger:delete()
+    self.strategy:delete()
+
     removeTrigger(self.triggerId)
 
     if self.detectionNode ~= nil then
@@ -206,6 +218,11 @@ function HoseSystemFillTrigger:delete()
         for _, referenceNode in pairs(self.referenceNodes) do
             g_currentMission:removeNodeObject(referenceNode)
         end
+    end
+
+    if self.fillLevelObject ~= nil then
+        self.fillLevelObject.hoseSystemParent = nil
+        self.fillLevelObject = nil
     end
 
     HoseSystemUtil:removeElementFromList(g_hoseSystem.hoseSystemReferences, self)
@@ -455,12 +472,7 @@ function HoseSystemFillTrigger.loadHoseSystemPit(self, nodeId, xmlFile, baseKey)
             self.coverNode = coverNode
         end
 
-        local offsetY = getXMLFloat(xmlFile, pitKey .. '#offsetY')
-
-        if offsetY ~= nil then
-            self.offsetY = offsetY
-        end
-
+        self.offsetY = Utils.getNoNil(getXMLFloat(xmlFile, pitKey .. '#offsetY'), 0)
         self.moveMinY = getXMLFloat(xmlFile, pitKey .. '#planeMinY')
         self.moveMaxY = getXMLFloat(xmlFile, pitKey .. '#planeMaxY')
         self.movingId = Utils.indexToObject(nodeId, getXMLString(xmlFile, pitKey .. '#planeNode'))

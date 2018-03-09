@@ -44,6 +44,11 @@ function HoseSystemCapacityStrategy:load()
 end
 
 ---
+--
+function HoseSystemCapacityStrategy:delete()
+end
+
+---
 -- @param dt
 --
 function HoseSystemCapacityStrategy:update(dt)
@@ -102,7 +107,7 @@ function HoseSystemCapacityStrategy:setFillLevel(fillLevel, noEventSend, delta)
         if self.trigger.isClient then
             if self.trigger.movingId ~= nil then
                 local x, _, z = getTranslation(self.trigger.movingId)
-                local y = self.trigger.moveMinY + (self.trigger.moveMaxY - self.trigger.moveMinY) * self.fillLevel / self.capacity
+                local y = self.trigger.moveMinY + (self.trigger.moveMaxY - self.trigger.moveMinY) * self.trigger.fillLevel / self.trigger.capacity
                 setTranslation(self.trigger.movingId, x, y, z)
             end
         end
