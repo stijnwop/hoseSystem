@@ -687,7 +687,7 @@ function HoseSystemPumpMotor:doPump(sourceObject, targetObject, fillType, deltaF
     else
         if isTrigger then
             local delta = sourceObject:getUnitFillLevel(self.fillUnitIndex) - fillLevel
-            targetObject:setFillLevel(deltaFillLevel, false, delta)
+            targetObject:setFillLevel(deltaFillLevel, false, delta, fillDirection)
         else
             targetObject:setFillLevel(deltaFillLevel, fillType)
         end

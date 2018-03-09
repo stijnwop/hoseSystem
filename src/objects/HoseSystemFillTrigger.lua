@@ -45,6 +45,7 @@ function HoseSystemFillTrigger:new(isServer, isClient, mt, nodeId, strategyStr, 
         trigger:register()
 
         trigger.fillDirtyFlag = trigger:getNextDirtyFlag()
+        trigger.hoseSystemDirtyFlag = trigger:getNextDirtyFlag()
     else
         setmetatable(trigger, mt)
     end
@@ -77,6 +78,7 @@ function HoseSystemFillTrigger:load(nodeId, fillLevelObject, fillType)
 
         self.isClient = fillLevelObject.isClient
         self.isServer = fillLevelObject.isServer
+        self.hoseSystemDirtyFlag = fillLevelObject:getNextDirtyFlag()
     end
 
     self.fillLevelObject = fillLevelObject
@@ -152,8 +154,6 @@ function HoseSystemFillTrigger:load(nodeId, fillLevelObject, fillType)
 
     local hasReferences = next(self.hoseSystemReferences) ~= nil
     self.supportsHoseSystem = self.detectionNode ~= nil or hasReferences
-
-    --    g_currentMission:addNodeObject(self.nodeId, self)
 
     if hasReferences then
         table.insert(g_hoseSystem.hoseSystemReferences, self)
@@ -373,8 +373,9 @@ end
 -- @param fillLevel
 -- @param noEventSend
 -- @param delta
+-- @param fillDirection
 --
-function HoseSystemFillTrigger:setFillLevel(fillLevel, noEventSend, delta)
+function HoseSystemFillTrigger:setFillLevel(fillLevel, noEventSend, delta, fillDirection)
     self.strategy:setFillLevel(fillLevel, noEventSend, delta)
 
     if noEventSend == nil or not noEventSend then
@@ -383,6 +384,14 @@ function HoseSystemFillTrigger:setFillLevel(fillLevel, noEventSend, delta)
                 self.fillLevelObject:liquidManureFillLevelChanged(fillLevel, self.fillType, self)
             else
                 self:raiseDirtyFlags(self.fillDirtyFlag)
+            end
+
+            if self.sendFillDirection ~= fillDirection or self.sendDelta ~= delta then
+                self.sendFillDirection = fillDirection
+                self.sendDelta = delta
+
+                --                self:raiseDirtyFlags(self.hoseSystemDirtyFlag)
+                self:updatePlaneGraphics(self.movingId, fillDirection, delta)
             end
         end
     end
@@ -633,6 +642,31 @@ function HoseSystemFillTrigger:setIsUsed(index, state, hoseSystem, noEventSend)
 
         if reference.manureFlowAnimatedObjectSaveId == nil then
             self:toggleManureFlow(index, state, true)
+        end
+    end
+end
+
+function HoseSystemFillTrigger:updatePlaneGraphics(node, fillDirection, delta)
+    if self.isClient and self.supportsHoseSystem then
+        if node ~= nil and getHasShaderParameter(node, 'displacementScaleSpeedFrequency') then
+            delta = Utils.clamp(delta / 1.5, 0, 5)
+
+            local scale = HoseSystemUtil:mathRound(math.min(delta / 128, 0.05), 3)
+            local frequency = math.max(5, delta * 2 ^ 2)
+            -- Todo: do this properly and only set this at first state and idle state
+            local speed = fillDirection == HoseSystemPumpMotor.IN and delta * 1.5 or (delta * 1.5) * 2
+
+            local x, y, z, w = getShaderParameter(node, 'displacementScaleSpeedFrequency')
+
+            if math.abs(z - frequency) > 0.1 or math.abs(x - scale) > 0.01 then
+                -- Todo: delete
+--                print("delta: " .. delta)
+--                print("scale: " .. scale)
+--                print("freq: " .. frequency)
+--                print("speed: " .. speed)
+
+                setShaderParameter(node, 'displacementScaleSpeedFrequency', scale, 5, frequency, w, false)
+            end
         end
     end
 end
