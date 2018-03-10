@@ -28,6 +28,7 @@ local files = {
     ('%s/objects/%s'):format(srcDirectory, 'HoseSystemHolder'),
     ('%s/objects/strategies/%s'):format(srcDirectory, 'HoseSystemExpensesStrategy'),
     ('%s/objects/strategies/%s'):format(srcDirectory, 'HoseSystemCapacityStrategy'),
+    ('%s/objects/strategies/%s'):format(srcDirectory, 'HoseSystemFallbackStrategy'),
     -- multiplayer events
     ('%s/events/%s'):format(srcDirectory, 'HoseSystemReferenceIsUsedEvent'),
     ('%s/events/%s'):format(srcDirectory, 'HoseSystemReferenceLockEvent'),

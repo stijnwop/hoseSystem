@@ -61,8 +61,11 @@ function HoseSystemFillTrigger:new(isServer, isClient, mt, nodeId, strategyStr, 
     end
 
     trigger.strategy = strategy
+    trigger.fallbackStrategy = HoseSystemFallbackStrategy:new(trigger)
+
     trigger.vehiclesInRange = {}
     trigger.playerInRange = false
+    trigger.hasNetworkParent = hasNetworkParent
 
     return trigger
 end
@@ -205,6 +208,7 @@ end
 --
 function HoseSystemFillTrigger:delete()
     self.strategy:delete()
+    self.fallbackStrategy:delete()
 
     removeTrigger(self.triggerId)
 
@@ -411,7 +415,6 @@ function HoseSystemFillTrigger:getIsActivatable(fillable)
     if not fillable:allowFillType(self.fillType, false) then
         return false
     end
-
     return true
 end
 
@@ -437,6 +440,7 @@ function HoseSystemFillTrigger:triggerCallback(triggerId, otherActorId, onEnter,
     end
 
     self.strategy:triggerCallback(triggerId, otherActorId, onEnter, onLeave, onStay, otherShapeId)
+    self.fallbackStrategy:triggerCallback(triggerId, otherActorId, onEnter, onLeave, onStay, otherShapeId)
 end
 
 ---
