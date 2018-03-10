@@ -40,7 +40,7 @@ function HoseSystemCapacityStrategy:load()
 
     -- Todo: only load moving plane on capacity?
 
-    self.trigger:setFillLevel(0, nil, true)
+    self.trigger:setFillLevel(0, true)
 end
 
 ---
