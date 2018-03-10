@@ -11,18 +11,33 @@ HoseSystemLiquidManureFillTrigger = {}
 ---
 --
 function HoseSystemLiquidManureFillTrigger:preLoadHoseSystem()
-    LiquidManureFillTrigger.new = Utils.overwrittenFunction(LiquidManureFillTrigger.new, HoseSystemLiquidManureFillTrigger.new)
+    LiquidManureFillTrigger.load = Utils.overwrittenFunction(LiquidManureFillTrigger.load, HoseSystemLiquidManureFillTrigger.load)
 end
 
 ---
 -- @param superFunc
--- @param mt
+-- @param nodeId
+-- @param fillLevelObject
+-- @param fillType
 --
-function HoseSystemLiquidManureFillTrigger:new(superFunc, mt)
-    local trigger = HoseSystemFillTrigger:new(g_server ~= nil, g_client ~= nil, mt, nil, "capacity", true)
+function HoseSystemLiquidManureFillTrigger:load(superFunc, nodeId, fillLevelObject, fillType)
+    if not HoseSystemObjectsUtil.getHasXMLAttribute(nodeId) then
+        return superFunc(self, nodeId, fillLevelObject, fillType)
+    end
+
+    self = HoseSystemFillTrigger:new(g_server ~= nil, g_client ~= nil, mt, nil, "capacity", true)
 
     -- set the static fillType to allow the trigger being registered in the base mission
-    trigger.fillType = FillUtil.FILLTYPE_LIQUIDMANURE
+    self.fillType = FillUtil.FILLTYPE_LIQUIDMANURE
 
-    return trigger
+    -- Register correct metatable on the fillLevelObject
+    if fillLevelObject.digestateSiloTrigger ~= nil then
+        fillLevelObject.digestateSiloTrigger = self
+    end
+
+    if fillLevelObject.liquidManureTrigger ~= nil then
+        fillLevelObject.liquidManureTrigger = self
+    end
+
+    return self:load(nodeId, fillLevelObject, fillType)
 end

@@ -83,13 +83,7 @@ function HoseSystemFillTrigger:load(nodeId, fillLevelObject, fillType)
 
     self.fillLevelObject = fillLevelObject
 
-    local xmlFilename = getUserAttribute(nodeId, 'xmlFilename')
-
-    if xmlFilename == nil then
-        if HoseSystem.debugRendering then
-            HoseSystemUtil:log(HoseSystemUtil.WARNING, ("HoseSystemFillTrigger is trying to load the trigger '%s', but it's not prepared for it! Loading default triggers.."):format(getName(nodeId)))
-        end
-
+    if not HoseSystemObjectsUtil.getHasXMLAttribute(nodeId) then
         return false
     end
 
@@ -127,7 +121,7 @@ function HoseSystemFillTrigger:load(nodeId, fillLevelObject, fillType)
         baseDirectory = Utils.getNoNil(self.baseDirectory, baseDirectory)
     end
 
-    self.xmlFilename = Utils.getFilename(xmlFilename, baseDirectory)
+    self.xmlFilename = Utils.getFilename(getUserAttribute(nodeId, 'xmlFilename'), baseDirectory)
     local xmlFile = loadXMLFile('hoseSystemFillTrigger_' .. tostring(nodeId), self.xmlFilename)
 
     -- setup dummy component
@@ -662,10 +656,10 @@ function HoseSystemFillTrigger:updatePlaneGraphics(node, fillDirection, delta)
 
             if math.abs(z - frequency) > 0.1 or math.abs(x - scale) > 0.01 then
                 -- Todo: delete
---                print("delta: " .. delta)
---                print("scale: " .. scale)
---                print("freq: " .. frequency)
---                print("speed: " .. speed)
+                --                print("delta: " .. delta)
+                --                print("scale: " .. scale)
+                --                print("freq: " .. frequency)
+                --                print("speed: " .. speed)
 
                 setShaderParameter(node, 'displacementScaleSpeedFrequency', scale, 5, frequency, w, false)
             end
