@@ -37,7 +37,7 @@ end
 function HoseSystemWaterTrailerFillTrigger:new(superFunc, nodeId, trailer)
     local strategy = getUserAttribute(nodeId, "strategy")
 
-    if strategy == nil then
+    if strategy == nil or trailer ~= nil then
         return superFunc(self, nodeId, trailer)
     end
 
