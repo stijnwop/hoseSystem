@@ -93,3 +93,21 @@ function HoseSystemObjectsUtil.getIsNodeValid(nodeId)
 
     return true
 end
+
+---
+-- Used to determine if the object has actual hose system data
+-- @param nodeId
+--
+function HoseSystemObjectsUtil.getHasXMLAttribute(nodeId)
+    local xmlFilename = getUserAttribute(nodeId, 'xmlFilename')
+
+    if xmlFilename == nil then
+        if g_hoseSystem.debugRendering then
+            HoseSystemUtil:log(HoseSystemUtil.WARNING, ("HoseSystemFillTrigger is trying to load the trigger '%s', but it's not prepared for it! Loading the default map trigger.."):format(getName(nodeId)))
+        end
+
+        return false
+    end
+
+    return true
+end
