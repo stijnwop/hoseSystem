@@ -161,6 +161,8 @@ function HoseSystemFillTrigger:load(nodeId, fillLevelObject, fillType)
 
     self.isEnabled = true
 
+    self.strategy:postLoad()
+
     return true
 end
 

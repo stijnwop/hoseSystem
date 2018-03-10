@@ -45,6 +45,11 @@ end
 
 ---
 --
+function HoseSystemExpensesStrategy:postLoad()
+end
+
+---
+--
 function HoseSystemExpensesStrategy:delete()
 end
 

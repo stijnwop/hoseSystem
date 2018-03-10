@@ -23,7 +23,7 @@ function HoseSystemCapacityStrategy:new(trigger, mt)
 
     setmetatable(strategy, mt == nil and HoseSystemCapacityStrategy_mt or mt)
 
-    trigger.fillLevel = 0
+    trigger.fillLevel = -1
     trigger.capacity = defaultCapacity
 
     return strategy
@@ -38,8 +38,18 @@ function HoseSystemCapacityStrategy:load()
         self.trigger.capacity = Utils.getNoNil(tonumber(capacity), self.capacity)
     end
 
-    -- Todo: only load moving plane on capacity?
+    local minY, maxY = Utils.getVectorFromString(getUserAttribute(self.trigger.nodeId, "moveMinMaxY"))
 
+    if minY ~= nil and maxY ~= nil then
+        self.moveMinY = minY
+        self.moveMaxY = maxY
+        self.movingId = Utils.indexToObject(self.trigger.nodeId, getUserAttribute(self.trigger.nodeId, "movingIndex"))
+    end
+end
+
+---
+--
+function HoseSystemCapacityStrategy:postLoad()
     self.trigger:setFillLevel(0, true)
 end
 
