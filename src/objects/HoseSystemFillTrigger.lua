@@ -40,7 +40,6 @@ function HoseSystemFillTrigger:new(isServer, isClient, mt, nodeId, strategyStr, 
     local trigger = {}
 
     if not hasNetworkParent then
-        print("Register network object")
         trigger = Object:new(isServer, isClient, mt)
         trigger:register()
 
@@ -125,7 +124,7 @@ function HoseSystemFillTrigger:load(nodeId, fillLevelObject, fillType)
     end
 
     self.xmlFilename = Utils.getFilename(getUserAttribute(nodeId, 'xmlFilename'), baseDirectory)
-    local xmlFile = loadXMLFile('hoseSystemFillTrigger_' .. tostring(nodeId), self.xmlFilename)
+    local xmlFile = loadXMLFile('hoseSystemFillTrigger_' .. getName(nodeId), self.xmlFilename)
 
     -- setup dummy component
     self.components = {}

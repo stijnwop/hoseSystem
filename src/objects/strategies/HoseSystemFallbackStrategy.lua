@@ -21,22 +21,18 @@ function HoseSystemFallbackStrategy:new(trigger, mt)
 
     setmetatable(strategy, mt == nil and HoseSystemFallbackStrategy_mt or mt)
 
-    -- Todo: only set function based on fillType?
-
     -- Since giants uses different naming/logic on the water triggers we support a fallback
-    trigger.triggeredTrailers = {}
-    trigger.fillableObjects = {}
 
     -- fill fallback functions WaterTrailerFillTrigger
+    trigger.triggeredTrailers = {}
     trigger.onVehicleDeleted = WaterTrailerFillTrigger.onVehicleDeleted
     trigger.fillWater = WaterTrailerFillTrigger.fillWater
 
     -- fill fallback functions LiquidManureFillTrigger
+    trigger.fillableObjects = {}
     trigger.fill = LiquidManureFillTrigger.fill
 
-    if trigger.hasNetworkParent then
-        g_currentMission:addNonUpdateable(trigger)
-    end
+    g_currentMission:addNonUpdateable(strategy)
 
     return strategy
 end
@@ -54,28 +50,19 @@ function HoseSystemFallbackStrategy:delete()
         end
     end
 
-    if self.trigger.hasNetworkParent then
-        g_currentMission:removeNonUpdateable(self.trigger)
-    end
+    g_currentMission:removeNonUpdateable(self)
+end
+
+function HoseSystemFallbackStrategy:getIsActivatable(fillable)
+    return self.trigger:getIsActivatable(fillable)
 end
 
 function HoseSystemFallbackStrategy:triggerCallback(triggerId, otherActorId, onEnter, onLeave, onStay, otherShapeId)
     if self.trigger.isEnabled and (onEnter or onLeave) then
         local fillable = Utils.getNoNil(g_currentMission.objectToTrailer[otherShapeId], g_currentMission.objectToTrailer[otherActorId])
 
-        -- Todo: cleanup?
         if fillable ~= nil and fillable.hasHoseSystem == nil then
-            if fillable ~= self.trigger.trailer and fillable.addWaterTrailerFillTrigger ~= nil and fillable.removeWaterTrailerFillTrigger ~= nil then
-                if onEnter then
-                    self.trigger.triggeredTrailers[fillable] = fillable
-                    fillable:addWaterTrailerFillTrigger(self.trigger)
-                else -- onLeave
-                    self.trigger.triggeredTrailers[fillable] = nil
-                    fillable:removeWaterTrailerFillTrigger(self.trigger)
-                end
-            end
-
-            if fillable.addFillTrigger ~= nil and fillable.removeFillTrigger ~= nil and fillable ~= self.trigger.parent then
+            if fillable.addFillTrigger ~= nil and fillable.removeFillTrigger ~= nil then
                 if onEnter then
                     if self.trigger.fillableObjects[fillable] == nil and fillable:allowFillType(self.trigger.fillType, false) then
                         fillable:addFillTrigger(self.trigger)
@@ -89,6 +76,16 @@ function HoseSystemFallbackStrategy:triggerCallback(triggerId, otherActorId, onE
                     end
 
                     self.trigger.fillableObjects[fillable] = nil
+                end
+            end
+
+            if fillable.addWaterTrailerFillTrigger ~= nil and fillable.removeWaterTrailerFillTrigger ~= nil then
+                if onEnter then
+                    self.trigger.triggeredTrailers[fillable] = fillable
+                    fillable:addWaterTrailerFillTrigger(self.trigger)
+                else -- onLeave
+                    self.trigger.triggeredTrailers[fillable] = nil
+                    fillable:removeWaterTrailerFillTrigger(self.trigger)
                 end
             end
         end

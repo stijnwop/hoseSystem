@@ -37,7 +37,7 @@ end
 ---
 --
 function HoseSystemExpensesStrategy:load()
-    self.priceScale = Utils.getNoNil(getUserAttribute(self.trigger.nodeId, "priceScale"), 1)
+    self.trigger.priceScale = Utils.getNoNil(getUserAttribute(self.trigger.nodeId, "priceScale"), 1)
 
     local financeCategory = HoseSystemExpensesStrategy.fillTypeToFinanceCategories[self.trigger.fillType]
     self.financeCategory = financeCategory ~= nil and financeCategory or "other"
@@ -73,7 +73,7 @@ end
 -- @param delta
 --
 function HoseSystemExpensesStrategy:setFillLevel(fillLevel, noEventSend, delta)
-    if delta ~= 0 and self.priceScale > 0 then
+    if delta ~= 0 and self.trigger.priceScale > 0 then
         local isAllowedExpense = true
 
         -- restrict to get profit from water
@@ -82,7 +82,7 @@ function HoseSystemExpensesStrategy:setFillLevel(fillLevel, noEventSend, delta)
         end
 
         if isAllowedExpense then
-            local price = delta * g_currentMission.economyManager:getPricePerLiter(self.trigger.fillType) * self.priceScale
+            local price = delta * g_currentMission.economyManager:getPricePerLiter(self.trigger.fillType) * self.trigger.priceScale
             g_currentMission.missionStats:updateStats("expenses", price)
             g_currentMission:addSharedMoney(-price, self.financeCategory)
         end
