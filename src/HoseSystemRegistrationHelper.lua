@@ -25,6 +25,7 @@ function HoseSystemRegistrationHelper:preLoadHoseSystem()
     end
 
     getfenv(0)["g_hoseSystem"] = self
+    getfenv(0)["HoseSystemFillTrigger"] = HoseSystemFillTrigger
     getfenv(0)["HoseSystemHolder"] = HoseSystemHolder
 
     self.debugRendering = true --<%=debug %>
@@ -70,6 +71,7 @@ function HoseSystemRegistrationHelper:deleteMap()
     g_hoseSystem.hoseSystemRegistrationHelperIsLoaded = false
 
     getfenv(0)["g_hoseSystem"] = nil
+    getfenv(0)["HoseSystemFillTrigger"] = nil
     getfenv(0)["HoseSystemHolder"] = nil
 end
 

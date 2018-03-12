@@ -24,6 +24,29 @@ function HoseSystemFillTrigger:preLoadHoseSystem()
 end
 
 ---
+-- @param nodeId
+--
+function HoseSystemFillTrigger:onCreate(nodeId)
+    local strategy = getUserAttribute(nodeId, "strategy")
+
+    if strategy == nil then
+        HoseSystemUtil:log(HoseSystemUtil.ERROR, ("No strategy type specified for node '%s'!"):format(getName(nodeId)))
+        return
+    end
+
+    local object = HoseSystemFillTrigger:new(g_server ~= nil, g_client ~= nil, nil, nodeId, strategy, false)
+
+    if object:load(nodeId) then
+        -- Todo: implement save
+        --        g_currentMission:addOnCreateLoadedObject(object)
+        --        g_currentMission:addOnCreateLoadedObjectToSave(object)
+    else
+        object:delete()
+    end
+end
+
+
+---
 -- @param mt
 -- @param nodeId
 --
@@ -31,7 +54,7 @@ function HoseSystemFillTrigger:new(isServer, isClient, mt, nodeId, strategyStr, 
     local strategyType = HoseSystemFillTrigger.stringToTypes[strategyStr:lower()]
 
     if strategyType == nil then
-        HoseSystemUtil:log(HoseSystemUtil.ERROR, "No strategy type specified!")
+        HoseSystemUtil:log(HoseSystemUtil.ERROR, ("No strategy type specified for node '%s'!"):format(getName(nodeId)))
         return
     end
 
