@@ -271,6 +271,11 @@ function HoseSystemRegistrationHelper:register(vehicle, specializations, name)
         local specialization = SpecializationUtil.getSpecialization('hoseSystemConnector')
 
         if not SpecializationUtil.hasSpecialization(specialization, specializations) then
+            if not specialization.prerequisitesPresent(specializations) then
+                HoseSystemUtil:log(HoseSystemUtil.ERROR, "Not all prerequisites of specialization hoseSystemConnector are fulfilled on vehicle: " .. name)
+                return
+            end
+
             table.insert(specializations, specialization)
 
             if g_hoseSystem.debugRendering then
@@ -283,6 +288,11 @@ function HoseSystemRegistrationHelper:register(vehicle, specializations, name)
         local specialization = SpecializationUtil.getSpecialization('hoseSystemPumpMotor')
 
         if not SpecializationUtil.hasSpecialization(specialization, specializations) then
+            if not specialization.prerequisitesPresent(specializations) then
+                HoseSystemUtil:log(HoseSystemUtil.ERROR, "Not all prerequisites of specialization hoseSystemPumpMotor are fulfilled on vehicle: " .. name)
+                return
+            end
+
             table.insert(specializations, specialization)
 
             if g_hoseSystem.debugRendering then
@@ -295,6 +305,11 @@ function HoseSystemRegistrationHelper:register(vehicle, specializations, name)
         local specialization = SpecializationUtil.getSpecialization('hoseSystemFillArm')
 
         if not SpecializationUtil.hasSpecialization(specialization, specializations) then
+            if not specialization.prerequisitesPresent(specializations) then
+                HoseSystemUtil:log(HoseSystemUtil.ERROR, "Not all prerequisites of specialization hoseSystemFillArm are fulfilled on vehicle: " .. name)
+                return
+            end
+
             table.insert(specializations, specialization)
 
             if g_hoseSystem.debugRendering then
