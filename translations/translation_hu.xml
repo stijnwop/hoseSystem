@@ -36,7 +36,7 @@
         <text name="pumpMotor_warningTurnOffFirst" text="Előbb a pumpát kapcsold ki!"/>
         <text name="pumpMotor_warningUnitEmpty" text="A forrás pumpája üres!"/>
         <text name="pumpMotor_warningObjectEmpty" text="Az pumpa forrása üres!"/>
-        <text name="pumpMotor_warningObjectFull" text="The pump source is full!"/><!-- needs translation -->
+        <text name="pumpMotor_warningObjectFull" text="A pumpa célja teli!"/>
         <text name="pumpMotor_warningInvalidFilltype" text="Ez a FillType nem támogatott!"/>
 
         <!-- Hose system connector references -->
