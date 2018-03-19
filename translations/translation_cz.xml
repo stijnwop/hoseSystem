@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8" standalone="no" ?>
+<l10n>
+    <texts>
+        <text name="typeDesc_liquidManureHose" text="hadice"/>
+
+        <text name="function_liquidManureHose"
+              text="S hadicí je možné přečerpávat tekutiny. Hadice lze prodloužit, pro dosažení delší vzdálenosti (zatím nepodporováno)."/>
+
+        <text name="configuration_ext_liquidManureHose" text="Prodloužitelná"/>
+        <text name="configuration_nor_liquidManureHose" text="Normalní"/>
+
+        <text name="action_grabHose" text="uchopení %s"/>
+        <text name="action_dropHose" text="puštění %s"/>
+        <text name="action_attachHose" text="připojení %s"/>
+        <text name="action_detachHose" text="odpojení %s"/>
+
+        <text name="info_hoseRangeRestriction" text="Délka hadice ti nedovolí jít dále!"/>
+        <text name="info_hoseRangeRestrictionChainToLong" text="Opravdu nejsi Superman!"/>
+        <text name="info_hoseParkingPlaceToShort" text="Místo pro uložení %sm je malé!"/>
+
+        <!-- Input -->
+        <text name="input_mouseInteract" text="Stiskni %s pro"/>
+        <text name="input_mouseInteractMouseLeft" text="levé myšítko"/>
+        <text name="input_mouseInteractMouseRight" text="pravé myšítko"/>
+        <text name="input_attachHose" text="Připojit hadici"/>
+        <text name="input_detachHose" text="Odpojit hadici"/>
+
+        <!-- Hose system pump motor -->
+        <text name="pumpMotor_changeDirection" text="Změnit směr na %s"/>
+        <text name="pumpMotor_directionOut" text="vyprázdnění"/>
+        <text name="pumpMotor_directionIn" text="plnění"/>
+
+        <text name="pumpMotor_activatePump" text="Zapnout pumpu"/>
+        <text name="pumpMotor_deactivatePump" text="Vypnout pumpu"/>
+
+        <text name="pumpMotor_warningTurnOffFirst" text="Nejdříve vypni pumpu!"/>
+        <text name="pumpMotor_warningUnitEmpty" text="Zásobník je prázdný!"/>
+        <text name="pumpMotor_warningObjectEmpty" text="Zásobník je prázdný!"/>
+        <text name="pumpMotor_warningObjectFull" text="Zásobník je plný!"/>
+        <text name="pumpMotor_warningInvalidFilltype" text="Tato tekutina nelze tankovat!"/>
+
+        <!-- Hose system connector references -->
+        <text name="input_toggleManureFlow" text="Přepnout průtok"/>
+        <text name="input_toggleLock" text="Přepnout zámek hadice"/>
+
+        <text name="action_toggleLockStateLock" text="zamknutí %s"/>
+        <text name="action_toggleLockStateUnlock" text="odemknutí %s"/>
+
+        <text name="action_toggleManureFlow" text="%s průtoku"/>
+        <text name="action_toggleManureFlowStateOpen" text="otevření"/>
+        <text name="action_toggleManureFlowStateClose" text="zavření"/>
+    </texts>
+</l10n>
