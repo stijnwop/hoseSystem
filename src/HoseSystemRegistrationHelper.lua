@@ -264,56 +264,30 @@ end
 ---
 -- @param vehicle
 -- @param specializations
--- @param name
+-- @param vehicleName
 --
-function HoseSystemRegistrationHelper:register(vehicle, specializations, name)
-    if vehicle.hasHoseSystemConnectors then
-        local specialization = SpecializationUtil.getSpecialization('hoseSystemConnector')
+function HoseSystemRegistrationHelper:register(vehicle, specializations, vehicleName)
+    local toInsert = {}
 
-        if not SpecializationUtil.hasSpecialization(specialization, specializations) then
-            if not specialization.prerequisitesPresent(specializations) then
-                HoseSystemUtil:log(HoseSystemUtil.ERROR, "Not all prerequisites of specialization hoseSystemConnector are fulfilled on vehicle: " .. name)
-                return
-            end
+    toInsert["hoseSystemConnector"] = vehicle.hasHoseSystemConnectors
+    toInsert["hoseSystemPumpMotor"] = vehicle.hasHoseSystemPumpMotor
+    toInsert["hoseSystemFillArm"] = vehicle.hasHoseSystemFillArm
 
-            table.insert(specializations, specialization)
+    for specName, doInsert in pairs(toInsert) do
+        if doInsert then
+            local specialization = SpecializationUtil.getSpecialization(specName)
 
-            if g_hoseSystem.debugRendering then
-                HoseSystemUtil:log(HoseSystemUtil.DEBUG, 'Connector specialization added to: ' .. name)
-            end
-        end
-    end
+            if not SpecializationUtil.hasSpecialization(specialization, specializations) then
+                if not specialization.prerequisitesPresent(specializations) then
+                    HoseSystemUtil:log(HoseSystemUtil.ERROR, ("Not all prerequisites of specialization %s are fulfilled on vehicle: %s"):format(specName, vehicleName))
+                    return
+                end
 
-    if vehicle.hasHoseSystemPumpMotor then
-        local specialization = SpecializationUtil.getSpecialization('hoseSystemPumpMotor')
+                table.insert(specializations, specialization)
 
-        if not SpecializationUtil.hasSpecialization(specialization, specializations) then
-            if not specialization.prerequisitesPresent(specializations) then
-                HoseSystemUtil:log(HoseSystemUtil.ERROR, "Not all prerequisites of specialization hoseSystemPumpMotor are fulfilled on vehicle: " .. name)
-                return
-            end
-
-            table.insert(specializations, specialization)
-
-            if g_hoseSystem.debugRendering then
-                HoseSystemUtil:log(HoseSystemUtil.DEBUG, 'PumpMotor specialization added to: ' .. name)
-            end
-        end
-    end
-
-    if vehicle.hasHoseSystemFillArm then
-        local specialization = SpecializationUtil.getSpecialization('hoseSystemFillArm')
-
-        if not SpecializationUtil.hasSpecialization(specialization, specializations) then
-            if not specialization.prerequisitesPresent(specializations) then
-                HoseSystemUtil:log(HoseSystemUtil.ERROR, "Not all prerequisites of specialization hoseSystemFillArm are fulfilled on vehicle: " .. name)
-                return
-            end
-
-            table.insert(specializations, specialization)
-
-            if g_hoseSystem.debugRendering then
-                HoseSystemUtil:log(HoseSystemUtil.DEBUG, 'FillArm specialization added to: ' .. name)
+                if g_hoseSystem.debugRendering then
+                    HoseSystemUtil:log(HoseSystemUtil.DEBUG, ("%s specialization added to: %s"):format(specName, vehicleName))
+                end
             end
         end
     end

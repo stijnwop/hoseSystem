@@ -36,7 +36,7 @@ HoseSystemPumpMotor.RPM_INCREASE = 5
 -- @param specializations
 --
 function HoseSystemPumpMotor.prerequisitesPresent(specializations)
-    if not SpecializationUtil.hasSpecialization(Fillable, specializations) and SpecializationUtil.hasSpecialization(PowerConsumer, specializations) then
+    if not SpecializationUtil.hasSpecialization(Fillable, specializations) or not SpecializationUtil.hasSpecialization(PowerConsumer, specializations) then
         HoseSystemUtil:log(HoseSystemUtil.ERROR, "Specialization HoseSystemPumpMotor needs the specialization Fillable and PowerConsumer")
         return false
     end
