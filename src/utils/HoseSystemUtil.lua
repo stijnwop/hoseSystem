@@ -188,11 +188,19 @@ function HoseSystemUtil:addToPhysicsRecursively(vehicle)
         -- Set firstTimeRun to prevent the wheel shape not found warning!
         vehicle.firstTimeRun = false
 
+        -- Todo: remove when Giants comes with a fix
         if #vehicle.attachedImplements > 0 then
+            -- Hard attached implements are not attached back on physics state change.
             for _, implement in pairs(vehicle.attachedImplements) do
                 if implement.object.isHardAttached then
                     vehicle:hardAttachImplement(implement)
                 end
+            end
+
+            -- Hooklift joint limits are not set back on physics state change.
+            if SpecializationUtil.hasSpecialization(HookLiftTrailer, vehicle.specializations) then
+                vehicle:onAttachImplement(vehicle.attachedContainer.implement)
+                vehicle.hookLiftTrailer.isDirty = true
             end
         end
 
