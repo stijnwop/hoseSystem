@@ -7,6 +7,7 @@
         <de>Schlauch System</de>
         <pl>System Węży</pl>
         <ru>Система шлангов</ru>
+        <cz>Hadicový systém</cz>
     </title>
     <description>
         <en>
@@ -24,6 +25,9 @@
         <ru>
             <![CDATA[Шлангом для жидкого навоза вы можете перекачивать жидкодсти. При необходимости, вы можете удлинять шланг, чтобы он мог достать дальше.]]>
         </ru>
+        <cz>
+            <![CDATA[S hadicí je možné přečerpávat tekutiny. Hadice lze prodloužit, pro dosažení delší vzdálenosti (zatím nepodporováno).]]>
+        </cz>
     </description>
     <iconFilename>store.dds</iconFilename>
     <multiplayer supported="true"/>
