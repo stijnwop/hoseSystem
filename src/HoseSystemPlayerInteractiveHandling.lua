@@ -8,8 +8,8 @@
 
 HoseSystemPlayerInteractiveHandling = {}
 
-HoseSystemPlayerInteractiveHandling.KINEMATIC_HELPER_TRANS_OFFSET = { -0.4, -0.1, 0.3 }
-HoseSystemPlayerInteractiveHandling.JOINT_XZ_ROT_LIMIT = 5 -- deg
+HoseSystemPlayerInteractiveHandling.KINEMATIC_HELPER_TRANS_OFFSET = { -0.4, -0.1, 0.35 }
+HoseSystemPlayerInteractiveHandling.JOINT_XZ_ROT_LIMIT = 8 -- deg
 HoseSystemPlayerInteractiveHandling.BLINKING_WARNING_TIME = 5000 -- ms
 
 local HoseSystemPlayerInteractiveHandling_mt = Class(HoseSystemPlayerInteractiveHandling, HoseSystemPlayerInteractive)
@@ -539,8 +539,7 @@ function HoseSystemPlayerInteractiveHandling:constructPlayerJoint(jointDesc, pla
     local constructor = JointConstructor:new()
 
     constructor:setActors(jointDesc.actor1, jointDesc.actor2)
-    constructor:setJointTransforms(jointDesc.anchor1, jointDesc.anchor2)
-    constructor:setEnableCollision(false)
+    constructor:setJointTransforms(jointDesc.anchor1, jointDesc.actor2)
 
     local rotLimitSpring = {}
     local rotLimitDamping = {}
@@ -579,28 +578,16 @@ end
 function HoseSystemPlayerInteractiveHandling:constructReferenceJoints(jointDesc)
     local constructor = JointConstructor:new()
 
+    local springForce = 7500
+    local springDamping = 1500
+    local x, y, z = getWorldTranslation(jointDesc.anchor1)
+
     constructor:setActors(jointDesc.actor1, jointDesc.actor2)
     constructor:setJointTransforms(jointDesc.anchor1, jointDesc.anchor2)
+    constructor:setJointWorldPositions(x, y, z, x, y, z)
     constructor:setEnableCollision(false)
-
-    local rotLimitSpring = { 0, 0, 0 }
-    local rotLimitDamping = { 0, 0, 0 }
-    local transLimitSpring = { 0, 0, 0 }
-    local translimitDamping = { 0, 0, 0 }
-
-    if jointDesc.isConnector then
-        local connectorMass = getMass(jointDesc.actor1) -- * 100 -- create a strong joint
-
-        for i = 1, 3 do
-            rotLimitSpring[i] = connectorMass
-            rotLimitDamping[i] = math.sqrt(connectorMass * rotLimitSpring[i]) * 2
-            transLimitSpring[i] = connectorMass
-            translimitDamping[i] = math.sqrt(connectorMass * transLimitSpring[i]) * 2
-        end
-    end
-
-    constructor:setRotationLimitSpring(rotLimitSpring[1], rotLimitDamping[1], rotLimitSpring[2], rotLimitDamping[2], rotLimitSpring[3], rotLimitDamping[3])
-    constructor:setTranslationLimitSpring(transLimitSpring[1], translimitDamping[1], transLimitSpring[2], translimitDamping[1], transLimitSpring[3], translimitDamping[3])
+    constructor:setRotationLimitSpring(springForce, springDamping, springForce, springDamping, springForce, springDamping)
+    constructor:setTranslationLimitSpring(springForce, springDamping, springForce, springDamping, springForce, springDamping)
 
     for axis = 1, 3 do
         constructor:setRotationLimit(axis - 1, -jointDesc.rotLimit[axis], jointDesc.rotLimit[axis])
