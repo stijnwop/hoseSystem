@@ -49,6 +49,8 @@ function HoseSystemDropEvent:run(connection)
     end
 
     if not connection:getIsServer() then
+        self.object:setOwner(nil)
+
         g_server:broadcastEvent(self, false, connection, self.object)
     end
 end

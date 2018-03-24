@@ -48,6 +48,8 @@ function HoseSystemGrabEvent:run(connection)
     end
 
     if not connection:getIsServer() then
+        self.object:setOwner(connection)
+
         g_server:broadcastEvent(self, false, connection, self.object)
     end
 end
