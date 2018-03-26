@@ -562,12 +562,16 @@ function HoseSystemPlayerInteractiveHandling:constructPlayerJoint(jointDesc, pla
         constructor:setTranslationLimit(axis, true, 0, 0)
     end
 
-    --    local forceLimit = playerHoseDesc.mass * 25 -- only when stucked behind object
-    --    constructor:setBreakable(forceLimit, forceLimit)
+    if not g_hoseSystem.debugRendering then
+        local forceLimit = playerHoseDesc.mass * 25 -- only when stucked behind object
+        constructor:setBreakable(forceLimit, forceLimit)
+    end
 
     local jointIndex = constructor:finalize()
 
-    --    addJointBreakReport(jointIndex, 'onGrabJointBreak', self)
+    if not g_hoseSystem.debugRendering then
+        addJointBreakReport(jointIndex, "onGrabJointBreak", self)
+    end
 
     return jointIndex
 end
