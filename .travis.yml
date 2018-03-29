@@ -1,0 +1,21 @@
+language: node_js
+sudo: false
+
+node_js:
+- '8'
+
+before_install:
+- sudo apt-get -qq update
+- sudo apt-get install -y luajit
+
+install:
+- npm install -g farmsim
+
+cache:
+  directories:
+    - $TRAVIS_BUILD_DIR/install
+
+script:
+- fs verify
+- lua -v -lluacov run_unit_tests.lua --shuffle
+- lua run_functional_tests.lua --coverage
