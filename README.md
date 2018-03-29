@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/stijnwop/hoseSystem.svg?branch=master)](https://travis-ci.org/stijnwop/hoseSystem)
+
 # HoseSystem for Farming Simulator 17
 
 ## Why is the HoseSystem not working!?
