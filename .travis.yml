@@ -17,4 +17,3 @@ cache:
 
 script:
 - fs verify
-- luajit -v run_unit_tests.lua --shuffle
