@@ -17,5 +17,4 @@ cache:
 
 script:
 - fs verify
-- lua -v -lluacov run_unit_tests.lua --shuffle
-- lua run_functional_tests.lua --coverage
+- luajit -v -lluacov run_unit_tests.lua --shuffle
