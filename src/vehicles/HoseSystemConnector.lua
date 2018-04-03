@@ -17,7 +17,7 @@ HoseSystemConnector.DEFAULT_INRANGE_DISTANCE = 1.3
 -- @param specializations
 --
 function HoseSystemConnector.prerequisitesPresent(specializations)
-    return true
+    return SpecializationUtil.hasSpecialization(Fillable, specializations)
 end
 
 ---
