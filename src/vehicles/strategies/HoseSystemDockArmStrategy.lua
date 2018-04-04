@@ -4,6 +4,19 @@ local HoseSystemDockArmStrategy_mt = Class(HoseSystemDockArmStrategy)
 
 ---
 -- @param object
+--
+function HoseSystemDockArmStrategy:prerequisitesPresent(object)
+    if not object.fillArm.needsTransfer and not SpecializationUtil.hasSpecialization(Fillable, object.specializations) then
+        HoseSystemUtil:log(HoseSystemUtil.ERROR, "Strategy HoseSystemDockArmStrategy needs the specialization Fillable")
+
+        return false
+    end
+
+    return true
+end
+
+---
+-- @param object
 -- @param mt
 --
 function HoseSystemDockArmStrategy:new(object, mt)

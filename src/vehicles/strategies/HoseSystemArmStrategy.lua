@@ -4,6 +4,19 @@ local HoseSystemArmStrategy_mt = Class(HoseSystemArmStrategy)
 
 ---
 -- @param object
+--
+function HoseSystemArmStrategy:prerequisitesPresent(object)
+    if not SpecializationUtil.hasSpecialization(Fillable, object.specializations) then
+        HoseSystemUtil:log(HoseSystemUtil.ERROR, "Strategy HoseSystemArmStrategy needs the specialization Fillable")
+
+        return false
+    end
+
+    return true
+end
+
+---
+-- @param object
 -- @param mt
 --
 function HoseSystemArmStrategy:new(object, mt)

@@ -59,13 +59,9 @@ function HoseSystemFillArm:load(savegame)
 
         self.fillArm = HoseSystemUtil.callStrategyFunction(self.fillArmStrategies, 'load', { self.xmlFile, HoseSystemFillArm.XML_KEY, self.fillArm })
 
-        if self.fillArm.needsTransfer ~= nill and not self.fillArm.needsTransfer and not SpecializationUtil.hasSpecialization(Fillable, self.specializations) then
-            HoseSystemUtil:log(HoseSystemUtil.ERROR, "Specialization HoseSystemFillArm needs the specialization Fillable")
-
+        if not HoseSystemUtil.callStrategyFunction(self.fillArmStrategies, 'prerequisitesPresent', { self }) then
             self.fillArm = {}
             self.fillArmStrategies = {}
-
-            return
         end
     end
 end
