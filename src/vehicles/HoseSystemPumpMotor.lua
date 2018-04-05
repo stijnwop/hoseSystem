@@ -157,6 +157,7 @@ function HoseSystemPumpMotor:load(savegame)
     end
 
     self.pumpEfficiencyDirtyFlag = self:getNextDirtyFlag()
+    self.updateNetworkSourceObject = false
 end
 
 ---
@@ -187,6 +188,8 @@ function HoseSystemPumpMotor:readStream(streamId, connection)
         if streamReadBool(streamId) then
             self.sourceObjectNetworkId = readNetworkNodeObjectId(streamId)
         end
+
+        self.updateNetworkSourceObject = true
     end
 end
 
@@ -255,7 +258,7 @@ end
 -- @param dt
 --
 function HoseSystemPumpMotor:update(dt)
-    if self.firstTimeRun and self.fillObjectFound then
+    if self.updateNetworkSourceObject and self.fillObjectFound then
         if self.sourceObjectNetworkId ~= nil then
             local networkSourceObject = networkGetObject(self.sourceObjectNetworkId)
 
@@ -267,6 +270,8 @@ function HoseSystemPumpMotor:update(dt)
             -- we are the source
             self.sourceObject = self
         end
+
+        self.updateNetworkSourceObject = false
     end
 
     if self:getIsActive() then
@@ -783,30 +788,32 @@ function HoseSystemPumpMotor:addFillObject(object, fillMode, rayCasted)
         sourceObject = HoseSystemPumpMotor.findAttachedTransferTank(rootVehicle)
     end
 
-    local allowedFillUnitIndex = self:getAllowedFillUnitIndex(object, sourceObject)
+    if sourceObject ~= nil then
+        local allowedFillUnitIndex = self:getAllowedFillUnitIndex(object, sourceObject)
 
-    -- Todo: lookup table insertings on multiple fill objects
-    if allowedFillUnitIndex ~= 0 then
-        local oldFillmode = self:getFillMode()
+        -- Todo: lookup table insertings on multiple fill objects
+        if allowedFillUnitIndex ~= 0 then
+            local oldFillmode = self:getFillMode()
 
-        if oldFillmode ~= fillMode then
-            self:setFillMode(fillMode)
+            if oldFillmode ~= fillMode then
+                self:setFillMode(fillMode)
+            end
+
+            self.fillObject = object
+            self.fillObjectFound = true
+            self.fillFromFillVolume = false -- not implemented
+            self.fillObjectIsObject = object:isa(FillTrigger) -- or Object.. but we are actually pumping from a map trigger
+
+            if object.checkPlaneY ~= nil and rayCasted then
+                self.fillObjectHasPlane = true
+            end
+
+            self.fillUnitIndex = allowedFillUnitIndex
+            -- need to set a source object to distrube the fillType to correct vehicle
+            self.sourceObject = sourceObject
+
+            self:updateFillObject()
         end
-
-        self.fillObject = object
-        self.fillObjectFound = true
-        self.fillFromFillVolume = false -- not implemented
-        self.fillObjectIsObject = object:isa(FillTrigger) -- or Object.. but we are actually pumping from a map trigger
-
-        if object.checkPlaneY ~= nil and rayCasted then
-            self.fillObjectHasPlane = true
-        end
-
-        self.fillUnitIndex = allowedFillUnitIndex
-        -- need to set a source object to distrube the fillType to correct vehicle
-        self.sourceObject = sourceObject
-
-        self:updateFillObject()
     end
 end
 
