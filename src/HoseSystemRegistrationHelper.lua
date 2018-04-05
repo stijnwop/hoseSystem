@@ -33,7 +33,7 @@ function HoseSystemRegistrationHelper:preLoadHoseSystem()
     self.baseDirectory = HoseSystemRegistrationHelper.baseDirectory
 
     -- Spec version to force modders to use the latest hoseSystemVehicle script
-    self.currentVehicleSpecVersion = 1.1
+    self.currentVehicleSpecVersion = 1.2
 
     self.hoseSystemHoses = {}
     self.hoseSystemReferences = {}
@@ -272,6 +272,10 @@ function HoseSystemRegistrationHelper:register(vehicle, specializations, vehicle
     toInsert["hoseSystemConnector"] = vehicle.hasHoseSystemConnectors
     toInsert["hoseSystemPumpMotor"] = vehicle.hasHoseSystemPumpMotor
     toInsert["hoseSystemFillArm"] = vehicle.hasHoseSystemFillArm
+
+    if g_hoseSystem.debugRendering then
+        HoseSystemUtil:log(HoseSystemUtil.DEBUG, toInsert)
+    end
 
     for specName, doInsert in pairs(toInsert) do
         if doInsert then
