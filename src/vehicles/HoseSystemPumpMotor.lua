@@ -527,7 +527,9 @@ function HoseSystemPumpMotor:setPumpStarted(isStarted, warningId, noEventSend)
         self.pumpIsStarted = isStarted
         self.allowsSpraying = not isStarted -- disable manure tankers to start emptying while pumping
 
-        self:setIsTurnedOn(isStarted)
+        if self.setIsTurnedOn ~= nil then
+            self:setIsTurnedOn(isStarted)
+        end
 
         if not isStarted and warningId ~= nil and self.isClient then
             self:setWarningMessage(warningId)
