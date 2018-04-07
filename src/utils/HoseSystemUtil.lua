@@ -408,6 +408,21 @@ function HoseSystemUtil:removeElementFromList(list, element)
 end
 
 ---
+-- @param list
+--
+function HoseSystemUtil.getNoNilAmount(list)
+    local i = 0
+
+    for _, value in pairs(list) do
+        if value ~= nil then
+            i = i + 1
+        end
+    end
+
+    return i
+end
+
+---
 -- @param table
 --
 function HoseSystemUtil:getFirstElement(table)
