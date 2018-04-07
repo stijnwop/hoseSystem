@@ -385,7 +385,6 @@ function HoseSystemHoseCouplingStrategy:findFillObject(dt)
 
         if reference ~= nil then
             if entry.lastGrabPoint ~= nil then
-                local fillObject
                 local isRayCasted = false
                 entry.showEffect = false
 
@@ -398,7 +397,7 @@ function HoseSystemHoseCouplingStrategy:findFillObject(dt)
                             if lastReference.isUsed and lastReference.flowOpened and lastReference.isLocked then
                                 if lastReference.isObject or SpecializationUtil.hasSpecialization(Fillable, lastVehicle.specializations) then
                                     entry.isActive = true
-                                    fillObject = lastVehicle
+                                    entry.fillObject = lastVehicle
                                 end
                             end
                         end
@@ -417,7 +416,7 @@ function HoseSystemHoseCouplingStrategy:findFillObject(dt)
                                 end
 
                                 isRayCasted = true
-                                fillObject = hoseSystem.lastRaycastObject
+                                entry.fillObject = hoseSystem.lastRaycastObject
                             end
                         elseif reference.manureFlowAnimationName ~= nil then
                             local fillType = self.object:getUnitLastValidFillType(reference.fillUnitIndex)
@@ -436,11 +435,11 @@ function HoseSystemHoseCouplingStrategy:findFillObject(dt)
 
                 if entry.isActive then
                     if not self.object.fillObjectFound then
-                        self.object:addFillObject(fillObject, self.object.pumpMotorCouplingFillMode, isRayCasted)
+                        self.object:addFillObject(entry.fillObject, self.object.pumpMotorCouplingFillMode, isRayCasted)
                     end
                 else
                     if self.object.fillObjectFound then
-                        self.object:removeFillObject(fillObject, self.object.pumpMotorCouplingFillMode)
+                        self.object:removeFillObject(entry.fillObject, self.object.pumpMotorCouplingFillMode)
                     end
                 end
             end
@@ -475,6 +474,7 @@ function HoseSystemHoseCouplingStrategy:priorityQueueReferences()
 
                 if self.object.isServer then
                     entry.isActive = false
+                    entry.fillObject = nil
                 end
             end
         end
