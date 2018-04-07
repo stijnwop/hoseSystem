@@ -8,16 +8,29 @@
 
 HoseSystemPumpMotorFactory = {}
 
+HoseSystemPumpMotorFactory.TYPE_STANDALONE = "standalone"
+
 HoseSystemPumpMotorFactory.numFillModes = 0
 HoseSystemPumpMotorFactory.fillModes = {}
 
 ---
 --
 function HoseSystemPumpMotorFactory:preLoadHoseSystem()
+    local srcDirectory = g_hoseSystem.baseDirectory .. 'src/vehicles/strategies'
+
+    local files = {
+        ('%s/%s'):format(srcDirectory, 'HoseSystemStandalonePumpStrategy.lua')
+    }
+
+    for _, path in pairs(files) do
+        source(path)
+    end
+
     -- Register the fill mode for the hose system
     HoseSystemPumpMotorFactory.registerFillMode(HoseSystemConnectorFactory.TYPE_HOSE_COUPLING)
     HoseSystemPumpMotorFactory.registerFillMode(HoseSystemFillArmFactory.TYPE_DOCK)
     HoseSystemPumpMotorFactory.registerFillMode(HoseSystemFillArmFactory.TYPE_ARM)
+    HoseSystemPumpMotorFactory.registerFillMode(HoseSystemPumpMotorFactory.TYPE_STANDALONE)
 end
 
 ---
@@ -67,4 +80,18 @@ function HoseSystemPumpMotorFactory.getInitialFillMode(name)
     end
 
     return nil
+end
+
+---
+-- @param type
+-- @param object
+--
+function HoseSystemPumpMotorFactory.getPumpStrategy(type, object)
+    local strategy
+
+    if type == HoseSystemPumpMotorFactory.TYPE_STANDALONE then
+        strategy = HoseSystemStandalonePumpStrategy:new(object)
+    end
+
+    return strategy
 end

@@ -131,14 +131,25 @@ function HoseSystemPumpMotor:load(savegame)
     self.warningMessage.messages[HoseSystemPumpMotor.OBJECT_FULL] = g_i18n:getText('pumpMotor_warningObjectFull')
     self.warningMessage.messages[HoseSystemPumpMotor.INVALID_FILLTYPE] = g_i18n:getText('pumpMotor_warningInvalidFilltype')
 
+    local isStandalone = Utils.getNoNil(getXMLBool(self.xmlFile, "vehicle.pumpMotor#isStandalone"), false)
+
     self.pumpMotor = {
+        isStandalone = isStandalone,
         unloadInfoIndex = Utils.getNoNil(getXMLInt(self.xmlFile, "vehicle.pumpMotor#unloadInfoIndex"), 1),
-        dischargeInfoIndex = Utils.getNoNil(getXMLInt(self.xmlFile, "vehicle.pumpMotor#dischargeInfoIndex"), 1),
-        ptoRpm = self.powerConsumer.ptoRpm
+        dischargeInfoIndex = Utils.getNoNil(getXMLInt(self.xmlFile, "vehicle.pumpMotor#dischargeInfoIndex"), 1)
     }
 
-    -- Todo: lookup what we actually need on the current fillObject. (can we fill to multiple targets!?)
-    --    self.fillableObjects = {}
+    self.pumpStrategies = {}
+
+    if isStandalone then
+        local strategy = HoseSystemPumpMotorFactory.getPumpStrategy(HoseSystemPumpMotorFactory.TYPE_STANDALONE, self)
+
+        if strategy:prerequisitesPresent(self) then
+            self.pumpStrategies = HoseSystemUtil.insertStrategy(HoseSystemPumpMotorFactory.getPumpStrategy(HoseSystemPumpMotorFactory.TYPE_STANDALONE, self), self.pumpStrategies)
+        end
+    end
+
+    HoseSystemUtil.callStrategyFunction(self.pumpStrategies, 'load', { self.xmlFile, "vehicle.pumpMotor" })
 
     self.sourceObject = nil
     self.fillObject = nil
@@ -274,6 +285,8 @@ function HoseSystemPumpMotor:update(dt)
         self.updateNetworkSourceObject = false
     end
 
+    HoseSystemUtil.callStrategyFunction(self.pumpStrategies, 'update', { dt })
+
     if self:getIsActive() then
         if self:getIsActiveForInput() and not self:hasInputConflictWithSelection() then
             if InputBinding.hasEvent(InputBinding.ACTIVATE_OBJECT) then
@@ -303,6 +316,8 @@ end
 -- @param dt
 --
 function HoseSystemPumpMotor:updateTick(dt)
+    HoseSystemUtil.callStrategyFunction(self.pumpStrategies, 'updateTick', { dt })
+
     if self.isClient then
         if self.pumpIsStarted then
             if self.pumpEfficiency.currentScale ~= 0 then
@@ -788,6 +803,8 @@ function HoseSystemPumpMotor:addFillObject(object, fillMode, rayCasted)
         local rootVehicle = self:getRootAttacherVehicle()
 
         sourceObject = HoseSystemPumpMotor.findAttachedTransferTank(rootVehicle)
+    elseif self.pumpMotor.isStandalone then
+        sourceObject = self.standAloneSourceObject
     end
 
     if sourceObject ~= nil then
