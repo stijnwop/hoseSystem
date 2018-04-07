@@ -388,46 +388,48 @@ function HoseSystemHoseCouplingStrategy:findFillObject(dt)
                 local isRayCasted = false
                 entry.showEffect = false
 
-                if HoseSystem:getIsConnected(entry.lastGrabPoint.state) and not entry.lastGrabPoint.connectable then
-                    if self.object.hasHoseSystemPumpMotor then
-                        local lastVehicle = HoseSystemReferences:getReferenceVehicle(entry.lastGrabPoint.connectorVehicle)
-                        local lastReference = lastVehicle.hoseSystemReferences[entry.lastGrabPoint.connectorRefId]
+                if reference.flowOpened then
+                    if HoseSystem:getIsConnected(entry.lastGrabPoint.state) and not entry.lastGrabPoint.connectable then
+                        if self.object.hasHoseSystemPumpMotor then
+                            local lastVehicle = HoseSystemReferences:getReferenceVehicle(entry.lastGrabPoint.connectorVehicle)
+                            local lastReference = lastVehicle.hoseSystemReferences[entry.lastGrabPoint.connectorRefId]
 
-                        if lastReference ~= nil and lastVehicle ~= nil and lastVehicle.grabPoints == nil then -- checks if it's not a hose!
-                            if lastReference.isUsed and lastReference.flowOpened and lastReference.isLocked then
-                                if lastReference.isObject or SpecializationUtil.hasSpecialization(Fillable, lastVehicle.specializations) then
-                                    entry.isActive = true
-                                    entry.fillObject = lastVehicle
+                            if lastReference ~= nil and lastVehicle ~= nil and lastVehicle.grabPoints == nil then -- checks if it's not a hose!
+                                if lastReference.isUsed and lastReference.flowOpened and lastReference.isLocked then
+                                    if lastReference.isObject or SpecializationUtil.hasSpecialization(Fillable, lastVehicle.specializations) then
+                                        entry.isActive = true
+                                        entry.fillObject = lastVehicle
+                                    end
                                 end
                             end
                         end
-                    end
-                elseif HoseSystem:getIsDetached(entry.lastGrabPoint.state) then -- don't lookup when the player picks up the hose from the pit
-                    local hoseSystem = reference.hoseSystem
+                    elseif HoseSystem:getIsDetached(entry.lastGrabPoint.state) then -- don't lookup when the player picks up the hose from the pit
+                        local hoseSystem = reference.hoseSystem
 
-                    -- check what the lastGrabPoint has on it's raycast
-                    if hoseSystem ~= nil and reference.flowOpened then
-                        if hoseSystem.lastRaycastDistance ~= 0 and hoseSystem.lastRaycastObject ~= nil then
-                            if self.object.hasHoseSystemPumpMotor then
-                                entry.isActive = true
+                        -- check what the lastGrabPoint has on it's raycast
+                        if hoseSystem ~= nil then
+                            if hoseSystem.lastRaycastDistance ~= 0 and hoseSystem.lastRaycastObject ~= nil then
+                                if self.object.hasHoseSystemPumpMotor then
+                                    entry.isActive = true
 
-                                if self.object.pumpIsStarted and self.object.fillDirection == HoseSystemPumpMotor.OUT then
-                                    entry.showEffect = true
+                                    if self.object.pumpIsStarted and self.object.fillDirection == HoseSystemPumpMotor.OUT then
+                                        entry.showEffect = true
+                                    end
+
+                                    isRayCasted = true
+                                    entry.fillObject = hoseSystem.lastRaycastObject
                                 end
+                            elseif reference.manureFlowAnimationName ~= nil then
+                                local fillType = self.object:getUnitLastValidFillType(reference.fillUnitIndex)
+                                local fillLevel = self.object:getFillLevel(fillType)
 
-                                isRayCasted = true
-                                entry.fillObject = hoseSystem.lastRaycastObject
-                            end
-                        elseif reference.manureFlowAnimationName ~= nil then
-                            local fillType = self.object:getUnitLastValidFillType(reference.fillUnitIndex)
-                            local fillLevel = self.object:getFillLevel(fillType)
+                                if fillLevel > 0 then
+                                    local deltaFillLevel = math.min(HoseSystemHoseCouplingStrategy.EMPTY_LITER_PER_SECOND * dt / 1000, fillLevel)
 
-                            if fillLevel > 0 then
-                                local deltaFillLevel = math.min(HoseSystemHoseCouplingStrategy.EMPTY_LITER_PER_SECOND * dt / 1000, fillLevel)
+                                    entry.showEffect = true
 
-                                entry.showEffect = true
-
-                                self.object:setFillLevel(fillLevel - deltaFillLevel, fillType)
+                                    self.object:setFillLevel(fillLevel - deltaFillLevel, fillType)
+                                end
                             end
                         end
                     end
