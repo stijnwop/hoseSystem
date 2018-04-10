@@ -1,5 +1,7 @@
 HoseSystemStandalonePumpStrategy = {}
 
+HoseSystemStandalonePumpStrategy.MIN_REFERENCES = 2
+
 local HoseSystemStandalonePumpStrategy_mt = Class(HoseSystemStandalonePumpStrategy)
 
 ---
@@ -50,19 +52,21 @@ local sortReferencesByActiveState = function(ref1, ref2)
 end
 
 function HoseSystemStandalonePumpStrategy:updateTick(dt)
-    if not self.object.isServer or next(self.object.attachedHoseSystemReferences) == nil then
+    local object = self.object
+
+    if not object.isServer or next(object.attachedHoseSystemReferences) == nil then
         return
     end
 
     -- use custom since we need the number of elements which are not nil, the # or maxn operator won't do in this case..
-    if HoseSystemUtil.getNoNilAmount(self.object.attachedHoseSystemReferences) >= 2 then -- we only need two sources.
-        table.sort(self.object.attachedHoseSystemReferences, sortReferencesByActiveState)
+    if HoseSystemUtil.getNoNilAmount(object.attachedHoseSystemReferences) >= HoseSystemStandalonePumpStrategy.MIN_REFERENCES then -- we only need two sources.
+        table.sort(object.attachedHoseSystemReferences, sortReferencesByActiveState)
 
-        for _, entry in pairs({ unpack(self.object.attachedHoseSystemReferences, 1, 2) }) do
+        for _, entry in pairs({ unpack(object.attachedHoseSystemReferences, 1, 2) }) do
             if entry ~= nil and entry.isActive and entry.fillObject ~= nil then
-                if entry.fillObject ~= self.object.fillObject and entry.fillObject ~= self.object.standAloneSourceObject then
-                    self.object.standAloneSourceObject = entry.fillObject
-                    self.object:addFillObject(self.object.fillObject, self.object:getFillMode())
+                if entry.fillObject ~= object.fillObject and entry.fillObject ~= object.standAloneSourceObject then
+                    object.standAloneSourceObject = entry.fillObject
+                    object:addFillObject(object.fillObject, object:getFillMode())
                 end
             end
         end
