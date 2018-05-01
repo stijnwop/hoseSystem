@@ -16,6 +16,20 @@ Please be aware that this is a ***DEVELOPMENT VERSION***!
 
 If you are planning to use a copy of the current development branch, please understand that the development version can break the game!
 
+If you are using the latest HoseSystemVehicle from this repository make sure to use the latest release from the Hose System! Conflicts in combination with older versions are not included by support.
+
+[Latest Release](https://github.com/stijnwop/hoseSystem/releases/latest)
+
+### Dev tips:
+If you want to turn of debug mode:
+
+- Option 1: enter gsToggleHoseSystemDebugRendering in your engine console.
+- Option 2: open the HoseSystemRegistrationHelper.lua and set self.debugRendering to false
+
+To quickly zip the dev mod without the needed extra's use the zip.bat. 
+
+***_Please note: the zip.bat requires the application 7zip to be installed!_***
+
 ## Global features
 - Player controlled
 - Player restrictions
