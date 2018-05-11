@@ -82,12 +82,13 @@ function HoseSystemPumpMotor:load(savegame)
     self.pumpIsStarted = false
     self.fillMode = 0 -- 0 is nothing
     self.fillDirection = HoseSystemPumpMotor.IN
+    self.limitedFillDirection = nil
 
     local limit = getXMLString(self.xmlFile, "vehicle.pumpMotor#limitedFillDirection")
-    self.limitedFillDirection = nil
 
     if limit ~= nil then
         self.limitedFillDirection = limit:lower() == HoseSystemPumpMotor.IN_STRING and HoseSystemPumpMotor.IN or HoseSystemPumpMotor.OUT
+        self.fillDirection = self.limitedFillDirection
     end
 
     self.limitFillDirection = self.limitedFillDirection ~= nil
@@ -297,14 +298,16 @@ function HoseSystemPumpMotor:update(dt)
                 end
             end
 
-            if InputBinding.hasEvent(InputBinding.IMPLEMENT_EXTRA4) then
-                if self.attacherMotor.isStarted then
-                    if not self.pumpIsStarted then
-                        if self.pumpEfficiency.currentScale < self.pumpEfficiency.scaleLimit then
-                            self:setFillDirection(self:getFillDirection() + 1)
+            if not self.limitFillDirection then
+                if InputBinding.hasEvent(InputBinding.IMPLEMENT_EXTRA4) then
+                    if self.attacherMotor.isStarted then
+                        if not self.pumpIsStarted then
+                            if self.pumpEfficiency.currentScale < self.pumpEfficiency.scaleLimit then
+                                self:setFillDirection(self:getFillDirection() + 1)
+                            end
+                        else
+                            self:setWarningMessage(HoseSystemPumpMotor.TURN_OFF)
                         end
-                    else
-                        self:setWarningMessage(HoseSystemPumpMotor.TURN_OFF)
                     end
                 end
             end
@@ -464,7 +467,7 @@ function HoseSystemPumpMotor:draw()
             end
         end
 
-        if not self.pumpIsStarted then
+        if not self.limitFillDirection and not self.pumpIsStarted then
             if self.pumpEfficiency.currentScale < self.pumpEfficiency.scaleLimit then
                 g_currentMission:addHelpButtonText(g_i18n:getText('pumpMotor_changeDirection'):format(self:getFillDirection() == HoseSystemPumpMotor.IN and g_i18n:getText('pumpMotor_directionOut') or g_i18n:getText('pumpMotor_directionIn')), InputBinding.IMPLEMENT_EXTRA4)
             end
