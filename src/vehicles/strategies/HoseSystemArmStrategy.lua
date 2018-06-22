@@ -62,34 +62,38 @@ function HoseSystemArmStrategy:load(xmlFile, key, entry)
 end
 
 function HoseSystemArmStrategy:update(dt)
-    if self.object.isServer and self.object.hasHoseSystemPumpMotor then
+    local object = self.object
+
+    if object.isServer and object.hasHoseSystemPumpMotor then
         self.fillTriggerInteractive:update(dt)
     end
 end
 
 function HoseSystemArmStrategy:updateTick(dt)
-    if self.object.isServer and self.object.hasHoseSystemPumpMotor then
-        if self.object.lastRaycastObject ~= nil then
-            self.object:addFillObject(self.object.lastRaycastObject, self.object.pumpMotorFillArmFillMode, true)
+    local object = self.object
+
+    if object.isServer and object.hasHoseSystemPumpMotor then
+        if object.lastRaycastObject ~= nil then
+            object:addFillObject(object.lastRaycastObject, object.pumpMotorFillArmFillMode, true)
         else
-            self.object:removeFillObject(self.object.lastRaycastObject, self.object.pumpMotorFillArmFillMode)
+            object:removeFillObject(object.lastRaycastObject, object.pumpMotorFillArmFillMode)
         end
 
-        local fillDirection = self.object:getFillDirection()
+        local fillDirection = object:getFillDirection()
         local isAbleToPump = true
 
         -- if fill direction is IN we have some exceptions
         if fillDirection == HoseSystemPumpMotor.IN then
-            if self.object.fillObjectHasPlane and self.object.fillObject.checkPlaneY ~= nil then
-                if self.object.lastRaycastDistance ~= 0 then
-                    local x, y, z = getWorldTranslation(self.object.fillArm.node)
-                    local isUnderFillplane, _ = self.object.lastRaycastObject:checkPlaneY(y + self.object.fillArm.planeOffset, { x, y, z })
+            if object.fillObjectHasPlane and object.fillObject.checkPlaneY ~= nil then
+                if object.lastRaycastDistance ~= 0 then
+                    local x, y, z = getWorldTranslation(object.fillArm.node)
+                    local isUnderFillplane, _ = object.lastRaycastObject:checkPlaneY(y + object.fillArm.planeOffset, { x, y, z })
 
                     isAbleToPump = isUnderFillplane
                 end
             end
         end
 
-        self.object:handlePump(self.object.pumpMotorFillArmFillMode, dt, isAbleToPump)
+        object:handlePump(object.pumpMotorFillArmFillMode, dt, isAbleToPump)
     end
 end
