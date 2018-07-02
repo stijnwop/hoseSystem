@@ -392,12 +392,13 @@ function HoseSystemHoseCouplingStrategy:findFillObject(dt)
 
         if reference ~= nil then
             if entry.lastGrabPoint ~= nil then
+                local allowFillObjectSearch = self.object.hasHoseSystemPumpMotor or self.object.isDockStation
                 local isRayCasted = false
                 entry.showEffect = false
 
                 if reference.flowOpened then
                     if HoseSystem:getIsConnected(entry.lastGrabPoint.state) and not entry.lastGrabPoint.connectable then
-                        if self.object.hasHoseSystemPumpMotor then
+                        if allowFillObjectSearch then
                             local lastVehicle = HoseSystemReferences:getReferenceVehicle(entry.lastGrabPoint.connectorVehicle)
                             local lastReference = lastVehicle.hoseSystemReferences[entry.lastGrabPoint.connectorRefId]
 
@@ -416,7 +417,7 @@ function HoseSystemHoseCouplingStrategy:findFillObject(dt)
                         -- check what the lastGrabPoint has on it's raycast
                         if hoseSystem ~= nil then
                             if hoseSystem.lastRaycastDistance ~= 0 and hoseSystem.lastRaycastObject ~= nil then
-                                if self.object.hasHoseSystemPumpMotor then
+                                if allowFillObjectSearch then
                                     entry.isActive = true
 
                                     if self.object.pumpIsStarted and self.object.fillDirection == HoseSystemPumpMotor.OUT then
@@ -442,13 +443,15 @@ function HoseSystemHoseCouplingStrategy:findFillObject(dt)
                     end
                 end
 
-                if entry.isActive then
-                    if not self.object.fillObjectFound then
-                        self.object:addFillObject(entry.fillObject, self.object.pumpMotorCouplingFillMode, isRayCasted)
-                    end
-                else
-                    if self.object.fillObjectFound then
-                        self.object:removeFillObject(entry.fillObject, self.object.pumpMotorCouplingFillMode)
+                if not self.object.isDockStation then
+                    if entry.isActive then
+                        if not self.object.fillObjectFound then
+                            self.object:addFillObject(entry.fillObject, self.object.pumpMotorCouplingFillMode, isRayCasted)
+                        end
+                    else
+                        if self.object.fillObjectFound then
+                            self.object:removeFillObject(entry.fillObject, self.object.pumpMotorCouplingFillMode)
+                        end
                     end
                 end
             end

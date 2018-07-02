@@ -45,6 +45,8 @@ function HoseSystemConnector:load(savegame)
     self.dockingSystemReferences = {}
     self.transferSystemReferences = {}
 
+    self.isDockStation = Utils.getNoNil(getXMLBool(self.xmlFile, "vehicle.hoseSystemReferences#isDockStation"), false)
+
     HoseSystemConnector.loadHoseReferences(self, self.xmlFile, 'vehicle.hoseSystemReferences.')
 
     if self.unloadTrigger ~= nil then

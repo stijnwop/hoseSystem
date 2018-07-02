@@ -801,10 +801,8 @@ function HoseSystemPumpMotor:addFillObject(object, fillMode, rayCasted)
     end
 
     local sourceObject = self
-
     if self.fillArm ~= nil and self.fillArm.needsTransfer then
         local rootVehicle = self:getRootAttacherVehicle()
-
         sourceObject = HoseSystemPumpMotor.findAttachedTransferTank(rootVehicle)
     elseif self.pumpMotor.isStandalone then
         sourceObject = self.standAloneSourceObject
