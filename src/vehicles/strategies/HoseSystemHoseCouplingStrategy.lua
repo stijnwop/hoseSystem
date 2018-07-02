@@ -254,8 +254,11 @@ function HoseSystemHoseCouplingStrategy:update(dt)
             local reference = self.object.hoseSystemReferences[referenceId]
 
             if reference ~= nil then
-                if not reference.flowOpened then
-                    if reference.lockAnimationName ~= nil and self.object.animations[reference.lockAnimationName] ~= nil and #self.object.animations[reference.lockAnimationName].parts > 0 then
+                local hasLockControl = reference.lockAnimationName ~= nil and self.object.animations[reference.lockAnimationName] ~= nil
+                local hasManureFlowControl = reference.manureFlowAnimationName ~= nil and self.object.animations[reference.manureFlowAnimationName] ~= nil
+
+                if not reference.flowOpened or not hasManureFlowControl then
+                    if hasLockControl and #self.object.animations[reference.lockAnimationName].parts > 0 then
                         local _, firstPartAnimation = next(self.object.animations[reference.lockAnimationName].parts, nil)
 
                         if firstPartAnimation.node ~= nil and g_i18n:hasText('action_toggleLockStateLock') and g_i18n:hasText('action_toggleLockStateUnlock') then
@@ -265,13 +268,17 @@ function HoseSystemHoseCouplingStrategy:update(dt)
 
                             if InputBinding.hasEvent(InputBinding.toggleLock) then
                                 self.object:toggleLock(referenceId, state, false)
+
+                                if not hasManureFlowControl then
+                                    self.object:toggleManureFlow(referenceId, state, false)
+                                end
                             end
                         end
                     end
                 end
 
                 if reference.isLocked then
-                    if reference.manureFlowAnimationName ~= nil and self.object.animations[reference.manureFlowAnimationName] ~= nil and #self.object.animations[reference.manureFlowAnimationName].parts > 0 then
+                    if hasManureFlowControl and #self.object.animations[reference.manureFlowAnimationName].parts > 0 then
                         local _, firstPartAnimation = next(self.object.animations[reference.manureFlowAnimationName].parts, nil)
 
                         if firstPartAnimation.node ~= nil and g_i18n:hasText('action_toggleManureFlow') and g_i18n:hasText('action_toggleManureFlowStateOpen') and g_i18n:hasText('action_toggleManureFlowStateClose') then

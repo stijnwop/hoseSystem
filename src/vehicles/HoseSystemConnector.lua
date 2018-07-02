@@ -368,10 +368,10 @@ function HoseSystemConnector:setIsUsed(index, state, hoseSystem, noEventSend)
             if not reference.parkable then
                 if reference.lockAnimationName == nil then
                     self:toggleLock(index, state, true, true)
-                end
 
-                if reference.manureFlowAnimationName == nil then
-                    self:toggleManureFlow(index, state, true, true)
+                    if reference.manureFlowAnimationName == nil then
+                        self:toggleManureFlow(index, state, true, true)
+                    end
                 end
 
                 -- When detaching while on gameload we do need to sync the animations
