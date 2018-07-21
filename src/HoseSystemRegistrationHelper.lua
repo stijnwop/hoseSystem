@@ -26,7 +26,7 @@ function HoseSystemRegistrationHelper:preLoadHoseSystem()
 
     getfenv(0)["g_hoseSystem"] = self
 
-    self.debugRendering = true --<%=debug %>
+    self.debugRendering = false --<%=debug %>
     self.logLevel = 4 --<%=logLevel %>
     self.log = HoseSystemUtil.log
 
@@ -272,6 +272,7 @@ function HoseSystemRegistrationHelper:register(vehicle, specializations, vehicle
     toInsert["hoseSystemConnector"] = vehicle.hasHoseSystemConnectors
     toInsert["hoseSystemPumpMotor"] = vehicle.hasHoseSystemPumpMotor
     toInsert["hoseSystemFillArm"] = vehicle.hasHoseSystemFillArm
+    toInsert["dragHoses"] = vehicle.hasHoseSystemDragHose
 
     if g_hoseSystem.debugRendering then
         HoseSystemUtil:log(HoseSystemUtil.DEBUG, toInsert)
