@@ -179,26 +179,34 @@ function HoseSystemDockStrategy:update(dt)
         return
     end
 
-    if not object.isServer or next(object.attachedHoseSystemReferences) == nil or next(self.dockingArmObjects) == nil then
+    if not object.isServer or next(self.dockingArmObjects) == nil then
         return
     end
 
     -- Use custom since we need the number of elements which are not nil, the # or maxn operator won't do in this case..
-    if HoseSystemUtil.getNoNilAmount(object.attachedHoseSystemReferences) >= HoseSystemDockStrategy.MIN_REFERENCES
-            and HoseSystemUtil.getNoNilAmount(self.dockingArmObjects) >= HoseSystemDockStrategy.MIN_REFERENCES then
-        table.sort(object.attachedHoseSystemReferences, sortReferencesByActiveState)
-
+    if HoseSystemUtil.getNoNilAmount(self.dockingArmObjects) >= HoseSystemDockStrategy.MIN_REFERENCES then
         local dockingArmObject = select(1, unpack(self.dockingArmObjects))
-        local hoseReference = select(1, unpack(object.attachedHoseSystemReferences))
 
-        if dockingArmObject ~= object then
-            local inrange, referenceId = self:getDockArmInrange(dockingArmObject)
+        if HoseSystemUtil.getNoNilAmount(object.attachedHoseSystemReferences) >= HoseSystemDockStrategy.MIN_REFERENCES then
+            table.sort(object.attachedHoseSystemReferences, sortReferencesByActiveState)
+            local hoseReference = select(1, unpack(object.attachedHoseSystemReferences))
 
-            if inrange and not dockingArmObject.fillObjectFound then
-                dockingArmObject:addFillObject(hoseReference.fillObject, dockingArmObject.pumpMotorDockArmFillMode, false)
-                object:setIsDockUsed(referenceId, inrange, dockingArmObject)
-            elseif not inrange and dockingArmObject.fillObjectFound then
-                dockingArmObject:removeFillObject(hoseReference.fillObject, dockingArmObject.pumpMotorDockArmFillMode)
+            if dockingArmObject ~= object then
+                local fillObject = hoseReference.fillObject
+                local inrange, referenceId = self:getDockArmInrange(dockingArmObject)
+
+                if inrange and not dockingArmObject.fillObjectFound and fillObject ~= nil then
+                    dockingArmObject:addFillObject(fillObject, dockingArmObject.pumpMotorDockArmFillMode, false)
+                    object:setIsDockUsed(referenceId, inrange, dockingArmObject)
+                elseif (not inrange or not hoseReference.isActive)
+                        and dockingArmObject.fillObjectFound then
+                    dockingArmObject:removeFillObject(fillObject, dockingArmObject.pumpMotorDockArmFillMode)
+                end
+            end
+        else
+            -- Remove when hose is disconnected
+            if dockingArmObject.fillObjectFound then
+                dockingArmObject:removeFillObject(dockingArmObject.fillObject, dockingArmObject.pumpMotorDockArmFillMode)
             end
         end
     end

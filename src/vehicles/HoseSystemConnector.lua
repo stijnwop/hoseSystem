@@ -48,8 +48,6 @@ function HoseSystemConnector:load(savegame)
     self.dockingSystemReferences = {}
     self.transferSystemReferences = {}
 
-    self.connectorOnDetachListeners = {}
-
     self.isDockStation = Utils.getNoNil(getXMLBool(self.xmlFile, "vehicle.hoseSystemReferences#isDockStation"), false)
 
     HoseSystemConnector.loadHoseReferences(self, self.xmlFile, 'vehicle.hoseSystemReferences.')
@@ -57,24 +55,6 @@ function HoseSystemConnector:load(savegame)
     if self.unloadTrigger ~= nil then
         self.unloadTrigger:delete()
         self.unloadTrigger = nil
-    end
-end
-
----
--- @param listener
---
-function HoseSystemConnector:addConnectorOnDetachListener(listener)
-    if listener ~= nil then
-        Utils.addElementToTable(self.connectorOnDetachListeners, listener)
-    end
-end
-
----
--- @param listener
---
-function HoseSystemConnector:removeConnectorOnDetachListener(listener)
-    if listener ~= nil then
-        Utils.removeElementFromTable(self.connectorOnDetachListeners, listener)
     end
 end
 
@@ -466,10 +446,6 @@ function HoseSystemConnector:onConnectorAttach(referenceId, hoseSystem)
 end
 
 function HoseSystemConnector:onConnectorDetach(referenceId)
-    for _, listener in pairs(self.connectorOnDetachListeners) do
-        listener:onDetachConnector()
-    end
-
     local reference = self.hoseSystemReferences[referenceId]
 
     if self.isServer then
