@@ -44,14 +44,16 @@ function HoseSystemDropEvent:readStream(streamId, connection)
 end
 
 function HoseSystemDropEvent:run(connection)
-    if self.syncState == HoseSystemUtil.eventHelper.STATE_CLIENT or self.syncState == HoseSystemUtil.eventHelper.STATE_SERVER then
-        self.object.poly.interactiveHandling:drop(self.index, self.player, self.syncState, true)
-    end
-
     if not connection:getIsServer() then
-        self.object:setOwner(nil)
+        if self.object:getConnectionOwner() ~= nil then
+            self.object:setConnectionOwner(nil)
+        end
 
         g_server:broadcastEvent(self, false, connection, self.object)
+    end
+
+    if self.syncState == HoseSystemUtil.eventHelper.STATE_CLIENT or self.syncState == HoseSystemUtil.eventHelper.STATE_SERVER then
+        self.object.poly.interactiveHandling:drop(self.index, self.player, self.syncState, true)
     end
 end
 

@@ -66,6 +66,11 @@ function HoseSystem:preLoad(savegame)
 
     self.loadObjectChangeValuesFromXML = Utils.overwrittenFunction(self.loadObjectChangeValuesFromXML, HoseSystem.loadObjectChangeValuesFromXML)
     self.setObjectChangeValues = Utils.overwrittenFunction(self.setObjectChangeValues, HoseSystem.setObjectChangeValues)
+
+
+    self.setConnectionOwner = HoseSystem.setConnectionOwner
+    self.getConnectionOwner = HoseSystem.getConnectionOwner
+    self.getUpdatePriority = Utils.overwrittenFunction(self.getUpdatePriority, HoseSystem.getUpdatePriority)
 end
 
 ---
@@ -119,6 +124,8 @@ function HoseSystem:load(savegame)
             self.hoseEffects = effect
         end
     end
+
+    self.creatorConnection = nil
 
     self.componentRunUpdates = 0
     self.componentNumRunUpdates = 10
@@ -589,6 +596,36 @@ end
 --
 function HoseSystem:catmullRomSpline(t, p0, p1, p2, p3)
     return 0.5 * ((2 * p1) + (-p0 + p2) * t + (2 * p0 - 5 * p1 + 4 * p2 - p3) * t ^ 2 + (-p0 + 3 * p1 - 3 * p2 + p3) * t ^ 3)
+end
+
+---
+-- @param superFunc
+-- @param skipCount
+-- @param x
+-- @param y
+-- @param z
+-- @param coeff
+-- @param connection
+--
+function HoseSystem:getUpdatePriority(superFunc, skipCount, x, y, z, coeff, connection)
+    if connection == self:getConnectionOwner() then
+        return 50
+    end
+
+    return superFunc(self, skipCount, x, y, z, coeff, connection)
+end
+
+---
+-- @param owner
+--
+function HoseSystem:setConnectionOwner(owner)
+    self.creatorConnection = owner
+end
+
+---
+--
+function HoseSystem:getConnectionOwner()
+    return self.creatorConnection
 end
 
 ---

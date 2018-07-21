@@ -43,14 +43,14 @@ function HoseSystemGrabEvent:readStream(streamId, connection)
 end
 
 function HoseSystemGrabEvent:run(connection)
-    if self.syncState == HoseSystemUtil.eventHelper.STATE_CLIENT or self.syncState == HoseSystemUtil.eventHelper.STATE_SERVER then
-        self.object.poly.interactiveHandling:grab(self.index, self.player, self.syncState, true)
-    end
-
     if not connection:getIsServer() then
-        self.object:setOwner(connection)
+        self.object:setConnectionOwner(connection)
 
         g_server:broadcastEvent(self, false, connection, self.object)
+    end
+
+    if self.syncState == HoseSystemUtil.eventHelper.STATE_CLIENT or self.syncState == HoseSystemUtil.eventHelper.STATE_SERVER then
+        self.object.poly.interactiveHandling:grab(self.index, self.player, self.syncState, true)
     end
 end
 
