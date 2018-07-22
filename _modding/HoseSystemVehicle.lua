@@ -10,6 +10,22 @@ HoseSystemVehicle = {}
 HoseSystemVehicle.version = 1.2
 
 ---
+--
+function HoseSystemVehicle.initSpecialization()
+    if g_hoseSystem ~= nil then
+        return
+    end
+
+    local noopFunction = function() end
+
+    for _, method in pairs({ "load", "delete", "mouseEvent", "keyEvent", "update", "draw" }) do
+        if HoseSystemVehicle[method] == nil then
+            HoseSystemVehicle[method] = noopFunction
+        end
+    end
+end
+
+---
 -- @param specializations
 --
 function HoseSystemVehicle.prerequisitesPresent(specializations)
