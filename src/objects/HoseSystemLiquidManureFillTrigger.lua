@@ -345,7 +345,7 @@ function HoseSystemLiquidManureFillTrigger:getNearestReference(playerTrans)
 
         if reference ~= nil and reference.isUsed and reference.hoseSystem ~= nil then
             for grabPointIndex, grabPoint in pairs(reference.hoseSystem.grabPoints) do
-                if HoseSystem:getIsConnected(grabPoint.state) and grabPoint.connectorRefId == referenceIndex then
+                if HoseSystem:getIsConnected(grabPoint.state) and grabPoint.connectorRefId == referenceId then
                     local gx, gy, gz = getWorldTranslation(reference.node)
                     local dist = Utils.vector3Length(x - gx, y - gy, z - gz)
 
@@ -354,7 +354,7 @@ function HoseSystemLiquidManureFillTrigger:getNearestReference(playerTrans)
                     if dist < nearestDisSequence then
                         nearestDisSequence = dist
 
-                        return referenceIndex
+                        return referenceId
                     end
                 end
             end
